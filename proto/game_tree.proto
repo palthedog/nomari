@@ -136,6 +136,7 @@ message PlayerAction {
   bytes action_data = 2;
   
   // Strategy-related probability (for mixed strategies)
+  // Should be in range [0.0, 1.0]
   double probability = 3;
 }
 
@@ -148,6 +149,7 @@ message OpponentAction {
   bytes action_data = 2;
   
   // Expected probability of opponent taking this action
+  // Should be in range [0.0, 1.0]
   double expected_probability = 3;
   
   // Opponent modeling information
@@ -175,6 +177,8 @@ message Transition {
   Node target_node = 2;
   
   // Probability of this transition occurring (for stochastic games)
+  // Should be in range [0.0, 1.0]
+  // All transitions from the same action should sum to 1.0
   double probability = 3;
   
   // Immediate reward for taking this transition
