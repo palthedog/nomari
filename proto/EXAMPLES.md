@@ -169,7 +169,7 @@ GameTree {
             node_id: "result_1",
             state: { state_variables: { "position": { int_value: 1 } } }
           }
-          probability: 0.16667  // 1/6 chance
+          probability: 0.166667  // 1/6 chance
           immediate_reward: 1.0
         },
         {
@@ -178,7 +178,7 @@ GameTree {
             node_id: "result_2",
             state: { state_variables: { "position": { int_value: 2 } } }
           }
-          probability: 0.16667  // 1/6 chance
+          probability: 0.166667  // 1/6 chance
           immediate_reward: 2.0
         }
         # ... additional outcomes for dice rolls 3-6
@@ -319,7 +319,7 @@ GameTree tree2 = GameTree.parseFrom(serialized);
 
 2. **Consistent State Representation**: Choose one state representation method (state_variables or serialized_state) and use it consistently throughout the tree.
 
-3. **Probability Validation**: Ensure that transition probabilities from a node sum to 1.0 for deterministic action outcomes, or represent uncertainty explicitly. Note that probabilities are represented as double values, so some precision loss is acceptable (e.g., 0.16667 for 1/6 is sufficient for most applications).
+3. **Probability Validation**: Ensure that transition probabilities from a node sum to 1.0 for deterministic action outcomes, or represent uncertainty explicitly. Note that probabilities are represented as double values, so some precision loss is acceptable (e.g., 0.166667 for 1/6 is sufficient for most applications).
 
 4. **Action Differentiation**: Use PlayerAction for controllable actions and OpponentAction for modeled opponent behavior.
 
