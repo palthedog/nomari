@@ -169,7 +169,7 @@ GameTree {
             node_id: "result_1",
             state: { state_variables: { "position": { int_value: 1 } } }
           }
-          probability: 0.166  // 1/6 chance
+          probability: 0.16667  // 1/6 chance
           immediate_reward: 1.0
         },
         {
@@ -178,7 +178,7 @@ GameTree {
             node_id: "result_2",
             state: { state_variables: { "position": { int_value: 2 } } }
           }
-          probability: 0.166  // 1/6 chance
+          probability: 0.16667  // 1/6 chance
           immediate_reward: 2.0
         }
         # ... additional outcomes for dice rolls 3-6
