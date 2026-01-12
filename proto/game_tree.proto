@@ -1,0 +1,323 @@
+syntax = "proto3";
+
+package mari.game_tree;
+
+// Represents a complete game tree structure for decision modeling
+message GameTree {
+  // Root node of the game tree
+  Node root = 1;
+  
+  // Metadata about the game tree
+  GameTreeMetadata metadata = 2;
+}
+
+// Metadata about the game tree
+message GameTreeMetadata {
+  // Name or identifier of the game
+  string game_name = 1;
+  
+  // Version of the game tree schema
+  string version = 2;
+  
+  // Optional description
+  string description = 3;
+  
+  // Creation timestamp (Unix timestamp)
+  int64 created_at = 4;
+}
+
+// Represents a node in the game tree
+message Node {
+  // Unique identifier for the node
+  string node_id = 1;
+  
+  // State of the game at this node
+  PlayerState state = 2;
+  
+  // Type of node
+  oneof node_type {
+    IntermediateNode intermediate = 3;
+    TerminalNode terminal = 4;
+  }
+}
+
+// Represents an intermediate (non-terminal) node where decisions are made
+message IntermediateNode {
+  // Whose turn it is at this node
+  Player current_player = 1;
+  
+  // Available actions from this node
+  repeated Action available_actions = 2;
+  
+  // Transitions to child nodes
+  repeated Transition transitions = 3;
+}
+
+// Represents a terminal node where the game ends
+message TerminalNode {
+  // Final rewards for each player
+  repeated Reward rewards = 1;
+  
+  // Outcome type (win, loss, draw, etc.)
+  Outcome outcome = 2;
+  
+  // Optional description of the terminal state
+  string description = 3;
+}
+
+// Represents the state of the game at a particular node
+message PlayerState {
+  // General state information as key-value pairs
+  map<string, StateValue> state_variables = 1;
+  
+  // Player-specific states
+  repeated PlayerSpecificState player_states = 2;
+  
+  // Optional serialized state representation
+  bytes serialized_state = 3;
+}
+
+// Represents different types of state values
+message StateValue {
+  oneof value {
+    int64 int_value = 1;
+    double double_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+    bytes bytes_value = 5;
+  }
+}
+
+// Represents state specific to a player
+message PlayerSpecificState {
+  // Player identifier
+  Player player = 1;
+  
+  // Player-specific state variables
+  map<string, StateValue> variables = 2;
+}
+
+// Enumeration of players
+enum Player {
+  PLAYER_UNSPECIFIED = 0;
+  PLAYER_1 = 1;  // Primary player
+  PLAYER_2 = 2;  // Opponent
+  PLAYER_3 = 3;  // Additional player (for multi-player games)
+  PLAYER_4 = 4;  // Additional player (for multi-player games)
+}
+
+// Represents an action that can be taken
+message Action {
+  // Unique identifier for the action
+  string action_id = 1;
+  
+  // Action type (differentiated by player)
+  oneof action_type {
+    PlayerAction player_action = 2;
+    OpponentAction opponent_action = 3;
+  }
+  
+  // Human-readable description of the action
+  string description = 4;
+  
+  // Cost or resource requirements for the action
+  double cost = 5;
+  
+  // Additional action parameters
+  map<string, StateValue> parameters = 6;
+}
+
+// Represents an action taken by the primary player
+message PlayerAction {
+  // Action name/type
+  string action_name = 1;
+  
+  // Action-specific data
+  bytes action_data = 2;
+  
+  // Strategy-related probability (for mixed strategies)
+  // Should be in range [0.0, 1.0]
+  // All action probabilities within a mixed strategy should sum to 1.0
+  double probability = 3;
+}
+
+// Represents an action taken by the opponent
+message OpponentAction {
+  // Action name/type
+  string action_name = 1;
+  
+  // Action-specific data
+  bytes action_data = 2;
+  
+  // Expected probability of opponent taking this action
+  // Should be in range [0.0, 1.0]
+  // All opponent action probabilities at a node should sum to 1.0
+  double expected_probability = 3;
+  
+  // Opponent modeling information
+  OpponentModel opponent_model = 4;
+}
+
+// Information about opponent behavior modeling
+message OpponentModel {
+  // Model type (e.g., "uniform", "learned", "expert")
+  string model_type = 1;
+  
+  // Confidence in the model prediction
+  double confidence = 2;
+  
+  // Additional model parameters
+  map<string, StateValue> model_parameters = 3;
+}
+
+// Represents a transition from one node to another
+message Transition {
+  // Action that triggers this transition
+  string action_id = 1;
+  
+  // Target node after the transition
+  Node target_node = 2;
+  
+  // Probability of this transition occurring (for stochastic games)
+  // Should be in range [0.0, 1.0]
+  // All transitions from the same action should sum to 1.0
+  double probability = 3;
+  
+  // Immediate reward for taking this transition
+  double immediate_reward = 4;
+  
+  // Transition metadata
+  map<string, StateValue> metadata = 5;
+}
+
+// Represents a reward at a terminal node
+message Reward {
+  // Player receiving the reward
+  Player player = 1;
+  
+  // Reward value (positive or negative)
+  double value = 2;
+  
+  // Reward type/category
+  RewardType type = 3;
+  
+  // Optional description
+  string description = 4;
+}
+
+// Types of rewards
+enum RewardType {
+  REWARD_TYPE_UNSPECIFIED = 0;
+  REWARD_WIN = 1;           // Reward for winning
+  REWARD_LOSS = 2;          // Penalty for losing
+  REWARD_DRAW = 3;          // Reward for draw
+  REWARD_INTERMEDIATE = 4;  // Intermediate/step reward
+  REWARD_BONUS = 5;         // Bonus reward
+  REWARD_PENALTY = 6;       // Penalty
+}
+
+// Outcome of a terminal state
+message Outcome {
+  // Winner of the game
+  Player winner = 1;
+  
+  // Type of outcome
+  OutcomeType type = 2;
+  
+  // Score or point values for each player
+  repeated PlayerScore player_scores = 3;
+}
+
+// Score for a specific player
+message PlayerScore {
+  // Player identifier
+  Player player = 1;
+  
+  // Score value
+  double score = 2;
+}
+
+// Types of outcomes
+enum OutcomeType {
+  OUTCOME_TYPE_UNSPECIFIED = 0;
+  OUTCOME_PLAYER_1_WIN = 1;
+  OUTCOME_PLAYER_2_WIN = 2;
+  OUTCOME_DRAW = 3;
+  OUTCOME_STALEMATE = 4;
+  OUTCOME_ABANDONED = 5;
+}
+
+// Strategy representation for a player
+message Strategy {
+  // Player for whom this strategy is defined
+  Player player = 1;
+  
+  // Strategy type (pure, mixed, etc.)
+  StrategyType type = 2;
+  
+  // Action probabilities at each node
+  repeated ActionProbability action_probabilities = 3;
+  
+  // Expected value of the strategy
+  double expected_value = 4;
+}
+
+// Types of strategies
+enum StrategyType {
+  STRATEGY_TYPE_UNSPECIFIED = 0;
+  PURE = 1;      // Pure strategy (deterministic)
+  MIXED = 2;     // Mixed strategy (probabilistic)
+  BEHAVIORAL = 3; // Behavioral strategy
+}
+
+// Probability of taking a specific action at a specific node
+message ActionProbability {
+  // Node identifier
+  string node_id = 1;
+  
+  // Action identifier
+  string action_id = 2;
+  
+  // Probability of taking this action
+  double probability = 3;
+}
+
+// Solution concept for the game
+message Solution {
+  // Type of solution (Nash equilibrium, etc.)
+  SolutionType type = 1;
+  
+  // Strategies for each player
+  repeated Strategy strategies = 2;
+  
+  // Solution quality metrics
+  map<string, double> quality_metrics = 3;
+  
+  // Computation metadata
+  SolutionMetadata metadata = 4;
+}
+
+// Types of solution concepts
+enum SolutionType {
+  SOLUTION_TYPE_UNSPECIFIED = 0;
+  NASH_EQUILIBRIUM = 1;
+  DOMINANT_STRATEGY = 2;
+  MINIMAX = 3;
+  ALPHA_BETA = 4;
+  MONTE_CARLO = 5;
+}
+
+// Metadata about the solution computation
+message SolutionMetadata {
+  // Algorithm used
+  string algorithm = 1;
+  
+  // Computation time in milliseconds
+  int64 computation_time_ms = 2;
+  
+  // Number of nodes explored
+  int64 nodes_explored = 3;
+  
+  // Additional parameters used in computation
+  map<string, StateValue> parameters = 4;
+}
