@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mari - Fighting Game Oki Strategy Solver</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Mari - Oki Strategy Solver</h1>
+            <p class="subtitle">Find game theory optimal strategies for fighting game oki situations</p>
+        </header>
+
+        <div class="main-content">
+            <!-- States Section -->
+            <section class="section" id="states-section">
+                <h2>States / Situations</h2>
+                <div class="section-content">
+                    <div class="input-group">
+                        <input type="text" id="state-name-input" placeholder="State name (e.g., Knockdown)">
+                        <button id="add-state-btn" class="btn btn-primary">Add State</button>
+                    </div>
+                    <div id="states-list" class="list-container"></div>
+                </div>
+            </section>
+
+            <!-- Moves Section -->
+            <section class="section" id="moves-section">
+                <h2>Moves</h2>
+                <div class="section-content">
+                    <div id="no-state-selected" class="info-message">
+                        Select a state to add moves
+                    </div>
+                    <div id="move-editor" style="display: none;">
+                        <h3 id="selected-state-name"></h3>
+                        
+                        <div class="player-sections">
+                            <!-- Player 1 Moves -->
+                            <div class="player-section">
+                                <h4>Player 1 Moves</h4>
+                                <div class="input-group">
+                                    <input type="text" id="p1-move-name" placeholder="Move name">
+                                    <button id="add-p1-move-btn" class="btn btn-secondary">Add Move</button>
+                                </div>
+                                <div id="p1-moves-list" class="moves-list"></div>
+                            </div>
+
+                            <!-- Player 2 Moves -->
+                            <div class="player-section">
+                                <h4>Player 2 Moves</h4>
+                                <div class="input-group">
+                                    <input type="text" id="p2-move-name" placeholder="Move name">
+                                    <button id="add-p2-move-btn" class="btn btn-secondary">Add Move</button>
+                                </div>
+                                <div id="p2-moves-list" class="moves-list"></div>
+                            </div>
+                        </div>
+
+                        <!-- Move Outcomes Editor -->
+                        <div id="move-outcomes-section" style="display: none;">
+                            <h4>Move Outcome: <span id="current-move-combo"></span></h4>
+                            <div class="outcome-inputs">
+                                <div class="input-group">
+                                    <label>Reward (P1 damage advantage):</label>
+                                    <input type="number" id="outcome-reward" step="1" value="0">
+                                </div>
+                                <div class="input-group">
+                                    <label>Next State:</label>
+                                    <select id="outcome-next-state">
+                                        <option value="">Terminal (game ends)</option>
+                                    </select>
+                                </div>
+                                <button id="save-outcome-btn" class="btn btn-primary">Save Outcome</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Solver Section -->
+            <section class="section" id="solver-section">
+                <h2>Solver</h2>
+                <div class="section-content">
+                    <div class="input-group">
+                        <label>Iterations:</label>
+                        <input type="number" id="solver-iterations" value="10000" min="100" step="100">
+                        <button id="run-solver-btn" class="btn btn-success">Run CFR Solver</button>
+                    </div>
+                    <div id="solver-status" class="info-message"></div>
+                    <div id="solver-results" class="results-container"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="cfr-solver.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
