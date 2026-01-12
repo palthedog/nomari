@@ -219,7 +219,16 @@ message Outcome {
   OutcomeType type = 2;
   
   // Score or point values for each player
-  map<string, double> scores = 3;
+  repeated PlayerScore player_scores = 3;
+}
+
+// Score for a specific player
+message PlayerScore {
+  // Player identifier
+  Player player = 1;
+  
+  // Score value
+  double score = 2;
 }
 
 // Types of outcomes
