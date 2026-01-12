@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package mari.game_tree;
+
+// Represents a complete game tree structure
+message GameTree {
+  // Root node of the game tree
+  Node root = 1;
+  
+  // Metadata about the game tree
+  GameTreeMetadata metadata = 2;
+}
+
+// Metadata about the game tree
+message GameTreeMetadata {
+  // Name or identifier of the game
+  string game_name = 1;
+  
+  // Version of the game tree schema
+  string version = 2;
+  
+  // Optional description
+  string description = 3;
+  
+  // Creation timestamp (Unix timestamp)
+  int64 created_at = 4;
+}
+
+// Represents a node in the game tree
+message Node {
+  // Unique identifier for the node
+  string node_id = 1;
+  
+  // State of the game at this node
+  PlayerState state = 2;
+  
+  // Explicit terminal flag
+  bool is_terminal = 3;
+  
+  // Type of node
+  oneof node_type {
+    IntermediateNode intermediate = 4;
+    TerminalNode terminal = 5;
+  }
+}
+
+// Represents an intermediate (non-terminal) node
+message IntermediateNode {
+  // Whose turn it is at this node
+  Player current_player = 1;
+  
+  // Available actions from this node
+  repeated Action available_actions = 2;
+  
+  // Transitions to child nodes
+  repeated Transition transitions = 3;
+}
+
+// Represents a terminal node where the game ends
+message TerminalNode {
+  // Final rewards for each player
+  repeated Reward rewards = 1;
+  
+  // Optional description of the terminal state
+  string description = 2;
+}
+
+// Represents the state of the game at a particular node
+message PlayerState {
+  // General state information as key-value pairs
+  map<string, StateValue> state_variables = 1;
+  
+  // Player-specific states
+  repeated PlayerSpecificState player_states = 2;
+}
+
+// Represents different types of state values
+message StateValue {
+  oneof value {
+    int64 int_value = 1;
+    double double_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+    bytes bytes_value = 5;
+  }
+}
+
+// Represents state specific to a player
+message PlayerSpecificState {
+  // Player identifier
+  Player player = 1;
+  
+  // Player-specific state variables
+  map<string, StateValue> variables = 2;
+}
+
+// Enumeration of players
+enum Player {
+  PLAYER_UNSPECIFIED = 0;
+  PLAYER_1 = 1;
+  PLAYER_2 = 2;
+}
+
+// Represents an action that can be taken
+message Action {
+  // Unique identifier for the action
+  string action_id = 1;
+  
+  // Human-readable name of the action
+  string action_name = 2;
+  
+  // Optional description
+  string description = 3;
+  
+  // Additional action parameters
+  map<string, StateValue> parameters = 4;
+}
+
+// Represents a transition from one node to another
+message Transition {
+  // Action that triggers this transition
+  string action_id = 1;
+  
+  // Target node after the transition
+  Node target_node = 2;
+  
+  // Explicit terminal flag for the target
+  bool target_is_terminal = 3;
+  
+  // Probability of this transition occurring
+  // Should be in range [0.0, 1.0]
+  double probability = 4;
+  
+  // Immediate reward for taking this transition
+  double immediate_reward = 5;
+}
+
+// Represents a reward
+message Reward {
+  // Player receiving the reward
+  Player player = 1;
+  
+  // Reward value (positive or negative)
+  double value = 2;
+  
+  // Reward type/category
+  RewardType type = 3;
+}
+
+// Types of rewards
+enum RewardType {
+  REWARD_TYPE_UNSPECIFIED = 0;
+  REWARD_WIN = 1;
+  REWARD_LOSS = 2;
+  REWARD_DRAW = 3;
+  REWARD_INTERMEDIATE = 4;
+}
