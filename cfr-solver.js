@@ -175,6 +175,7 @@ class CFRSolver {
      * Train the CFR solver for a given number of iterations
      */
     train(iterations, startState = null) {
+        // Reset node count for this training session
         this.nodeCount = 0;
         
         // Find starting state if not provided
@@ -186,10 +187,10 @@ class CFRSolver {
             startState = stateIds[0];
         }
 
-        // Run CFR iterations
+        // Run CFR iterations, alternating starting player to reduce bias
         for (let i = 0; i < iterations; i++) {
-            // Alternate between players to reduce bias
-            this.cfr(startState, i % 2, 1, 1);
+            const startingPlayer = i % 2; // Alternate between Player 0 and Player 1
+            this.cfr(startState, startingPlayer, 1, 1);
         }
 
         return this.getResults();

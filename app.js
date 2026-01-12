@@ -87,14 +87,14 @@ class FightingGameApp {
         const name = input.value.trim();
         
         if (!name) {
-            alert('Please enter a state name');
+            this.showError('Please enter a state name');
             return;
         }
 
         const id = this.generateId(name);
         
         if (this.gameData.states[id]) {
-            alert('State already exists');
+            this.showError('State already exists');
             return;
         }
 
@@ -143,7 +143,7 @@ class FightingGameApp {
 
     addMove(player) {
         if (!this.selectedState) {
-            alert('Please select a state first');
+            this.showError('Please select a state first');
             return;
         }
 
@@ -152,7 +152,7 @@ class FightingGameApp {
         const name = input.value.trim();
 
         if (!name) {
-            alert('Please enter a move name');
+            this.showError('Please enter a move name');
             return;
         }
 
@@ -230,11 +230,61 @@ class FightingGameApp {
             nextState: nextState
         };
 
-        alert('Outcome saved!');
+        this.showSuccess('Outcome saved successfully!');
         this.selectedP1Move = null;
         this.selectedP2Move = null;
         document.getElementById('move-outcomes-section').style.display = 'none';
         this.renderMoves();
+    }
+
+    showError(message) {
+        // Create temporary error notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    showSuccess(message) {
+        // Create temporary success notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 
     updateNextStateOptions() {
@@ -347,8 +397,8 @@ class FightingGameApp {
         statusDiv.textContent = 'Running CFR solver...';
         resultsDiv.innerHTML = '';
 
-        // Give the UI time to update
-        setTimeout(() => {
+        // Use requestAnimationFrame for better performance
+        requestAnimationFrame(() => {
             try {
                 const solver = new CFRSolver(this.gameData);
                 const startState = this.selectedState || Object.keys(this.gameData.states)[0];
@@ -371,7 +421,7 @@ class FightingGameApp {
                 statusDiv.style.borderColor = '#dc3545';
                 statusDiv.style.color = '#721c24';
             }
-        }, 100);
+        });
     }
 
     displayResults(results) {
