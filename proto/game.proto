@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+//Game Tree
+message GameTree {
+  string id = 1;
+  Node root = 2;
+}
+
+message Node {
+  string id = 1;
+
+  // It would generate human friendly search key for the situation
+  // E.g. "sf6/marisa/ryu/oki/+4F"
+  Situation situation = 2;
+
+  // Human readable description of the situation
+  string description = 3;
+
+  // Possible actions for the player
+  PlayerActions player_actions = 4;
+  
+  // Possible actions for the opponent
+  PlayerActions opponent_actions = 5;
+
+  // Transitions to the next nodes based on the player and opponent actions
+  repeated Transition transitions = 6;
+}
+
+// Human friendly search key for the situation
+// E.g. "rps", "sf6/marisa-ryu/oki/+4F"
+message Situation {
+  message Cell {
+    // E.g. "title", "matchup", "opponent"
+    string id = 1;
+
+    // E.g. "sf6", "marisa-ryu"
+    string value = 2;
+  }
+  repeated Cell cells = 1;
+}
+
+message PlayerActions {
+  string id = 1;
+  repeated Action actions = 2;
+}
+
+message Action {
+  string id = 1;
+  
+  // Description of the action (e.g. "attack", "guard")
+  string description = 2;
+}
+
+// Transition to the next node based on the player and opponent actions
+message Transition {
+  string player_action_id = 1;
+  string opponent_action_id = 2;
+
+  string next_node_id = 3;
+  bool is_terminal = 4;
+  
+  Reward player_reward = 5;
+  Reward opponent_reward = 6;
+}
+
+message Reward {
+  int32 value = 1;
+}
