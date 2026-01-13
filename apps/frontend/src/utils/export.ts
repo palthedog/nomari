@@ -1,10 +1,10 @@
-import { GameTree } from '@mari/game-tree/game-tree';
+import type { GameDefinition } from '@mari/game-definition/types';
 
 /**
- * Export GameTree as JSON
+ * Export GameDefinition as JSON
  */
-export function exportAsJSON(gameTree: GameTree, filename: string = 'gametree.json'): void {
-    const json = JSON.stringify(gameTree, null, 2);
+export function exportAsJSON(gameDefinition: GameDefinition, filename: string = 'gamedefinition.json'): void {
+    const json = JSON.stringify(gameDefinition, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -17,10 +17,10 @@ export function exportAsJSON(gameTree: GameTree, filename: string = 'gametree.js
 }
 
 /**
- * Export GameTree as Protocol Buffer (future implementation)
+ * Export GameDefinition as Protocol Buffer (future implementation)
  * For now, this is a placeholder
  */
-export function exportAsProto(_gameTree: GameTree, _filename: string = 'gametree.proto'): void {
+export function exportAsProto(_gameDefinition: GameDefinition, _filename: string = 'gamedefinition.proto'): void {
     // TODO: Implement protocol buffer encoding
     // This would require protobuf-js or similar library
     console.warn('Protocol Buffer export is not yet implemented');

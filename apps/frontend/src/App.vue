@@ -10,47 +10,31 @@
 
     <div class="app-content">
       <div class="editor-section">
-        <GameTreeEditor v-model="gameTree" />
+        <GameDefinitionEditor v-model="gameDefinition" />
       </div>
-      <div class="visualization-section">
+      <!-- GameTreeVisualization is temporarily hidden, will be implemented in a separate PR -->
+      <!-- <div class="visualization-section">
         <GameTreeVisualization :game-tree="gameTree" />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { GameTree, Node } from '@mari/game-tree/game-tree';
+import type { GameDefinition } from '@mari/game-definition/types';
 import { exportAsJSON, exportAsProto } from './utils/export';
-import GameTreeEditor from './components/GameTreeEditor.vue';
-import GameTreeVisualization from './components/GameTreeVisualization.vue';
+import { createInitialGameDefinition } from './utils/game-definition-utils';
+import GameDefinitionEditor from './components/GameDefinitionEditor.vue';
 
-// 初期GameTreeを作成
-const createInitialGameTree = (): GameTree => {
-  const rootNode: Node = {
-    id: 'root',
-    description: 'ルートノード',
-    transitions: []
-  };
-
-  return {
-    id: 'game1',
-    root: 'root',
-    nodes: {
-      'root': rootNode
-    }
-  };
-};
-
-const gameTree = ref<GameTree>(createInitialGameTree());
+const gameDefinition = ref<GameDefinition>(createInitialGameDefinition());
 
 function exportJSON() {
-  exportAsJSON(gameTree.value, `gametree_${gameTree.value.id}.json`);
+  exportAsJSON(gameDefinition.value, `gamedefinition_${gameDefinition.value.id}.json`);
 }
 
 function exportProto() {
-  exportAsProto(gameTree.value, `gametree_${gameTree.value.id}.proto`);
+  exportAsProto(gameDefinition.value, `gamedefinition_${gameDefinition.value.id}.proto`);
 }
 </script>
 
@@ -125,5 +109,10 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* Temporarily hide visualization section */
+.visualization-section {
+  display: none;
 }
 </style>
