@@ -1,0 +1,31 @@
+# Basic rules
+## Language
+All comments in source codes must be written in English
+
+## Style Guide
+Follow Google Style Guides for all programming languages.
+https://google.github.io/styleguide/
+
+If you are not capable to memory the rules, try to:
+- update `.cursorrules` to 
+- update lint tool configurations
+
+# File Naming Convention
+
+All file names must use kebab-case (hyphen-separated lowercase words).
+
+Examples:
+- ✅ `game-tree-builder.ts`
+- ✅ `tree-utils.ts`
+- ✅ `node-editor.vue`
+- ❌ `gameTreeBuilder.ts` (camelCase)
+- ❌ `GameTreeBuilder.ts` (PascalCase)
+- ❌ `game_tree_builder.ts` (snake_case)
+
+This rule applies to:
+- TypeScript files (`.ts`, `.tsx`)
+- JavaScript files (`.js`, `.jsx`)
+- Vue files (`.vue`)
+- All other source code files
+
+Exception: Configuration files that follow their own conventions (e.g., `package.json`, `tsconfig.json`) are exempt from this rule.

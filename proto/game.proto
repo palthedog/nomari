@@ -115,4 +115,7 @@ message Transition {
   // Situation would be reached after the action is taken.
   // In case player/opponent's health becomes 0, the next situation would be overwritten to a terminal situation.
   string next_situation_id = 3;
+
+  // Resource consumptions that occur during this transition (e.g., damage dealt)
+  repeated ResourceConsumption resource_consumptions = 4;
 }
