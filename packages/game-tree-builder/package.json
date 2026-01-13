@@ -10,7 +10,7 @@
         "test:watch": "jest --watch"
     },
     "dependencies": {
-        "@mari/game-definition": "*",
+        "@mari/ts-proto": "*",
         "@mari/game-tree": "*"
     },
     "devDependencies": {

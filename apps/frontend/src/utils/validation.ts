@@ -1,6 +1,6 @@
 import type {
     GameDefinition,
-} from '@mari/game-definition/types';
+} from '@mari/ts-proto';
 
 export interface ValidationError {
     field: string;
@@ -48,7 +48,7 @@ export function validateGameDefinition(gameDefinition: GameDefinition): Validati
     }
 
     // Validate initialDynamicState has at least one resource
-    if (!gameDefinition.initialDynamicState.resources || gameDefinition.initialDynamicState.resources.length === 0) {
+    if (!gameDefinition.initialDynamicState || !gameDefinition.initialDynamicState.resources || gameDefinition.initialDynamicState.resources.length === 0) {
         errors.push({
             field: 'initialDynamicState',
             message: 'Initial Dynamic State must have at least one resource',

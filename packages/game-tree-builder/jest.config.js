@@ -4,7 +4,7 @@ module.exports = {
     roots: ['<rootDir>'],
     testMatch: ['**/*.test.ts'],
     moduleNameMapper: {
-        '^@mari/game-definition/types$': '<rootDir>/../game-definition/types',
+        '^@mari/ts-proto$': '<rootDir>/../ts-proto',
         '^@mari/game-tree/game-tree$': '<rootDir>/../game-tree/game-tree',
     },
 };

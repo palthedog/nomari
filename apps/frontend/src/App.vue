@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { GameDefinition } from '@mari/game-definition/types';
+import type { GameDefinition } from '@mari/ts-proto';
 import { exportAsJSON, exportAsProto } from './utils/export';
 import { createInitialGameDefinition } from './utils/game-definition-utils';
 import GameDefinitionEditor from './components/GameDefinitionEditor.vue';

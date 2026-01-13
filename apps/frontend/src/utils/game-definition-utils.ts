@@ -1,12 +1,12 @@
 import type {
     GameDefinition,
-    ProtoSituation,
+    Situation,
     TerminalSituation,
-} from '@mari/game-definition/types';
+} from '@mari/ts-proto';
 import {
     ResourceType,
     TerminalSituationType,
-} from '@mari/game-definition/types';
+} from '@mari/ts-proto';
 
 /**
  * Generate a unique ID with a prefix
@@ -21,7 +21,7 @@ export function generateId(prefix: string = 'id'): string {
 export function createInitialGameDefinition(): GameDefinition {
     const rootSituationId = generateId('situation');
 
-    const initialSituation: ProtoSituation = {
+    const initialSituation: Situation = {
         situationId: rootSituationId,
         description: '初期状況',
         playerActions: {
@@ -37,7 +37,7 @@ export function createInitialGameDefinition(): GameDefinition {
 
     const initialTerminalSituation: TerminalSituation = {
         situationId: generateId('terminal'),
-        type: TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL,
+        type: TerminalSituationType.NEUTRAL,
         name: '終端状況',
         description: '終端状況の説明',
     };
@@ -52,11 +52,11 @@ export function createInitialGameDefinition(): GameDefinition {
         initialDynamicState: {
             resources: [
                 {
-                    resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH,
+                    resourceType: ResourceType.PLAYER_HEALTH,
                     value: 5000,
                 },
                 {
-                    resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH,
+                    resourceType: ResourceType.OPPONENT_HEALTH,
                     value: 4000,
                 },
             ],
@@ -67,7 +67,7 @@ export function createInitialGameDefinition(): GameDefinition {
 /**
  * Create an empty ProtoSituation
  */
-export function createEmptySituation(): ProtoSituation {
+export function createEmptySituation(): Situation {
     return {
         situationId: generateId('situation'),
         description: '',
@@ -89,7 +89,7 @@ export function createEmptySituation(): ProtoSituation {
 export function createEmptyTerminalSituation(): TerminalSituation {
     return {
         situationId: generateId('terminal'),
-        type: TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL,
+        type: TerminalSituationType.NEUTRAL,
         name: '',
         description: '',
     };

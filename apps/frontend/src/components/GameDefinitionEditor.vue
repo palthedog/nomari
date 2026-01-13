@@ -148,10 +148,10 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import type {
     GameDefinition,
-    ProtoSituation,
+    Situation,
     TerminalSituation,
     DynamicState,
-} from '@mari/game-definition/types';
+} from '@mari/ts-proto';
 import {
     createEmptySituation,
     createEmptyTerminalSituation,
@@ -250,7 +250,7 @@ function addSituation() {
     selectSituation(newSituation.situationId);
 }
 
-function updateSituation(updatedSituation: ProtoSituation) {
+function updateSituation(updatedSituation: Situation) {
     const index = gameDefinition.value.situations.findIndex(
         (s) => s.situationId === updatedSituation.situationId
     );

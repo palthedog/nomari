@@ -3,6 +3,8 @@
     "version": "1.0.0",
     "type": "module",
     "scripts": {
+        "predev": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
+        "prebuild": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
         "dev": "vite",
         "build": "tsc && vite build",
         "preview": "vite preview",
@@ -10,7 +12,7 @@
     },
     "dependencies": {
         "vue": "^3.4.0",
-        "@mari/game-definition": "*",
+        "@mari/ts-proto": "*",
         "@mari/game-tree": "*",
         "@mari/game-tree-builder": "*"
     },

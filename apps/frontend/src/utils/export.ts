@@ -1,4 +1,4 @@
-import type { GameDefinition } from '@mari/game-definition/types';
+import type { GameDefinition } from '@mari/ts-proto';
 
 /**
  * Export GameDefinition as JSON

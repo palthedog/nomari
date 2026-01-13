@@ -1,0 +1,21 @@
+{
+    "name": "@mari/ts-proto",
+    "version": "1.0.0",
+    "description": "Generated TypeScript types from proto files",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "generate": "npx protoc --proto_path=../../proto --plugin=protoc-gen-ts=../../node_modules/@protobuf-ts/plugin/bin/protoc-gen-ts --ts_out=generated ../../proto/game.proto",
+        "build": "npm run generate && tsc",
+        "test": "echo \"No tests yet\""
+    },
+    "dependencies": {
+        "@protobuf-ts/runtime": "^2.11.1"
+    },
+    "devDependencies": {
+        "@protobuf-ts/plugin": "^2.11.1",
+        "protoc": "^33.4.0",
+        "typescript": "^5.0.0"
+    }
+}

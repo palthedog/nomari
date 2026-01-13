@@ -3,7 +3,7 @@ import {
     GameDefinition,
     ResourceType,
     TerminalSituationType,
-} from '@mari/game-definition/types';
+} from '@mari/ts-proto';
 import type { NodeTransition } from '@mari/game-tree/game-tree';
 
 describe('gameTreeBuilder', () => {
@@ -67,8 +67,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -117,15 +117,15 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [
                     {
                         situationId: 'neutral',
-                        type: TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL,
+                        type: TerminalSituationType.NEUTRAL,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
                     },
                 ],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -186,7 +186,7 @@ describe('gameTreeBuilder', () => {
                                 nextSituationId: 'situation2',
                                 resourceConsumptions: [
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH,
+                                        resourceType: ResourceType.OPPONENT_HEALTH,
                                         value: 2000,
                                     },
                                 ],
@@ -214,8 +214,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -277,7 +277,7 @@ describe('gameTreeBuilder', () => {
                                 nextSituationId: 'situation2',
                                 resourceConsumptions: [
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH,
+                                        resourceType: ResourceType.OPPONENT_HEALTH,
                                         value: 5000, // Enough to kill opponent
                                     },
                                 ],
@@ -288,8 +288,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -344,7 +344,7 @@ describe('gameTreeBuilder', () => {
                                 nextSituationId: 'situation2',
                                 resourceConsumptions: [
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH,
+                                        resourceType: ResourceType.PLAYER_HEALTH,
                                         value: 6000, // Enough to kill player
                                     },
                                 ],
@@ -355,8 +355,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -411,11 +411,11 @@ describe('gameTreeBuilder', () => {
                                 nextSituationId: 'situation2',
                                 resourceConsumptions: [
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH,
+                                        resourceType: ResourceType.PLAYER_HEALTH,
                                         value: 6000, // Kill player
                                     },
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH,
+                                        resourceType: ResourceType.OPPONENT_HEALTH,
                                         value: 5000, // Kill opponent
                                     },
                                 ],
@@ -426,8 +426,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -492,15 +492,15 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [
                     {
                         situationId: 'neutral',
-                        type: TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL,
+                        type: TerminalSituationType.NEUTRAL,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
                     },
                 ],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 6000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 6000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -590,8 +590,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };
@@ -634,7 +634,7 @@ describe('gameTreeBuilder', () => {
                                 nextSituationId: 'situation2',
                                 resourceConsumptions: [
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH,
+                                        resourceType: ResourceType.OPPONENT_HEALTH,
                                         value: 100,
                                     },
                                 ],
@@ -663,7 +663,7 @@ describe('gameTreeBuilder', () => {
                                 nextSituationId: 'situation1',
                                 resourceConsumptions: [
                                     {
-                                        resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH,
+                                        resourceType: ResourceType.PLAYER_HEALTH,
                                         value: 100,
                                     },
                                 ],
@@ -674,8 +674,8 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.RESOURCE_TYPE_PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH, value: 4000 },
+                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
             };

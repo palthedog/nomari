@@ -4,10 +4,10 @@ import {
     ResourceConsumption,
     ResourceType,
     TerminalSituationType,
-    ProtoSituation,
+    Situation,
     TerminalSituation,
     Action,
-} from '@mari/game-definition/types';
+} from '@mari/ts-proto';
 import {
     GameTree,
     Node,
@@ -93,8 +93,8 @@ function isTerminalState(state: DynamicState): {
     isTerminal: boolean;
     type: 'win' | 'lose' | 'draw' | null;
 } {
-    const playerHealth = getResourceValue(state, ResourceType.RESOURCE_TYPE_PLAYER_HEALTH);
-    const opponentHealth = getResourceValue(state, ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH);
+    const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
+    const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
 
     if (playerHealth <= 0 && opponentHealth <= 0) {
         return { isTerminal: true, type: 'draw' };
@@ -180,7 +180,7 @@ function createTerminalSituationNode(
     playerHealth: number,
     opponentHealth: number
 ): Node {
-    if (terminalSituation.type === TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL) {
+    if (terminalSituation.type === TerminalSituationType.NEUTRAL) {
         const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
         return {
             id: nodeId,
@@ -214,7 +214,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     const creatingNodes = new Set<string>(); // Track nodes currently being created to prevent infinite loops
 
     // Map situations and terminal situations by ID
-    const situationMap = new Map<string, ProtoSituation>();
+    const situationMap = new Map<string, Situation>();
     for (const situation of gameDefinition.situations) {
         situationMap.set(situation.situationId, situation);
     }
@@ -262,10 +262,10 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         // Check if this is a terminal state (health <= 0)
         const terminalCheck = isTerminalState(state);
         if (terminalCheck.isTerminal) {
-            const playerHealth = getResourceValue(state, ResourceType.RESOURCE_TYPE_PLAYER_HEALTH);
+            const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
             const opponentHealth = getResourceValue(
                 state,
-                ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH
+                ResourceType.OPPONENT_HEALTH
             );
             const node = createTerminalNode(nodeKey, terminalCheck.type!, playerHealth, opponentHealth);
 
@@ -277,8 +277,8 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         // Check if this is a terminal situation (check before regular situation)
         const terminalSituation = terminalSituationMap.get(situationId);
         if (terminalSituation) {
-            const playerHealth = getResourceValue(state, ResourceType.RESOURCE_TYPE_PLAYER_HEALTH);
-            const opponentHealth = getResourceValue(state, ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH);
+            const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
+            const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
             const node = createTerminalSituationNode(nodeKey, terminalSituation, playerHealth, opponentHealth);
 
             nodeMap.set(nodeKey, node);
@@ -303,15 +303,15 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             id: nodeKey,
             description: situation.description,
             playerActions: {
-                id: situation.playerActions.id,
-                actions: situation.playerActions.actions.map((a: Action) => ({
+                id: situation.playerActions!.id,
+                actions: situation.playerActions!.actions.map((a: Action) => ({
                     id: a.id,
                     description: a.description,
                 })),
             },
             opponentActions: {
-                id: situation.opponentActions.id,
-                actions: situation.opponentActions.actions.map((a: Action) => ({
+                id: situation.opponentActions!.id,
+                actions: situation.opponentActions!.actions.map((a: Action) => ({
                     id: a.id,
                     description: a.description,
                 })),
@@ -332,11 +332,11 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 // Create terminal node
                 const playerHealth = getResourceValue(
                     newState,
-                    ResourceType.RESOURCE_TYPE_PLAYER_HEALTH
+                    ResourceType.PLAYER_HEALTH
                 );
                 const opponentHealth = getResourceValue(
                     newState,
-                    ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH
+                    ResourceType.OPPONENT_HEALTH
                 );
                 const newStateHash = hashDynamicState(newState);
                 const terminalNodeKey = `terminal_${newTerminalCheck.type}_${newStateHash}`;
@@ -398,7 +398,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     // Build the tree starting from root
     const rootNodeResult = getOrCreateNode(
         gameDefinition.rootSituationId,
-        gameDefinition.initialDynamicState
+        gameDefinition.initialDynamicState || { resources: [] }
     );
 
     if (isError(rootNodeResult)) {

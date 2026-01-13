@@ -52,6 +52,7 @@ temp/
 Thumbs.db
 .DS_Store
 
-# Protobuf generated files (if any)
+# Protobuf generated files
+packages/ts-proto/generated/
 *.pb.ts
 *.pb.js

@@ -15,8 +15,8 @@
       <div class="form-group">
         <label>Type:</label>
         <select v-model="editedTerminalSituation.type">
-          <option :value="TerminalSituationType.TERMINAL_SITUATION_TYPE_UNKNOWN">Unknown</option>
-          <option :value="TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL">Neutral</option>
+          <option :value="TerminalSituationType.UNKNOWN">Unknown</option>
+          <option :value="TerminalSituationType.NEUTRAL">Neutral</option>
         </select>
       </div>
       <div class="form-group">
@@ -33,8 +33,8 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
-import type { TerminalSituation } from '@mari/game-definition/types';
-import { TerminalSituationType } from '@mari/game-definition/types';
+import type { TerminalSituation } from '@mari/ts-proto';
+import { TerminalSituationType } from '@mari/ts-proto';
 
 const props = defineProps<{
     terminalSituation: TerminalSituation;

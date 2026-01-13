@@ -7,7 +7,6 @@
             "ES2020"
         ],
         "outDir": "./dist",
-        "rootDir": "./",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -18,8 +17,8 @@
         "sourceMap": true,
         "baseUrl": ".",
         "paths": {
-            "@mari/game-definition/types": [
-                "../game-definition/types"
+            "@mari/ts-proto": [
+                "../ts-proto"
             ],
             "@mari/game-tree/game-tree": [
                 "../game-tree/game-tree"

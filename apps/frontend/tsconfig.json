@@ -21,7 +21,7 @@
         "noFallthroughCasesInSwitch": true,
         "baseUrl": ".",
         "paths": {
-            "@mari/game-definition": ["../../packages/game-definition/types"],
+            "@mari/ts-proto": ["../../packages/ts-proto"],
             "@mari/game-tree": ["../../packages/game-tree/game-tree"],
             "@mari/game-tree-builder": ["../../packages/game-tree-builder/game-tree-builder"]
         }

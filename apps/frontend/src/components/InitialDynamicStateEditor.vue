@@ -11,9 +11,9 @@
           v-model="resource.resourceType"
           @change="updateResource(index, 'type', parseInt(($event.target as HTMLSelectElement).value, 10))"
         >
-          <option :value="ResourceType.RESOURCE_TYPE_UNKNOWN">Unknown</option>
-          <option :value="ResourceType.RESOURCE_TYPE_PLAYER_HEALTH">Player Health</option>
-          <option :value="ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH">Opponent Health</option>
+          <option :value="ResourceType.UNKNOWN">Unknown</option>
+          <option :value="ResourceType.PLAYER_HEALTH">Player Health</option>
+          <option :value="ResourceType.OPPONENT_HEALTH">Opponent Health</option>
         </select>
         <input
           type="number"
@@ -30,8 +30,8 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
-import type { DynamicState, DynamicStateResource } from '@mari/game-definition/types';
-import { ResourceType } from '@mari/game-definition/types';
+import type { DynamicState, DynamicStateResource } from '@mari/ts-proto';
+import { ResourceType } from '@mari/ts-proto';
 import { generateId } from '../utils/game-definition-utils';
 
 const props = defineProps<{
@@ -81,7 +81,7 @@ function addResource() {
         resources: [
             ...editedDynamicState.value.resources,
             {
-                resourceType: ResourceType.RESOURCE_TYPE_UNKNOWN,
+                resourceType: ResourceType.UNKNOWN,
                 value: 0,
             },
         ],

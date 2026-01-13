@@ -102,9 +102,9 @@
                       :value="consumption.resourceType"
                       @change="updateResourceConsumption(playerAction.id, oppAction.id, idx, 'type', parseInt(($event.target as HTMLSelectElement).value, 10))"
                     >
-                      <option :value="ResourceType.RESOURCE_TYPE_UNKNOWN">Unknown</option>
-                      <option :value="ResourceType.RESOURCE_TYPE_PLAYER_HEALTH">プレイヤーのダメージ</option>
-                      <option :value="ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH">相手のダメージ</option>
+                      <option :value="ResourceType.UNKNOWN">Unknown</option>
+                      <option :value="ResourceType.PLAYER_HEALTH">プレイヤーのダメージ</option>
+                      <option :value="ResourceType.OPPONENT_HEALTH">相手のダメージ</option>
                     </select>
                     <input
                       type="number"
@@ -133,26 +133,26 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
 import type {
-    ProtoSituation,
-    ProtoTransition,
+    Situation,
+    Transition,
     TerminalSituation,
     ResourceConsumption,
-} from '@mari/game-definition/types';
-import { ResourceType } from '@mari/game-definition/types';
+} from '@mari/ts-proto';
+import { ResourceType } from '@mari/ts-proto';
 import { generateId } from '../utils/game-definition-utils';
 
 const props = defineProps<{
-    situation: ProtoSituation;
-    availableSituations: ProtoSituation[];
+    situation: Situation;
+    availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
 }>();
 
 const emit = defineEmits<{
-    (e: 'update:situation', situation: ProtoSituation): void;
+    (e: 'update:situation', situation: Situation): void;
     (e: 'delete'): void;
 }>();
 
-const editedSituation = ref<ProtoSituation>({ ...props.situation });
+const editedSituation = ref<Situation>({ ...props.situation });
 let isUpdating = false;
 let isExternalUpdate = false;
 
@@ -269,7 +269,7 @@ function updateTransitions() {
 function getTransition(
     playerActionId: string,
     opponentActionId: string
-): ProtoTransition | undefined {
+): Transition | undefined {
     return editedSituation.value.transitions.find(
         (t) => t.playerActionId === playerActionId && t.opponentActionId === opponentActionId
     );
@@ -296,7 +296,7 @@ function addResourceConsumption(playerActionId: string, opponentActionId: string
         transition.resourceConsumptions = [
             ...transition.resourceConsumptions,
             {
-            resourceType: ResourceType.RESOURCE_TYPE_UNKNOWN,
+            resourceType: ResourceType.UNKNOWN,
             value: 0,
             },
         ];
