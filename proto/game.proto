@@ -1,20 +1,31 @@
 syntax = "proto3";
 
-//Game Tree
-message GameTree {
+// Definition of the game
+// Mari game tree builder would build a game tree from this definition.
+message GameDefinition {
   string id = 1;
-  Node root = 2;
+
+  string name = 2;
+  string description = 3;
+
+  // Root situation id of the game tree
+  string root_situation_id = 4;
+
+  // Situations of the game
+  repeated Situation situations = 5;
+
+  // Terminal situations of the game
+  repeated TerminalSituation terminal_situations = 6;
+
+  // Initial dynamic state of the game
+  DynamicState initial_dynamic_state = 7;
 }
 
-message Node {
-  string id = 1;
-
-  // It would generate human friendly search key for the situation
-  // E.g. "sf6/marisa/ryu/oki/+4F"
-  Situation situation = 2;
+message Situation {
+  string situation_id = 1;
 
   // Human readable description of the situation
-  string description = 3;
+  string description = 2;
 
   // Possible actions for the player
   PlayerActions player_actions = 4;
@@ -26,17 +37,59 @@ message Node {
   repeated Transition transitions = 6;
 }
 
-// Human friendly search key for the situation
-// E.g. "rps", "sf6/marisa-ryu/oki/+4F"
-message Situation {
-  message Cell {
-    // E.g. "title", "matchup", "opponent"
-    string id = 1;
+enum TerminalSituationType {
+  TERMINAL_SITUATION_TYPE_UNKNOWN = 0;
+  
+  // Neutral terminal situation. Like, non Oki situation.
+  // Let's calculate rewards at this point.
+  TERMINAL_SITUATION_TYPE_NEUTRAL = 1;
+  
+  // TODO: Do users want to have win, lose, and draw terminal situations?
+  // Mari game tree build should create terminal nodes for win/lose/draw automatically.
+  /*
+  TERMINAL_SITUATION_TYPE_WIN = 2;
+  TERMINAL_SITUATION_TYPE_LOSE = 3;
+  TERMINAL_SITUATION_TYPE_DRAW = 4;
+  */
+}
 
-    // E.g. "sf6", "marisa-ryu"
-    string value = 2;
+message TerminalSituation {
+  string situation_id = 1;
+  TerminalSituationType type = 2;
+
+  string name = 3;
+  string description = 4;
+}
+
+message RewardComputationRule {
+  // TODO: Add reward computation rule
+  // The reward should be calculated based on the player's probability of winning.
+  // It's easy to calculate the probability in case of terminal node type is win or lose.
+  // However, for draw, the win probability should be calculated based on both player's remaining resources.
+}
+
+enum ResourceType {
+  RESOURCE_TYPE_UNKNOWN = 0;
+
+  RESOURCE_TYPE_PLAYER_HEALTH = 1;
+  RESOURCE_TYPE_OPPONENT_HEALTH = 2;
+}
+
+// Transition from a game node to another game node might consume resources.
+message ResourceConsumption {
+  ResourceType resource_type = 1;
+  double value = 2;
+}
+
+// Dynamic state of the game like the player and opponent health, etc.
+// The game tree builder would create multiple nodes from a single situation with different dynamic states.
+message DynamicState {
+  message Resource {
+    ResourceType resource_type = 1;
+    double value = 2;
   }
-  repeated Cell cells = 1;
+
+  repeated Resource resources = 1;
 }
 
 message PlayerActions {
@@ -49,6 +102,9 @@ message Action {
   
   // Description of the action (e.g. "attack", "guard")
   string description = 2;
+
+  // TODO: Add resource usage of the action
+  // E.g. 'OD attack" would consumes drive.
 }
 
 // Transition to the next node based on the player and opponent actions
@@ -56,13 +112,7 @@ message Transition {
   string player_action_id = 1;
   string opponent_action_id = 2;
 
-  string next_node_id = 3;
-  bool is_terminal = 4;
-  
-  Reward player_reward = 5;
-  Reward opponent_reward = 6;
-}
-
-message Reward {
-  int32 value = 1;
+  // Situation would be reached after the action is taken.
+  // In case player/opponent's health becomes 0, the next situation would be overwritten to a terminal situation.
+  string next_situation_id = 3;
 }
