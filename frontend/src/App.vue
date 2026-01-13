@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { GameTree, Node } from './types';
+import type { GameTree, Node } from './game-tree';
 import { exportAsJSON, exportAsProto } from './utils/export';
 import GameTreeEditor from './components/GameTreeEditor.vue';
 import GameTreeVisualization from './components/GameTreeVisualization.vue';

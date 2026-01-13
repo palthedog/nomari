@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import type { GameTree, Node } from '../types';
+import type { GameTree, Node } from '../game-tree';
 import { generateNodeId } from '../utils/treeUtils';
 import NodeEditor from './NodeEditor.vue';
 

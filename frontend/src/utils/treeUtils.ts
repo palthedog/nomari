@@ -1,4 +1,4 @@
-import { GameTree, Node } from '../types';
+import { GameTree, Node } from '../game-tree';
 
 /**
  * Collect all nodes from a game tree

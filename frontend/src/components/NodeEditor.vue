@@ -126,7 +126,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import type { Node, Transition } from '../types';
+import type { Node, Transition } from '../game-tree';
 import { generateNodeId } from '../utils/treeUtils';
 
 const props = defineProps<{

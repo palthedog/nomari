@@ -1,4 +1,4 @@
-import { GameTree } from '../types';
+import { GameTree } from '../game-tree';
 
 /**
  * Export GameTree as JSON

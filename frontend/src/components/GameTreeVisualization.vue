@@ -74,7 +74,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import type { GameTree, Node } from '../types';
+import type { GameTree, Node } from '../game-tree';
 
 const props = defineProps<{
   gameTree: GameTree;
