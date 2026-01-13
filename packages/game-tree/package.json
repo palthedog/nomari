@@ -5,7 +5,8 @@
     "main": "game-tree.js",
     "types": "game-tree.d.ts",
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "test": "echo \"No tests yet\""
     },
     "devDependencies": {
         "typescript": "^5.0.0"
