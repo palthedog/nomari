@@ -7,6 +7,9 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
+# Vite
+.vite/
+
 # Build outputs
 dist/
 build/
