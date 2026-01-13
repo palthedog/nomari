@@ -43,48 +43,54 @@
     <!-- 遷移テーブル -->
     <div class="section" v-if="editedSituation.playerActions.actions.length > 0 && editedSituation.opponentActions.actions.length > 0">
       <h4>遷移テーブル</h4>
-      <table class="transition-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th v-for="oppAction in editedSituation.opponentActions.actions" :key="oppAction.id">
-              {{ oppAction.description || '(説明なし)' }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="playerAction in editedSituation.playerActions.actions" :key="playerAction.id">
-            <td class="action-label">
-              {{ playerAction.description || '(説明なし)' }}
-            </td>
-            <td v-for="oppAction in editedSituation.opponentActions.actions" :key="oppAction.id" class="transition-cell">
+      <div class="player-actions-list">
+        <div
+          v-for="playerAction in editedSituation.playerActions.actions"
+          :key="playerAction.id"
+          class="player-action-section"
+        >
+          <div class="player-action-header">
+            <strong>{{ playerAction.description || '(説明なし)' }}</strong>
+          </div>
+          <div class="opponent-actions-list">
+            <div
+              v-for="oppAction in editedSituation.opponentActions.actions"
+              :key="oppAction.id"
+              class="opponent-action-item"
+            >
+              <div class="opponent-action-label">
+                {{ oppAction.description || '(説明なし)' }}
+              </div>
               <div class="transition-inputs">
-                <select
-                  :value="getTransition(playerAction.id, oppAction.id)?.nextSituationId || ''"
-                  @change="updateNextSituationId(playerAction.id, oppAction.id, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option value="">次の状況を選択してください</option>
-                  <optgroup label="Situations">
-                    <option
-                      v-for="situation in availableSituations"
-                      :key="situation.situationId"
-                      :value="situation.situationId"
-                    >
-                    <!-- {{ situation.situationId }} -->
-                    {{ situation.description || '(説明なし)' }}
-                    </option>
-                  </optgroup>
-                  <optgroup label="Terminal Situations">
-                    <option
-                      v-for="terminal in availableTerminalSituations"
-                      :key="terminal.situationId"
-                      :value="terminal.situationId"
-                    >
-                    <!-- {{ terminal.situationId }} -->
-                    {{ terminal.name || '(名前なし)' }}
-                    </option>
-                  </optgroup>
-                </select>
+                <div class="next-situation-row">
+                  <label>次の状況:</label>
+                  <select
+                    :value="getTransition(playerAction.id, oppAction.id)?.nextSituationId || ''"
+                    @change="updateNextSituationId(playerAction.id, oppAction.id, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option value="">次の状況を選択してください</option>
+                    <optgroup label="Situations">
+                      <option
+                        v-for="situation in availableSituations"
+                        :key="situation.situationId"
+                        :value="situation.situationId"
+                      >
+                      <!-- {{ situation.situationId }} -->
+                      {{ situation.description || '(説明なし)' }}
+                      </option>
+                    </optgroup>
+                    <optgroup label="Terminal Situations">
+                      <option
+                        v-for="terminal in availableTerminalSituations"
+                        :key="terminal.situationId"
+                        :value="terminal.situationId"
+                      >
+                      <!-- {{ terminal.situationId }} -->
+                      {{ terminal.name || '(名前なし)' }}
+                      </option>
+                    </optgroup>
+                  </select>
+                </div>
                 <div class="resource-consumptions">
                   <!--label>Resource Consumptions:</label-->
                   <div
@@ -116,10 +122,10 @@
                   </button>
                 </div>
               </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -436,31 +442,46 @@ button:hover {
     opacity: 0.8;
 }
 
-.transition-table {
-    width: 100%;
-    border-collapse: collapse;
+.player-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
     margin-top: 15px;
 }
 
-.transition-table th,
-.transition-table td {
+.player-action-section {
     border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #fafafa;
 }
 
-.transition-table th {
-    background-color: #f2f2f2;
+.player-action-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+    font-size: 16px;
+}
+
+.opponent-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-left: 20px;
+}
+
+.opponent-action-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 12px;
+    background-color: white;
+}
+
+.opponent-action-label {
     font-weight: bold;
-}
-
-.action-label {
-    font-weight: bold;
-    background-color: #f9f9f9;
-}
-
-.transition-cell {
-    vertical-align: top;
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 14px;
 }
 
 .transition-inputs {
@@ -469,8 +490,21 @@ button:hover {
     gap: 8px;
 }
 
+.next-situation-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.next-situation-row label {
+    white-space: nowrap;
+    margin: 0;
+    font-weight: bold;
+    font-size: 14px;
+}
+
 .transition-inputs select {
-    width: 100%;
+    flex: 1;
     padding: 6px;
     border: 1px solid #ccc;
     border-radius: 4px;
