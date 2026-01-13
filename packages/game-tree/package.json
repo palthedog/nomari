@@ -1,0 +1,13 @@
+{
+    "name": "@mari/game-tree",
+    "version": "1.0.0",
+    "description": "Game tree types for Mari game",
+    "main": "game-tree.js",
+    "types": "game-tree.d.ts",
+    "scripts": {
+        "build": "tsc"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

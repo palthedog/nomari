@@ -42,5 +42,6 @@ export interface Node {
 
 export interface GameTree {
     id: string;
-    root: Node;
+    root: string; // root node id
+    nodes: Record<string, Node>; // all nodes in the tree, keyed by node id
 }

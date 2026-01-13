@@ -1,0 +1,13 @@
+{
+    "name": "@mari/game-definition",
+    "version": "1.0.0",
+    "description": "Game definition types for Mari game",
+    "main": "types.js",
+    "types": "types.d.ts",
+    "scripts": {
+        "build": "tsc"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

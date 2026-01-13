@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": [
+            "ES2020"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "baseUrl": ".",
+        "paths": {
+            "@mari/game-definition/types": [
+                "../game-definition/types"
+            ],
+            "@mari/game-tree/game-tree": [
+                "../game-tree/game-tree"
+            ]
+        }
+    },
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ],
+    "types": [
+        "jest",
+        "node"
+    ]
+}
