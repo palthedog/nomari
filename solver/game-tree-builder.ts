@@ -1,16 +1,19 @@
 import {
     GameDefinition,
-    GameTree,
-    Node,
-    Transition,
     DynamicState,
     ResourceConsumption,
     ResourceType,
     TerminalSituationType,
     ProtoSituation,
     TerminalSituation,
-    Reward,
+    Action,
 } from './types';
+import {
+    GameTree,
+    Node,
+    NodeTransition,
+    Reward,
+} from './game-tree';
 
 /**
  * Error codes for game tree building
@@ -163,6 +166,8 @@ function createTerminalNode(
         transitions: [],
         playerActions: undefined,
         opponentActions: undefined,
+        playerReward: { value: playerReward },
+        opponentReward: { value: opponentReward },
     };
 }
 
@@ -183,6 +188,8 @@ function createTerminalSituationNode(
             transitions: [],
             playerActions: undefined,
             opponentActions: undefined,
+            playerReward: { value: rewards.playerReward },
+            opponentReward: { value: rewards.opponentReward },
         };
     }
 
@@ -297,14 +304,14 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             description: situation.description,
             playerActions: {
                 id: situation.playerActions.id,
-                actions: situation.playerActions.actions.map(a => ({
+                actions: situation.playerActions.actions.map((a: Action) => ({
                     id: a.id,
                     description: a.description,
                 })),
             },
             opponentActions: {
                 id: situation.opponentActions.id,
-                actions: situation.opponentActions.actions.map(a => ({
+                actions: situation.opponentActions.actions.map((a: Action) => ({
                     id: a.id,
                     description: a.description,
                 })),
@@ -339,29 +346,11 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 }
                 nextNode = terminalNodeResult;
 
-                // Set rewards on the transition
-                let playerReward: number;
-                let opponentReward: number;
-
-                if (newTerminalCheck.type === 'win') {
-                    playerReward = 10000;
-                    opponentReward = -10000;
-                } else if (newTerminalCheck.type === 'lose') {
-                    playerReward = -10000;
-                    opponentReward = 10000;
-                } else {
-                    const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
-                    playerReward = rewards.playerReward;
-                    opponentReward = rewards.opponentReward;
-                }
-
-                const transition: Transition = {
+                // Rewards are already set on the terminal node by createTerminalNode
+                const transition: NodeTransition = {
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
                     nextNodeId: nextNode.id,
-                    isTerminal: true,
-                    playerReward: { value: playerReward },
-                    opponentReward: { value: opponentReward },
                 };
                 node.transitions.push(transition);
                 continue; // Skip to next transition
@@ -377,36 +366,13 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 }
                 nextNode = terminalNodeResult;
 
-                // Calculate rewards for neutral terminal
-                if (nextTerminalSituation.type === TerminalSituationType.TERMINAL_SITUATION_TYPE_NEUTRAL) {
-                    const playerHealth = getResourceValue(
-                        newState,
-                        ResourceType.RESOURCE_TYPE_PLAYER_HEALTH
-                    );
-                    const opponentHealth = getResourceValue(
-                        newState,
-                        ResourceType.RESOURCE_TYPE_OPPONENT_HEALTH
-                    );
-                    const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
-
-                    const transition: Transition = {
-                        playerActionId: protoTransition.playerActionId,
-                        opponentActionId: protoTransition.opponentActionId,
-                        nextNodeId: nextNode.id,
-                        isTerminal: true,
-                        playerReward: { value: rewards.playerReward },
-                        opponentReward: { value: rewards.opponentReward },
-                    };
-                    node.transitions.push(transition);
-                } else {
-                    const transition: Transition = {
-                        playerActionId: protoTransition.playerActionId,
-                        opponentActionId: protoTransition.opponentActionId,
-                        nextNodeId: nextNode.id,
-                        isTerminal: true,
-                    };
-                    node.transitions.push(transition);
-                }
+                // Rewards are already set on the terminal node by createTerminalSituationNode
+                const transition: NodeTransition = {
+                    playerActionId: protoTransition.playerActionId,
+                    opponentActionId: protoTransition.opponentActionId,
+                    nextNodeId: nextNode.id,
+                };
+                node.transitions.push(transition);
             } else {
                 // Regular transition to next situation
                 const regularNodeResult = getOrCreateNode(protoTransition.nextSituationId, newState);
@@ -414,11 +380,10 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                     return regularNodeResult; // Return error to propagate
                 }
                 nextNode = regularNodeResult;
-                const transition: Transition = {
+                const transition: NodeTransition = {
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
                     nextNodeId: nextNode.id,
-                    isTerminal: false,
                 };
                 node.transitions.push(transition);
             }

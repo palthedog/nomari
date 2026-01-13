@@ -1,4 +1,4 @@
-import { GameTree, Node, Transition, Reward } from './types';
+import { GameTree, Node, NodeTransition, Reward } from './game-tree';
 
 /**
  * Internal node representation for CFR computation
@@ -65,7 +65,7 @@ export class CFRSolver {
         this.nodeMap.set(node.id, node);
 
         for (const transition of node.transitions) {
-            if (!transition.isTerminal && transition.nextNodeId) {
+            if (transition.nextNodeId) {
                 const nextNode = this.findNodeById(transition.nextNodeId);
                 if (nextNode && !this.nodeMap.has(nextNode.id)) {
                     this.collectAllNodes(nextNode);
@@ -96,7 +96,7 @@ export class CFRSolver {
         }
 
         for (const transition of node.transitions) {
-            if (!transition.isTerminal && transition.nextNodeId) {
+            if (transition.nextNodeId) {
                 const nextNode = this.nodeMap.get(transition.nextNodeId);
                 if (nextNode) {
                     const found = this.searchNode(nextNode, targetId);
@@ -109,6 +109,13 @@ export class CFRSolver {
     }
 
     /**
+     * Check if a node is terminal (has rewards)
+     */
+    private isTerminalNode(node: Node): boolean {
+        return node.playerReward !== undefined || node.opponentReward !== undefined;
+    }
+
+    /**
      * Build CFR node from proto node
      */
     private buildCFRNode(protoNode: Node): CFRNode {
@@ -116,10 +123,8 @@ export class CFRSolver {
             return this.nodes.get(protoNode.id)!;
         }
 
-        const cfrNode = new CFRNode(
-            protoNode.id,
-            protoNode.transitions.length > 0 && protoNode.transitions.every(t => t.isTerminal)
-        );
+        const isTerminal = this.isTerminalNode(protoNode);
+        const cfrNode = new CFRNode(protoNode.id, isTerminal);
 
         // Extract actions
         if (protoNode.playerActions) {
@@ -133,15 +138,19 @@ export class CFRSolver {
         for (const transition of protoNode.transitions) {
             const key = `${transition.playerActionId}-${transition.opponentActionId}`;
 
-            if (transition.isTerminal) {
-                const playerReward = transition.playerReward?.value ?? 0;
-                const opponentReward = transition.opponentReward?.value ?? 0;
-                cfrNode.rewards.set(key, [playerReward, opponentReward]);
-            } else if (transition.nextNodeId) {
+            if (transition.nextNodeId) {
                 const nextProtoNode = this.nodeMap.get(transition.nextNodeId);
                 if (nextProtoNode) {
-                    const childNode = this.buildCFRNode(nextProtoNode);
-                    cfrNode.children.set(key, childNode);
+                    if (this.isTerminalNode(nextProtoNode)) {
+                        // Terminal node - use its rewards
+                        const playerReward = nextProtoNode.playerReward?.value ?? 0;
+                        const opponentReward = nextProtoNode.opponentReward?.value ?? 0;
+                        cfrNode.rewards.set(key, [playerReward, opponentReward]);
+                    } else {
+                        // Non-terminal node - build child
+                        const childNode = this.buildCFRNode(nextProtoNode);
+                        cfrNode.children.set(key, childNode);
+                    }
                 }
             }
         }

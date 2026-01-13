@@ -1,5 +1,5 @@
 import { CFRSolver } from './cfr';
-import { GameTree, Node, PlayerActions, Action, Transition } from './types';
+import { GameTree, Node, PlayerActions, Action, NodeTransition } from './game-tree';
 
 /**
  * Helper function to create a rock-paper-scissors game tree
@@ -412,9 +412,9 @@ describe('CFRSolver', () => {
             const scissorsProb = strategy!.get('scissors') ?? 0;
 
             // Expected optimal mix (Rock, Scissors, Paper): 5/14, 6/14, 3/14
-            expect(rockProb).toBeCloseTo(5 / 14, 1);
-            expect(scissorsProb).toBeCloseTo(6 / 14, 1);
-            expect(paperProb).toBeCloseTo(3 / 14, 1);
+            expect(rockProb).toBeCloseTo(5 / 14, 4);
+            expect(scissorsProb).toBeCloseTo(6 / 14, 4);
+            expect(paperProb).toBeCloseTo(3 / 14, 4);
 
             expect(rockProb + paperProb + scissorsProb).toBeCloseTo(1.0, 4);
 
