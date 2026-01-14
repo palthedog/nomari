@@ -127,7 +127,7 @@ export function createInitialGameDefinition(): GameDefinition {
             resources: [
                 {
                     resourceType: ResourceType.PLAYER_HEALTH,
-                    value: 5000,
+                    value: 4000,
                 },
                 {
                     resourceType: ResourceType.OPPONENT_HEALTH,
