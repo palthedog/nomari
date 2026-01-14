@@ -23,13 +23,11 @@ export function createInitialGameDefinition(): GameDefinition {
 
     const initialSituation: Situation = {
         situationId: rootSituationId,
-        description: '初期状況',
+        description: '密着微有利',
         playerActions: {
-            id: 'player',
             actions: [],
         },
         opponentActions: {
-            id: 'opponent',
             actions: [],
         },
         transitions: [],
@@ -43,7 +41,7 @@ export function createInitialGameDefinition(): GameDefinition {
     };
 
     return {
-        id: generateId('game'),
+        gameId: generateId('game'),
         name: '新しいゲーム',
         description: '',
         rootSituationId: rootSituationId,
@@ -72,11 +70,9 @@ export function createEmptySituation(): Situation {
         situationId: generateId('situation'),
         description: '',
         playerActions: {
-            id: 'player',
             actions: [],
         },
         opponentActions: {
-            id: 'opponent',
             actions: [],
         },
         transitions: [],

@@ -11,5 +11,8 @@
         "prebuild": "npm run generate --workspace=@mari/ts-proto",
         "build": "npm run build --workspaces",
         "test": "npm run test --workspaces"
+    },
+    "devDependencies": {
+        "prettier": "^3.7.4"
     }
 }

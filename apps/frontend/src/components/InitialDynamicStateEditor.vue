@@ -1,33 +1,25 @@
 <template>
-  <div class="initial-dynamic-state-editor">
-    <h4>初期状態</h4>
-    
-    <div class="resources-section">
-      <div
-        v-for="(resource, index) in model.resources"
-        :key="index"
-        class="resource-row"
-      >
-        <div class="resource-label">
-            <template v-if="resource.resourceType === ResourceType.PLAYER_HEALTH">
-            プレイヤーの体力
-            </template>
-            <template v-else-if="resource.resourceType === ResourceType.OPPONENT_HEALTH">
-            相手の体力
-            </template>
+    <div class="initial-dynamic-state-editor">
+        <h4>初期状態</h4>
+
+        <div class="resources-section">
+            <div v-for="(resource, index) in model.resources" :key="index" class="resource-row">
+                <div class="resource-label">
+                    <template v-if="resource.resourceType === ResourceType.PLAYER_HEALTH">
+                        プレイヤーの体力
+                    </template>
+                    <template v-else-if="resource.resourceType === ResourceType.OPPONENT_HEALTH">
+                        相手の体力
+                    </template>
+                </div>
+
+                <div class="resource-value">
+                    <input type="number" :value="resource.value" placeholder="Value"
+                        @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))">
+                </div>
+            </div>
         </div>
-        
-        <div class="resource-value">
-            <input
-            type="number"
-            :value="resource.value"
-            placeholder="Value"
-            @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
-            >
-        </div>
-      </div>
-  </div>
-</div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -36,10 +28,9 @@ import { ResourceType } from '@mari/ts-proto';
 
 const model = defineModel<DynamicState>({ required: true });
 
-console.log('initial resources',model.value.resources);
-   fillDefaultResources();
-    console.log('updated resources',model.value.resources);
-
+console.log('initial resources', model.value.resources);
+fillDefaultResources();
+console.log('updated resources', model.value.resources);
 
 function fillDefaultResources(): void {
     const defaultResources: DynamicState_Resource[] = [
@@ -57,7 +48,7 @@ function fillDefaultResources(): void {
         if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
             continue;
         }
-        console.info('adding resource',defResource.resourceType);
+        console.info('adding resource', defResource.resourceType);
         model.value.resources.push(defResource);
     }
 }
@@ -68,9 +59,10 @@ function fillDefaultResources(): void {
  * @param {number} value - The new value for the resource.
  */
 function updateResourceValue(index: number, value: number) {
-    if (model.value.resources[index]) {
-        model.value.resources[index].value = value;
+    if (!model.value.resources[index]) {
+        return;
     }
+    model.value.resources[index].value = value;
 }
 </script>
 
@@ -118,7 +110,7 @@ function updateResourceValue(index: number, value: number) {
     border-radius: 4px;
 }
 
-.resources-section > button {
+.resources-section>button {
     grid-column: 1 / -1;
     padding: 8px 15px;
     background-color: #4CAF50;
@@ -129,7 +121,7 @@ function updateResourceValue(index: number, value: number) {
     margin-top: 10px;
 }
 
-.resources-section > button:hover {
+.resources-section>button:hover {
     opacity: 0.8;
 }
 </style>

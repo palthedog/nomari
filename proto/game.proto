@@ -3,7 +3,7 @@ syntax = "proto3";
 // Definition of the game
 // Mari game tree builder would build a game tree from this definition.
 message GameDefinition {
-  string id = 1;
+  string game_id = 1;
 
   string name = 2;
   string description = 3;
@@ -93,18 +93,21 @@ message DynamicState {
 }
 
 message PlayerActions {
-  string id = 1;
-  repeated Action actions = 2;
+  repeated Action actions = 1;
 }
 
 message Action {
-  string id = 1;
+  string action_id = 1;
   
+  // Name of the action (e.g. "attack", "guard")
+  string name = 2;
+
   // Description of the action (e.g. "attack", "guard")
-  string description = 2;
+  string description = 3;
 
   // TODO: Add resource usage of the action
   // E.g. 'OD attack" would consumes drive.
+  repeated ResourceConsumption resource_consumptions = 4;
 }
 
 // Transition to the next node based on the player and opponent actions
