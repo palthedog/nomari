@@ -51,10 +51,10 @@ export function createInitialGameDefinition(): GameDefinition {
         terminalSituations: [initialTerminalSituation],
         initialDynamicState: {
             resources: [
-                {
-                    resourceType: ResourceType.PLAYER_HEALTH,
-                    value: 5000,
-                },
+                // {
+                //     resourceType: ResourceType.PLAYER_HEALTH,
+                //     value: 5000,
+                // },
                 {
                     resourceType: ResourceType.OPPONENT_HEALTH,
                     value: 4000,

@@ -25,50 +25,40 @@
             @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
             >
         </div>
-        
-        <button
-          type="button"
-          class="resource-delete-button"
-          @click="removeResource(index)"
-        >
-          削除
-        </button>
       </div>
-    <button
-    type="button"
-    @click="addResource"
-    >
-    Resourceを追加
-    </button>
   </div>
 </div>
 </template>
 
 <script setup lang="ts">
-import type { DynamicState } from '@mari/ts-proto';
+import type { DynamicState, DynamicState_Resource } from '@mari/ts-proto';
 import { ResourceType } from '@mari/ts-proto';
 
 const model = defineModel<DynamicState>({ required: true });
 
-function addResource() {
-    model.value.resources.push({
-        resourceType: ResourceType.UNKNOWN,
-        value: 0,
-    });
-}
+console.log('initial resources',model.value.resources);
+   fillDefaultResources();
+    console.log('updated resources',model.value.resources);
 
-function removeResource(index: number) {
-    model.value.resources.splice(index, 1);
-}
 
-/**
- * Update the type of a resource at the specified index.
- * @param {number} index - The index of the resource in the array.
- * @param {number} resourceType - The new resource type (ResourceType).
- */
-function updateResourceType(index: number, resourceType: number) {
-    if (model.value.resources[index]) {
-        model.value.resources[index].resourceType = resourceType as ResourceType;
+function fillDefaultResources(): void {
+    const defaultResources: DynamicState_Resource[] = [
+        {
+            resourceType: ResourceType.PLAYER_HEALTH,
+            value: 5000,
+        },
+        {
+            resourceType: ResourceType.OPPONENT_HEALTH,
+            value: 5000,
+        },
+    ];
+    for (let i = 0; i < defaultResources.length; i++) {
+        const defResource = defaultResources[i];
+        if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
+            continue;
+        }
+        console.info('adding resource',defResource.resourceType);
+        model.value.resources.push(defResource);
     }
 }
 
@@ -99,13 +89,18 @@ function updateResourceValue(index: number, value: number) {
 
 .resources-section {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: max-content auto;
     gap: 10px;
     align-items: center;
 }
 
 .resource-row {
     display: contents;
+}
+
+.resource-checkbox {
+    display: flex;
+    padding: 8px;
 }
 
 .resource-label {
@@ -121,19 +116,6 @@ function updateResourceValue(index: number, value: number) {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
-}
-
-.resource-delete-button {
-    padding: 8px 15px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.resource-delete-button:hover {
-    opacity: 0.8;
 }
 
 .resources-section > button {
