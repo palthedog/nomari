@@ -107,7 +107,7 @@ message Action {
 
   // TODO: Add resource usage of the action
   // E.g. 'OD attack" would consumes drive.
-  repeated ResourceConsumption resource_consumptions = 4;
+  // repeated ResourceConsumption resource_consumptions = 4;
 }
 
 // Transition to the next node based on the player and opponent actions

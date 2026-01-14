@@ -23,7 +23,8 @@
       <h4>プレイヤー選択肢</h4>
       <div v-for="(action, index) in model.playerActions?.actions || []" :key="index" class="form-row">
         <input v-model="action.actionId" type="hidden">
-        <input v-model="action.description" placeholder="行動の説明">
+        <input class="form-name" v-model="action.name" placeholder="行動">
+        <input class="form-description" v-model="action.description" placeholder="説明">
         <button type="button" @click="removePlayerAction(index)">
           削除
         </button>
@@ -38,7 +39,8 @@
       <h4>相手選択肢</h4>
       <div v-for="(action, index) in model.opponentActions?.actions || []" :key="index" class="form-row">
         <input v-model="action.actionId" type="hidden">
-        <input v-model="action.description" placeholder="行動の説明">
+        <input class="form-name" v-model="action.name" placeholder="行動">
+        <input class="form-description" v-model="action.description" placeholder="説明">
         <button type="button" @click="removeOpponentAction(index)">
           削除
         </button>
@@ -56,13 +58,13 @@
         <div v-for="playerAction in model.playerActions?.actions || []" :key="playerAction.actionId"
           class="player-action-section">
           <div class="player-action-header">
-            <strong>{{ playerAction.description || '(説明なし)' }}</strong>
+            <strong>{{ playerAction.name || '(行動名説明なし)' }}</strong>
           </div>
           <div class="opponent-actions-list">
             <div v-for="oppAction in model.opponentActions?.actions || []" :key="oppAction.actionId"
               class="opponent-action-item">
               <div class="opponent-action-label">
-                {{ oppAction.description || '(説明なし)' }}
+                {{ playerAction.name || '(行動名なし)' }} v.s. {{ oppAction.name || '(行動名なし)' }}
               </div>
               <div class="transition-inputs">
                 <div class="next-situation-row">
@@ -95,9 +97,6 @@
                     :key="idx" class="consumption-row">
                     <select :value="consumption.resourceType"
                       @change="updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'type', parseInt(($event.target as HTMLSelectElement).value, 10))">
-                      <option :value="ResourceType.UNKNOWN">
-                        Unknown
-                      </option>
                       <option :value="ResourceType.PLAYER_HEALTH">
                         プレイヤーのダメージ
                       </option>
@@ -151,7 +150,6 @@ function addPlayerAction() {
     actionId: generateId('action'),
     name: '',
     description: '',
-    resourceConsumptions: [],
   });
   updateTransitions();
 }
@@ -173,7 +171,6 @@ function addOpponentAction() {
     actionId: generateId('action'),
     name: '',
     description: '',
-    resourceConsumptions: [],
   });
   updateTransitions();
 }
@@ -361,6 +358,14 @@ function handleDelete() {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+}
+
+.form-row .form-name {
+  flex: 1;
+}
+
+.form-row .form-description {
+  flex: 3;
 }
 
 .form-row button {

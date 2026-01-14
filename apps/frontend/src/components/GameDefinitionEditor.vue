@@ -13,7 +13,7 @@
       <div class="header-controls">
         <div class="form-group">
           <label>Game ID:</label>
-          <input v-model="gameDefinition.id" type="text">
+          <input v-model="gameDefinition.gameId" type="text">
         </div>
         <div class="form-group">
           <label>Name:</label>
@@ -50,14 +50,14 @@
             <div class="section-item initial-state-item" :class="{ active: selectedItemType === 'initial-state' }"
               @click="selectInitialState">
               <span class="section-icon">⚙️</span>
-              初期状態(InitialDynamicState)
+              初期状態
             </div>
           </div>
 
           <!-- 状況(Situation) -->
           <div class="section-group">
             <div class="section-header">
-              <h4>状況(Situation)</h4>
+              <h4>状況</h4>
             </div>
             <ul class="section-list">
               <li v-for="situation in gameDefinition.situations" :key="situation.situationId"

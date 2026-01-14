@@ -20,12 +20,12 @@ describe('gameTreeBuilder', () => {
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
+                                { actionId: 'action1', name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
+                                { actionId: 'action2', name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
@@ -42,12 +42,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action3', name: '', description: 'Action 3', resourceConsumptions: [] },
+                                { actionId: 'action3', name: '', description: 'Action 3' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action4', name: '', description: 'Action 4', resourceConsumptions: [] },
+                                { actionId: 'action4', name: '', description: 'Action 4' },
                             ],
                         },
                         transitions: [
@@ -90,12 +90,12 @@ describe('gameTreeBuilder', () => {
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
+                                { actionId: 'action1', name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
+                                { actionId: 'action2', name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
@@ -163,12 +163,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Attack situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
+                                { actionId: 'attack', name: '', description: 'Attack' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'guard', name: '', description: 'Guard', resourceConsumptions: [] },
+                                { actionId: 'guard', name: '', description: 'Guard' },
                             ],
                         },
                         transitions: [
@@ -190,12 +190,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Next situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
+                                { actionId: 'action1', name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
+                                { actionId: 'action2', name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [],
@@ -250,12 +250,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Attack situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
+                                { actionId: 'attack', name: '', description: 'Attack' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'guard', name: '', description: 'Guard', resourceConsumptions: [] },
+                                { actionId: 'guard', name: '', description: 'Guard' },
                             ],
                         },
                         transitions: [
@@ -315,12 +315,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Defense situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'guard', name: '', description: 'Guard', resourceConsumptions: [] },
+                                { actionId: 'guard', name: '', description: 'Guard' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
+                                { actionId: 'attack', name: '', description: 'Attack' },
                             ],
                         },
                         transitions: [
@@ -380,12 +380,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Mutual attack',
                         playerActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
+                                { actionId: 'attack', name: '', description: 'Attack' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
+                                { actionId: 'attack', name: '', description: 'Attack' },
                             ],
                         },
                         transitions: [
@@ -453,12 +453,12 @@ describe('gameTreeBuilder', () => {
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
+                                { actionId: 'action1', name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
+                                { actionId: 'action2', name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
@@ -525,12 +525,12 @@ describe('gameTreeBuilder', () => {
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
+                                { actionId: 'action1', name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
+                                { actionId: 'action2', name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
@@ -547,12 +547,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action3', name: '', description: 'Action 3', resourceConsumptions: [] },
+                                { actionId: 'action3', name: '', description: 'Action 3' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action4', name: '', description: 'Action 4', resourceConsumptions: [] },
+                                { actionId: 'action4', name: '', description: 'Action 4' },
                             ],
                         },
                         transitions: [
@@ -595,12 +595,12 @@ describe('gameTreeBuilder', () => {
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
+                                { actionId: 'action1', name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
+                                { actionId: 'action2', name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
@@ -622,12 +622,12 @@ describe('gameTreeBuilder', () => {
                         description: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action3', name: '', description: 'Action 3', resourceConsumptions: [] },
+                                { actionId: 'action3', name: '', description: 'Action 3' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action4', name: '', description: 'Action 4', resourceConsumptions: [] },
+                                { actionId: 'action4', name: '', description: 'Action 4' },
                             ],
                         },
                         transitions: [
