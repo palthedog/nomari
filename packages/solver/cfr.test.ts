@@ -5,17 +5,15 @@ import { GameTree, Node, PlayerActions, Action, NodeTransition, Reward } from '@
  * Helper function to create a rock-paper-scissors game tree
  */
 function createRockPaperScissorsGame(): GameTree {
-    const rock: Action = { id: 'rock', description: 'Rock' };
-    const paper: Action = { id: 'paper', description: 'Paper' };
-    const scissors: Action = { id: 'scissors', description: 'Scissors' };
+    const rock: Action = { actionId: 'rock', description: 'Rock' };
+    const paper: Action = { actionId: 'paper', description: 'Paper' };
+    const scissors: Action = { actionId: 'scissors', description: 'Scissors' };
 
     const playerActions: PlayerActions = {
-        id: 'player',
         actions: [rock, paper, scissors]
     };
 
     const opponentActions: PlayerActions = {
-        id: 'opponent',
         actions: [rock, paper, scissors]
     };
 
@@ -23,8 +21,12 @@ function createRockPaperScissorsGame(): GameTree {
     const terminalNodes: Map<string, Node> = new Map();
     const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => {
         const node: Node = {
-            id,
+            nodeId: id,
             description: `Terminal: ${id}`,
+            state: {
+                playerHealth: 0,
+                opponentHealth: 0,
+            },
             transitions: [],
             playerReward: { value: playerReward },
             opponentReward: { value: opponentReward },
@@ -58,8 +60,12 @@ function createRockPaperScissorsGame(): GameTree {
     ];
 
     const root: Node = {
-        id: 'root',
+        nodeId: 'root',
         description: 'Rock Paper Scissors',
+        state: {
+            playerHealth: 0,
+            opponentHealth: 0,
+        },
         playerActions,
         opponentActions,
         transitions
@@ -97,20 +103,18 @@ function createRockPaperScissorsGame(): GameTree {
  * - Throw wins: 1000 points
  */
 function createBiasedRewardGame(): GameTree {
-    const strike: Action = { id: 'strike', description: 'Strike (攻撃)' };
-    const throwAction: Action = { id: 'throw', description: 'Throw (投げ)' };
+    const strike: Action = { actionId: 'strike', description: 'Strike (攻撃)' };
+    const throwAction: Action = { actionId: 'throw', description: 'Throw (投げ)' };
 
-    const guard: Action = { id: 'guard', description: 'Guard (ガード)' };
-    const throwEscape: Action = { id: 'throw_escape', description: 'Throw Escape (投げ抜け)' };
-    const verticalJump: Action = { id: 'vertical_jump', description: 'Vertical Jump (垂直ジャンプ)' };
+    const guard: Action = { actionId: 'guard', description: 'Guard (ガード)' };
+    const throwEscape: Action = { actionId: 'throw_escape', description: 'Throw Escape (投げ抜け)' };
+    const verticalJump: Action = { actionId: 'vertical_jump', description: 'Vertical Jump (垂直ジャンプ)' };
 
     const playerActions: PlayerActions = {
-        id: 'attacker',
         actions: [strike, throwAction]
     };
 
     const opponentActions: PlayerActions = {
-        id: 'defender',
         actions: [guard, throwEscape, verticalJump]
     };
 
@@ -118,8 +122,12 @@ function createBiasedRewardGame(): GameTree {
     const terminalNodes: Map<string, Node> = new Map();
     const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => {
         const node: Node = {
-            id,
+            nodeId: id,
             description: `Terminal: ${id}`,
+            state: {
+                playerHealth: 0,
+                opponentHealth: 0,
+            },
             transitions: [],
             playerReward: { value: playerReward },
             opponentReward: { value: opponentReward },
@@ -145,8 +153,12 @@ function createBiasedRewardGame(): GameTree {
     ];
 
     const root: Node = {
-        id: 'root',
+        nodeId: 'root',
         description: 'Biased Reward Game (攻撃側 vs 防御側)',
+        state: {
+            playerHealth: 0,
+            opponentHealth: 0,
+        },
         playerActions,
         opponentActions,
         transitions
@@ -174,24 +186,26 @@ function createBiasedRewardGame(): GameTree {
  * Loser gets negative of that value.
  */
 function createGurikoJanken(): GameTree {
-    const rock: Action = { id: 'rock', description: 'Rock' };
-    const paper: Action = { id: 'paper', description: 'Paper' };
-    const scissors: Action = { id: 'scissors', description: 'Scissors' };
+    const rock: Action = { actionId: 'rock', description: 'Rock' };
+    const paper: Action = { actionId: 'paper', description: 'Paper' };
+    const scissors: Action = { actionId: 'scissors', description: 'Scissors' };
 
     const playerActions: PlayerActions = {
-        id: 'player',
         actions: [rock, paper, scissors],
     };
 
     const opponentActions: PlayerActions = {
-        id: 'opponent',
         actions: [rock, paper, scissors],
     };
 
     // Create terminal nodes
     const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
-        id,
+        nodeId: id,
         description: `Terminal: ${id}`,
+        state: {
+            playerHealth: 0,
+            opponentHealth: 0,
+        },
         transitions: [],
         playerReward: { value: playerReward },
         opponentReward: { value: opponentReward },
@@ -210,8 +224,12 @@ function createGurikoJanken(): GameTree {
     ];
 
     const root: Node = {
-        id: 'root',
+        nodeId: 'root',
         description: 'Guriko Janken',
+        state: {
+            playerHealth: 0,
+            opponentHealth: 0,
+        },
         playerActions,
         opponentActions,
         transitions,

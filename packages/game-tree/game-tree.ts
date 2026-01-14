@@ -5,12 +5,11 @@ export interface Reward {
 }
 
 export interface Action {
-    id: string;
+    actionId: string;
     description: string;
 }
 
 export interface PlayerActions {
-    id: string;
     actions: Action[];
 }
 
@@ -19,8 +18,11 @@ export interface SituationCell {
     value: string;
 }
 
-export interface Situation {
-    cells: SituationCell[];
+export interface State {
+    situation_id?: string;
+
+    playerHealth: number;
+    opponentHealth: number;
 }
 
 export interface NodeTransition {
@@ -30,12 +32,17 @@ export interface NodeTransition {
 }
 
 export interface Node {
-    id: string;
-    situation?: Situation;
+    nodeId: string;
+
     description: string;
+
+    state: State;
+
     playerActions?: PlayerActions;
     opponentActions?: PlayerActions;
     transitions: NodeTransition[];
+
+    // Rewards available only on terminal nodes.
     playerReward?: Reward;
     opponentReward?: Reward;
 }

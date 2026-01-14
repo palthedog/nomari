@@ -68,12 +68,12 @@ export class CFRSolver {
      * Recursively collect all nodes from the game tree
      */
     private collectAllNodes(node: Node): void {
-        this.nodeMap.set(node.id, node);
+        this.nodeMap.set(node.nodeId, node);
 
         for (const transition of node.transitions) {
             if (transition.nextNodeId) {
                 const nextNode = this.findNodeById(transition.nextNodeId);
-                if (nextNode && !this.nodeMap.has(nextNode.id)) {
+                if (nextNode && !this.nodeMap.has(nextNode.nodeId)) {
                     this.collectAllNodes(nextNode);
                 }
             }
@@ -108,7 +108,7 @@ export class CFRSolver {
      * Recursively search for a node
      */
     private searchNode(node: Node, targetId: string): Node | undefined {
-        if (node.id === targetId) {
+        if (node.nodeId === targetId) {
             return node;
         }
 
@@ -136,19 +136,19 @@ export class CFRSolver {
      * Build CFR node from proto node
      */
     private buildCFRNode(protoNode: Node): CFRNode {
-        if (this.nodes.has(protoNode.id)) {
-            return this.nodes.get(protoNode.id)!;
+        if (this.nodes.has(protoNode.nodeId)) {
+            return this.nodes.get(protoNode.nodeId)!;
         }
 
         const isTerminal = this.isTerminalNode(protoNode);
-        const cfrNode = new CFRNode(protoNode.id, isTerminal);
+        const cfrNode = new CFRNode(protoNode.nodeId, isTerminal);
 
         // Extract actions
         if (protoNode.playerActions) {
-            cfrNode.playerActions = protoNode.playerActions.actions.map(a => a.id);
+            cfrNode.playerActions = protoNode.playerActions.actions.map(a => a.actionId);
         }
         if (protoNode.opponentActions) {
-            cfrNode.opponentActions = protoNode.opponentActions.actions.map(a => a.id);
+            cfrNode.opponentActions = protoNode.opponentActions.actions.map(a => a.actionId);
         }
 
         // Process transitions
@@ -172,7 +172,7 @@ export class CFRSolver {
             }
         }
 
-        this.nodes.set(protoNode.id, cfrNode);
+        this.nodes.set(protoNode.nodeId, cfrNode);
         return cfrNode;
     }
 

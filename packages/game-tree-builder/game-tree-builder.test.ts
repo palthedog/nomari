@@ -135,7 +135,7 @@ describe('gameTreeBuilder', () => {
             expect(gameTree.root).toBeDefined();
             const rootNode = gameTree.nodes[gameTree.root];
             expect(rootNode).toBeDefined();
-            expect(rootNode.id).toContain('situation1');
+            expect(rootNode.nodeId).toContain('situation1');
             expect(rootNode.playerActions).toBeDefined();
             expect(rootNode.opponentActions).toBeDefined();
             expect(rootNode.transitions.length).toBeGreaterThan(0);

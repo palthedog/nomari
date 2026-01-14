@@ -161,8 +161,12 @@ function createTerminalNode(
     }
 
     return {
-        id: nodeId,
+        nodeId: nodeId,
         description: `Terminal: ${type}`,
+        state: {
+            playerHealth: playerHealth,
+            opponentHealth: opponentHealth,
+        },
         transitions: [],
         playerActions: undefined,
         opponentActions: undefined,
@@ -183,8 +187,13 @@ function createTerminalSituationNode(
     if (terminalSituation.type === TerminalSituationType.NEUTRAL) {
         const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
         return {
-            id: nodeId,
+            nodeId: nodeId,
             description: terminalSituation.description || terminalSituation.name,
+            state: {
+                situation_id: terminalSituation.situationId,
+                playerHealth: playerHealth,
+                opponentHealth: opponentHealth,
+            },
             transitions: [],
             playerActions: undefined,
             opponentActions: undefined,
@@ -195,8 +204,13 @@ function createTerminalSituationNode(
 
     // For other terminal types, create a node with no rewards (to be set by caller if needed)
     return {
-        id: nodeId,
+        nodeId: nodeId,
         description: terminalSituation.description || terminalSituation.name,
+        state: {
+            situation_id: terminalSituation.situationId,
+            playerHealth: playerHealth,
+            opponentHealth: opponentHealth,
+        },
         transitions: [],
         playerActions: undefined,
         opponentActions: undefined,
@@ -299,20 +313,25 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         }
 
         // Create a new node
+        const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
+        const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
         const node: Node = {
-            id: nodeKey,
+            nodeId: nodeKey,
             description: situation.description,
+            state: {
+                situation_id: situationId,
+                playerHealth: playerHealth,
+                opponentHealth: opponentHealth,
+            },
             playerActions: {
-                id: 'player',
                 actions: situation.playerActions!.actions.map((a: Action) => ({
-                    id: a.actionId,
+                    actionId: a.actionId,
                     description: a.description,
                 })),
             },
             opponentActions: {
-                id: 'opponent',
                 actions: situation.opponentActions!.actions.map((a: Action) => ({
-                    id: a.actionId,
+                    actionId: a.actionId,
                     description: a.description,
                 })),
             },
@@ -350,7 +369,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 const transition: NodeTransition = {
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
-                    nextNodeId: nextNode.id,
+                    nextNodeId: nextNode.nodeId,
                 };
                 node.transitions.push(transition);
                 continue; // Skip to next transition
@@ -370,7 +389,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 const transition: NodeTransition = {
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
-                    nextNodeId: nextNode.id,
+                    nextNodeId: nextNode.nodeId,
                 };
                 node.transitions.push(transition);
             } else {
@@ -383,7 +402,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 const transition: NodeTransition = {
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
-                    nextNodeId: nextNode.id,
+                    nextNodeId: nextNode.nodeId,
                 };
                 node.transitions.push(transition);
             }
@@ -409,11 +428,11 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     // Collect all nodes into a map
     const allNodes: Record<string, Node> = {};
     function collectNodes(node: Node): void {
-        allNodes[node.id] = node;
+        allNodes[node.nodeId] = node;
         for (const transition of node.transitions) {
             if (transition.nextNodeId) {
                 const nextNode = nodeMap.get(transition.nextNodeId);
-                if (nextNode && !allNodes[nextNode.id]) {
+                if (nextNode && !allNodes[nextNode.nodeId]) {
                     collectNodes(nextNode);
                 }
             }
@@ -425,7 +444,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         success: true,
         gameTree: {
             id: gameDefinition.gameId,
-            root: rootNodeResult.id,
+            root: rootNodeResult.nodeId,
             nodes: allNodes,
         },
     };

@@ -10,12 +10,12 @@
         <!-- ノードとエッジを描画 -->
         <g
           v-for="nodeData in nodePositions"
-          :key="nodeData.node.id"
+          :key="nodeData.node.nodeId"
         >
           <!-- エッジ（遷移） -->
           <line
             v-for="edge in nodeData.edges"
-            :key="`${nodeData.node.id}-${edge.to}`"
+            :key="`${nodeData.node.nodeId}-${edge.to}`"
             :x1="nodeData.x"
             :y1="nodeData.y"
             :x2="edge.x"
@@ -29,19 +29,19 @@
         <!-- ノード -->
         <g
           v-for="nodeData in nodePositions"
-          :key="nodeData.node.id"
+          :key="nodeData.node.nodeId"
         >
           <rect
             :x="nodeData.x - 60"
             :y="nodeData.y - 30"
             :width="120"
             :height="60"
-            :fill="nodeData.node.id === rootNodeId ? '#4CAF50' : '#2196F3'"
+            :fill="nodeData.node.nodeId === rootNodeId ? '#4CAF50' : '#2196F3'"
             stroke="#333"
             stroke-width="2"
             rx="5"
             class="node-rect"
-            @click="selectNode(nodeData.node.id)"
+            @click="selectNode(nodeData.node.nodeId)"
           />
           <text
             :x="nodeData.x"
@@ -51,7 +51,7 @@
             font-weight="bold"
             font-size="12"
           >
-            {{ nodeData.node.id }}
+            {{ nodeData.node.nodeId }}
           </text>
           <text
             :x="nodeData.x"
@@ -121,7 +121,7 @@ function calculateLayout() {
   const startY = 100;
 
   function layoutNode(node: Node, level: number, index: number): NodePosition {
-    const nodeId = node.id;
+    const nodeId = node.nodeId;
     
     if (positions.has(nodeId)) {
       return positions.get(nodeId)!;
@@ -151,7 +151,7 @@ function calculateLayout() {
   const rootNode = props.gameTree.nodes[props.gameTree.root];
   if (rootNode) {
     const rootPos = layoutNode(rootNode, 0, 0);
-    positions.set(rootNode.id, rootPos);
+    positions.set(rootNode.nodeId, rootPos);
   }
 
   // エッジ情報を追加（簡易実装）
