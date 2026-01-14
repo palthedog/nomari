@@ -303,16 +303,16 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             id: nodeKey,
             description: situation.description,
             playerActions: {
-                id: situation.playerActions!.id,
+                id: 'player',
                 actions: situation.playerActions!.actions.map((a: Action) => ({
-                    id: a.id,
+                    id: a.actionId,
                     description: a.description,
                 })),
             },
             opponentActions: {
-                id: situation.opponentActions!.id,
+                id: 'opponent',
                 actions: situation.opponentActions!.actions.map((a: Action) => ({
-                    id: a.id,
+                    id: a.actionId,
                     description: a.description,
                 })),
             },
@@ -424,7 +424,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     return {
         success: true,
         gameTree: {
-            id: gameDefinition.id,
+            id: gameDefinition.gameId,
             root: rootNodeResult.id,
             nodes: allNodes,
         },

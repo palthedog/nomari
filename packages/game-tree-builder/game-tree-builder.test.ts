@@ -10,7 +10,7 @@ describe('gameTreeBuilder', () => {
     describe('basic game tree generation', () => {
         it('should fail when there is a cycle without DynamicState changes', () => {
             const gameDefinition: GameDefinition = {
-                id: 'test-game',
+                gameId: 'test-game',
                 name: 'Test Game',
                 description: 'Test game with two cyclic situations.',
                 rootSituationId: 'situation1',
@@ -19,15 +19,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'First situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action1', description: 'Action 1' },
+                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action2', description: 'Action 2' },
+                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -43,15 +41,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation2',
                         description: 'Second situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action3', description: 'Action 3' },
+                                { actionId: 'action3', name: '', description: 'Action 3', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action4', description: 'Action 4' },
+                                { actionId: 'action4', name: '', description: 'Action 4', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -84,7 +80,7 @@ describe('gameTreeBuilder', () => {
 
         it('should create a simple game tree with terminal situation', () => {
             const gameDefinition: GameDefinition = {
-                id: 'test-game',
+                gameId: 'test-game',
                 name: 'Test Game',
                 description: 'A simple test game with terminal',
                 rootSituationId: 'situation1',
@@ -93,15 +89,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'First situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action1', description: 'Action 1' },
+                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action2', description: 'Action 2' },
+                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -159,7 +153,7 @@ describe('gameTreeBuilder', () => {
     describe('resource consumption', () => {
         it('should apply resource consumptions and create different nodes for different states', () => {
             const gameDefinition: GameDefinition = {
-                id: 'damage-game',
+                gameId: 'damage-game',
                 name: 'Damage Game',
                 description: 'A game with damage',
                 rootSituationId: 'situation1',
@@ -168,15 +162,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'Attack situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'attack', description: 'Attack' },
+                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'guard', description: 'Guard' },
+                                { actionId: 'guard', name: '', description: 'Guard', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -197,15 +189,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation2',
                         description: 'Next situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action1', description: 'Action 1' },
+                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action2', description: 'Action 2' },
+                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [],
@@ -250,7 +240,7 @@ describe('gameTreeBuilder', () => {
     describe('automatic terminal node creation', () => {
         it('should create win terminal node when opponent health reaches 0', () => {
             const gameDefinition: GameDefinition = {
-                id: 'win-game',
+                gameId: 'win-game',
                 name: 'Win Game',
                 description: 'A game that ends with win',
                 rootSituationId: 'situation1',
@@ -259,15 +249,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'Attack situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'attack', description: 'Attack' },
+                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'guard', description: 'Guard' },
+                                { actionId: 'guard', name: '', description: 'Guard', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -317,7 +305,7 @@ describe('gameTreeBuilder', () => {
 
         it('should create lose terminal node when player health reaches 0', () => {
             const gameDefinition: GameDefinition = {
-                id: 'lose-game',
+                gameId: 'lose-game',
                 name: 'Lose Game',
                 description: 'A game that ends with lose',
                 rootSituationId: 'situation1',
@@ -326,15 +314,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'Defense situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'guard', description: 'Guard' },
+                                { actionId: 'guard', name: '', description: 'Guard', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'attack', description: 'Attack' },
+                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -384,7 +370,7 @@ describe('gameTreeBuilder', () => {
 
         it('should create draw terminal node when both healths reach 0', () => {
             const gameDefinition: GameDefinition = {
-                id: 'draw-game',
+                gameId: 'draw-game',
                 name: 'Draw Game',
                 description: 'A game that ends with draw',
                 rootSituationId: 'situation1',
@@ -393,15 +379,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'Mutual attack',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'attack', description: 'Attack' },
+                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'attack', description: 'Attack' },
+                                { actionId: 'attack', name: '', description: 'Attack', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -459,7 +443,7 @@ describe('gameTreeBuilder', () => {
     describe('neutral terminal situation', () => {
         it('should calculate rewards based on win probability for neutral terminal', () => {
             const gameDefinition: GameDefinition = {
-                id: 'neutral-game',
+                gameId: 'neutral-game',
                 name: 'Neutral Game',
                 description: 'A game with neutral terminal',
                 rootSituationId: 'situation1',
@@ -468,15 +452,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'First situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action1', description: 'Action 1' },
+                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action2', description: 'Action 2' },
+                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -533,7 +515,7 @@ describe('gameTreeBuilder', () => {
     describe('cycle prevention', () => {
         it('should fail when there is a cycle without DynamicState changes', () => {
             const gameDefinition: GameDefinition = {
-                id: 'cycle-game',
+                gameId: 'cycle-game',
                 name: 'Cycle Game',
                 description: 'A game with cycles',
                 rootSituationId: 'situation1',
@@ -542,15 +524,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'First situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action1', description: 'Action 1' },
+                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action2', description: 'Action 2' },
+                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -566,15 +546,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation2',
                         description: 'Second situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action3', description: 'Action 3' },
+                                { actionId: 'action3', name: '', description: 'Action 3', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action4', description: 'Action 4' },
+                                { actionId: 'action4', name: '', description: 'Action 4', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -607,7 +585,7 @@ describe('gameTreeBuilder', () => {
 
         it('should allow cycles when DynamicState changes', () => {
             const gameDefinition: GameDefinition = {
-                id: 'cycle-with-state-change',
+                gameId: 'cycle-with-state-change',
                 name: 'Cycle Game with State Change',
                 description: 'A game with cycles but state changes',
                 rootSituationId: 'situation1',
@@ -616,15 +594,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation1',
                         description: 'First situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action1', description: 'Action 1' },
+                                { actionId: 'action1', name: '', description: 'Action 1', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action2', description: 'Action 2' },
+                                { actionId: 'action2', name: '', description: 'Action 2', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
@@ -645,15 +621,13 @@ describe('gameTreeBuilder', () => {
                         situationId: 'situation2',
                         description: 'Second situation',
                         playerActions: {
-                            id: 'player',
                             actions: [
-                                { id: 'action3', description: 'Action 3' },
+                                { actionId: 'action3', name: '', description: 'Action 3', resourceConsumptions: [] },
                             ],
                         },
                         opponentActions: {
-                            id: 'opponent',
                             actions: [
-                                { id: 'action4', description: 'Action 4' },
+                                { actionId: 'action4', name: '', description: 'Action 4', resourceConsumptions: [] },
                             ],
                         },
                         transitions: [
