@@ -58,11 +58,11 @@ function updateGameTree() {
 }
 
 function exportJSON() {
-  exportAsJSON(gameDefinition.value, `gamedefinition_${gameDefinition.value.id}.json`);
+  exportAsJSON(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.json`);
 }
 
 function exportProto() {
-  exportAsProto(gameDefinition.value, `gamedefinition_${gameDefinition.value.id}.proto`);
+  exportAsProto(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.proto`);
 }
 </script>
 
