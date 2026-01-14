@@ -188,6 +188,7 @@ function createTerminalSituationNode(
         const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
         return {
             nodeId: nodeId,
+            name: terminalSituation.name,
             description: terminalSituation.description || terminalSituation.name,
             state: {
                 situation_id: terminalSituation.situationId,
@@ -205,6 +206,7 @@ function createTerminalSituationNode(
     // For other terminal types, create a node with no rewards (to be set by caller if needed)
     return {
         nodeId: nodeId,
+        name: terminalSituation.name,
         description: terminalSituation.description || terminalSituation.name,
         state: {
             situation_id: terminalSituation.situationId,

@@ -29,13 +29,18 @@
             font-size="11">
             {{ getNodeTypeLabel(nodeData) }}
           </text>
-          <!-- Description -->
+          <!-- Name or Description -->
           <text :x="nodeData.x" :y="nodeData.y" text-anchor="middle" fill="white" font-size="10">
-            {{ truncate(nodeData.node.description, 18) }}
+            {{ truncate(getNodeDisplayText(nodeData), 18) }}
           </text>
           <!-- HP info -->
-          <text :x="nodeData.x" :y="nodeData.y + 18" text-anchor="middle" fill="white" font-size="9">
+          <text :x="nodeData.x" :y="nodeData.y + 15" text-anchor="middle" fill="white" font-size="9">
             HP: {{ nodeData.node.state.playerHealth }} / {{ nodeData.node.state.opponentHealth }}
+          </text>
+          <!-- Reward info (only for terminal nodes) -->
+          <text v-if="isTerminalNode(nodeData.node)" :x="nodeData.x" :y="nodeData.y + 28" text-anchor="middle"
+            :fill="getRewardColor(nodeData.node.playerReward?.value)" font-size="9" font-weight="bold">
+            報酬: {{ formatReward(nodeData.node.playerReward?.value) }}
           </text>
         </g>
       </svg>
@@ -52,7 +57,7 @@ const props = defineProps<{
 }>();
 
 const nodeWidth = 140;
-const nodeHeight = 60;
+const nodeHeight = 70;
 const levelGap = 180;
 const nodeGap = 80;
 const startX = 100;
@@ -92,6 +97,23 @@ function truncate(str: string, length: number): string {
 }
 
 /**
+ * Format reward value for display.
+ */
+function formatReward(value: number | undefined): string {
+  if (value === undefined) return '-';
+  return Math.round(value).toLocaleString();
+}
+
+/**
+ * Get the color for reward text based on value.
+ */
+function getRewardColor(value: number | undefined): string {
+  if (value === undefined) return '#FFD700'; // Gold
+  if (value < 0) return '#FF6B6B'; // Red for negative
+  return '#FFD700'; // Gold for positive/zero
+}
+
+/**
  * Check if a node is a terminal node (has rewards).
  */
 function isTerminalNode(node: Node): boolean {
@@ -99,7 +121,28 @@ function isTerminalNode(node: Node): boolean {
 }
 
 /**
- * Get the color for a node based on its type.
+ * Check if player health is zero (lose condition).
+ */
+function isPlayerHealthZero(node: Node): boolean {
+  return node.state.playerHealth <= 0;
+}
+
+/**
+ * Check if opponent health is zero (win condition).
+ */
+function isOpponentHealthZero(node: Node): boolean {
+  return node.state.opponentHealth <= 0;
+}
+
+/**
+ * Check if a node is an "other" terminal node (TerminalSituation, not health-based).
+ */
+function isOtherTerminalNode(node: Node): boolean {
+  return isTerminalNode(node) && !isPlayerHealthZero(node) && !isOpponentHealthZero(node);
+}
+
+/**
+ * Get the fill color for a node based on its type.
  */
 function getNodeColor(nodeData: NodePosition): string {
   const node = nodeData.node;
@@ -109,20 +152,38 @@ function getNodeColor(nodeData: NodePosition): string {
     return '#4CAF50'; // Green
   }
 
-  // Terminal node (has rewards)
-  if (isTerminalNode(node)) {
-    const reward = node.playerReward?.value ?? 0;
-    if (reward > 0) {
-      return '#8BC34A'; // Light green - win
-    } else if (reward < 0) {
-      return '#F44336'; // Red - lose
-    } else {
-      return '#FF9800'; // Orange - draw
-    }
+  // Health-based terminal states (fill with color)
+  if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
+    return '#E53935'; // Red - lose (player health is 0)
+  }
+  if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
+    return '#43A047'; // Green - win (opponent health is 0)
+  }
+  if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
+    return '#FF9800'; // Orange - draw (both health is 0)
+  }
+
+  // Other terminal nodes (TerminalSituation) - dark gray
+  if (isOtherTerminalNode(node)) {
+    return '#616161'; // Dark gray
   }
 
   // Regular node
   return '#2196F3'; // Blue
+}
+
+/**
+ * Get the display text for a node (name for other terminal nodes, description otherwise).
+ */
+function getNodeDisplayText(nodeData: NodePosition): string {
+  const node = nodeData.node;
+
+  // Other terminal nodes show name instead of description
+  if (isOtherTerminalNode(node) && node.name) {
+    return node.name;
+  }
+
+  return node.description;
 }
 
 /**
@@ -135,15 +196,20 @@ function getNodeTypeLabel(nodeData: NodePosition): string {
     return 'Root';
   }
 
+  // Health-based terminal states
+  if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
+    return 'Lose';
+  }
+  if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
+    return 'Win';
+  }
+  if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
+    return 'Draw';
+  }
+
+  // Other terminal nodes
   if (isTerminalNode(node)) {
-    const reward = node.playerReward?.value ?? 0;
-    if (reward > 0) {
-      return 'Win';
-    } else if (reward < 0) {
-      return 'Lose';
-    } else {
-      return 'Draw';
-    }
+    return 'Terminal';
   }
 
   return 'Node';

@@ -34,6 +34,9 @@ export interface NodeTransition {
 export interface Node {
     nodeId: string;
 
+    // Name of the node (used for terminal situations)
+    name?: string;
+
     description: string;
 
     state: State;
