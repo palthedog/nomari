@@ -10,72 +10,36 @@
     <div class="section">
       <div class="form-group" hidden>
         <label>Situation ID:</label>
-        <input v-model="editedTerminalSituation.situationId" type="text" readonly />
+        <input v-model="model.situationId" type="text" readonly />
       </div>
       <div class="form-group">
         <label>Type:</label>
-        <select v-model="editedTerminalSituation.type">
+        <select v-model="model.type">
           <option :value="TerminalSituationType.UNKNOWN">Unknown</option>
           <option :value="TerminalSituationType.NEUTRAL">Neutral</option>
         </select>
       </div>
       <div class="form-group">
         <label>Name:</label>
-        <input v-model="editedTerminalSituation.name" type="text" />
+        <input v-model="model.name" type="text" />
       </div>
       <div class="form-group">
         <label>Description:</label>
-        <textarea v-model="editedTerminalSituation.description" rows="3"></textarea>
+        <textarea v-model="model.description" rows="3"></textarea>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
 import type { TerminalSituation } from '@mari/ts-proto';
 import { TerminalSituationType } from '@mari/ts-proto';
 
-const props = defineProps<{
-    terminalSituation: TerminalSituation;
-}>();
+const model = defineModel<TerminalSituation>({ required: true });
 
 const emit = defineEmits<{
-    (e: 'update:terminal-situation', terminalSituation: TerminalSituation): void;
     (e: 'delete'): void;
 }>();
-
-const editedTerminalSituation = ref<TerminalSituation>(JSON.parse(JSON.stringify(props.terminalSituation)));
-let isUpdating = false;
-let isExternalUpdate = false;
-
-watch(
-    () => props.terminalSituation,
-    (newTerminalSituation) => {
-        if (isUpdating) return;
-        isExternalUpdate = true;
-        editedTerminalSituation.value = JSON.parse(JSON.stringify(newTerminalSituation));
-        nextTick(() => {
-            isExternalUpdate = false;
-        });
-    },
-    { deep: true }
-);
-
-watch(
-    editedTerminalSituation,
-    (newTerminalSituation) => {
-        if (isUpdating || isExternalUpdate) return;
-        isUpdating = true;
-        nextTick(() => {
-            emit('update:terminal-situation', JSON.parse(JSON.stringify(newTerminalSituation)));
-            nextTick(() => {
-                isUpdating = false;
-            });
-        });
-    },
-    { deep: true, flush: 'post' }
-);
 
 function handleDelete() {
     emit('delete');

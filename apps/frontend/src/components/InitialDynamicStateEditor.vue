@@ -3,7 +3,7 @@
     <h4>初期状態</h4>
     <div class="resources-section">
       <div
-        v-for="(resource, index) in editedDynamicState.resources"
+        v-for="(resource, index) in model.resources"
         :key="index"
         class="resource-row"
       >
@@ -29,57 +29,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
-import type { DynamicState, DynamicStateResource } from '@mari/ts-proto';
+import type { DynamicState } from '@mari/ts-proto';
 import { ResourceType } from '@mari/ts-proto';
-import { generateId } from '../utils/game-definition-utils';
 
-const props = defineProps<{
-    dynamicState: DynamicState;
-}>();
-
-const emit = defineEmits<{
-    (e: 'update:dynamic-state', dynamicState: DynamicState): void;
-}>();
-
-const editedDynamicState = ref<DynamicState>(JSON.parse(JSON.stringify(props.dynamicState)));
-let isUpdating = false;
-let isExternalUpdate = false;
-
-watch(
-    () => props.dynamicState,
-    (newState) => {
-        if (isUpdating) return;
-        isExternalUpdate = true;
-        editedDynamicState.value = JSON.parse(JSON.stringify(newState));
-        nextTick(() => {
-            isExternalUpdate = false;
-        });
-    },
-    { deep: true }
-);
-
-watch(
-    editedDynamicState,
-    (newState) => {
-        if (isUpdating || isExternalUpdate) return;
-        isUpdating = true;
-        nextTick(() => {
-            emit('update:dynamic-state', JSON.parse(JSON.stringify(newState)));
-            nextTick(() => {
-                isUpdating = false;
-            });
-        });
-    },
-    { deep: true, flush: 'post' }
-);
+const model = defineModel<DynamicState>({ required: true });
 
 function addResource() {
     // Create a new array to avoid direct mutation
-    editedDynamicState.value = {
-        ...editedDynamicState.value,
+    model.value = {
+        ...model.value,
         resources: [
-            ...editedDynamicState.value.resources,
+            ...model.value.resources,
             {
                 resourceType: ResourceType.UNKNOWN,
                 value: 0,
@@ -90,22 +50,22 @@ function addResource() {
 
 function removeResource(index: number) {
     // Create a new array to avoid direct mutation
-    editedDynamicState.value = {
-        ...editedDynamicState.value,
-        resources: editedDynamicState.value.resources.filter((_, i) => i !== index),
+    model.value = {
+        ...model.value,
+        resources: model.value.resources.filter((_, i) => i !== index),
     };
 }
 
 function updateResource(index: number, field: 'type' | 'value', value: number) {
-    if (editedDynamicState.value.resources[index]) {
+    if (model.value.resources[index]) {
         // Create a new array to avoid direct mutation
-        const newResources = [...editedDynamicState.value.resources];
+        const newResources = [...model.value.resources];
         newResources[index] = {
             ...newResources[index],
             [field === 'type' ? 'resourceType' : 'value']: field === 'type' ? (value as ResourceType) : value,
         };
-        editedDynamicState.value = {
-            ...editedDynamicState.value,
+        model.value = {
+            ...model.value,
             resources: newResources,
         };
     }

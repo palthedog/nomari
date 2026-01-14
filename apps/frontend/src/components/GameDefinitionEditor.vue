@@ -118,21 +118,20 @@
         <div class="panel-content">
           <InitialDynamicStateEditor
             v-if="selectedItemType === 'initial-state'"
-            :dynamic-state="gameDefinition.initialDynamicState"
-            @update:dynamic-state="updateInitialDynamicState"
+            v-model="gameDefinition.initialDynamicState"
           />
           <SituationEditor
             v-else-if="selectedSituation"
-            :situation="selectedSituation"
+            :model-value="selectedSituation"
+            @update:model-value="updateSituation"
             :available-situations="gameDefinition.situations"
             :available-terminal-situations="gameDefinition.terminalSituations"
-            @update:situation="updateSituation"
             @delete="deleteSituation"
           />
           <TerminalSituationEditor
             v-else-if="selectedTerminalSituation"
-            :terminal-situation="selectedTerminalSituation"
-            @update:terminal-situation="updateTerminalSituation"
+            :model-value="selectedTerminalSituation"
+            @update:model-value="updateTerminalSituation"
             @delete="deleteTerminalSituation"
           />
           <div v-else class="no-selection">
@@ -145,12 +144,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type {
     GameDefinition,
     Situation,
     TerminalSituation,
-    DynamicState,
 } from '@mari/ts-proto';
 import {
     createEmptySituation,
@@ -162,51 +160,15 @@ import SituationEditor from './SituationEditor.vue';
 import TerminalSituationEditor from './TerminalSituationEditor.vue';
 import InitialDynamicStateEditor from './InitialDynamicStateEditor.vue';
 
-const props = defineProps<{
-    modelValue: GameDefinition;
-}>();
+const gameDefinition = defineModel<GameDefinition>({ required: true });
 
-const emit = defineEmits<{
-    (e: 'update:modelValue', gameDefinition: GameDefinition): void;
-}>();
-
-const gameDefinition = ref<GameDefinition>(JSON.parse(JSON.stringify(props.modelValue)));
 const selectedItemType = ref<'initial-state' | 'situation' | 'terminal-situation' | null>(null);
 const selectedSituationId = ref<string | null>(null);
 const selectedTerminalSituationId = ref<string | null>(null);
-let isUpdatingGameDefinition = false;
 
 const validationErrors = computed<ValidationError[]>(() => {
     return validateGameDefinition(gameDefinition.value);
 });
-
-watch(
-    () => props.modelValue,
-    (newDefinition) => {
-        if (isUpdatingGameDefinition) return;
-        isUpdatingGameDefinition = true;
-        gameDefinition.value = JSON.parse(JSON.stringify(newDefinition));
-        nextTick(() => {
-            isUpdatingGameDefinition = false;
-        });
-    },
-    { deep: true }
-);
-
-watch(
-    gameDefinition,
-    () => {
-        if (isUpdatingGameDefinition) return;
-        isUpdatingGameDefinition = true;
-        nextTick(() => {
-            emit('update:modelValue', JSON.parse(JSON.stringify(gameDefinition.value)));
-            nextTick(() => {
-                isUpdatingGameDefinition = false;
-            });
-        });
-    },
-    { deep: true, flush: 'post' }
-);
 
 const selectedSituation = computed(() => {
     if (!selectedSituationId.value) return null;
@@ -258,7 +220,7 @@ function updateSituation(updatedSituation: Situation) {
         // Create a new array to avoid triggering unnecessary updates
         gameDefinition.value.situations = [
             ...gameDefinition.value.situations.slice(0, index),
-            { ...updatedSituation },
+            updatedSituation,
             ...gameDefinition.value.situations.slice(index + 1),
         ];
     }
@@ -318,7 +280,7 @@ function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
         // Create a new array to avoid triggering unnecessary updates
         gameDefinition.value.terminalSituations = [
             ...gameDefinition.value.terminalSituations.slice(0, index),
-            { ...updatedTerminalSituation },
+            updatedTerminalSituation,
             ...gameDefinition.value.terminalSituations.slice(index + 1),
         ];
     }
@@ -366,10 +328,7 @@ function deleteTerminalSituation() {
     }
 }
 
-function updateInitialDynamicState(updatedState: DynamicState) {
-    // Create a new object to avoid triggering unnecessary updates
-    gameDefinition.value.initialDynamicState = JSON.parse(JSON.stringify(updatedState));
-}
+// updateInitialDynamicState is no longer needed - v-model handles it automatically
 </script>
 
 <style scoped>

@@ -10,18 +10,18 @@
     <div class="section">
       <div class="form-group" hidden>
         <label>Situation ID:</label>
-        <input v-model="editedSituation.situationId" type="text" readonly />
+        <input v-model="model.situationId" type="text" readonly />
       </div>
       <div class="form-group">
         <label>名前:</label>
-        <textarea v-model="editedSituation.description" placeholder="例: 密着+4F" rows="3"></textarea>
+        <textarea v-model="model.description" placeholder="例: 密着+4F" rows="3"></textarea>
       </div>
     </div>
 
     <!-- プレイヤー選択肢 -->
     <div class="section">
       <h4>プレイヤー選択肢</h4>
-      <div v-for="(action, index) in editedSituation.playerActions.actions" :key="index" class="form-row">
+      <div v-for="(action, index) in model.playerActions?.actions || []" :key="index" class="form-row">
         <input type="hidden" v-model="action.id" />
         <input v-model="action.description" placeholder="行動の説明" />
         <button @click="removePlayerAction(index)" type="button">削除</button>
@@ -32,7 +32,7 @@
     <!-- 相手選択肢 -->
     <div class="section">
       <h4>相手選択肢</h4>
-      <div v-for="(action, index) in editedSituation.opponentActions.actions" :key="index" class="form-row">
+      <div v-for="(action, index) in model.opponentActions?.actions || []" :key="index" class="form-row">
         <input type="hidden" v-model="action.id" />
         <input v-model="action.description" placeholder="行動の説明" />
         <button @click="removeOpponentAction(index)" type="button">削除</button>
@@ -41,11 +41,11 @@
     </div>
 
     <!-- 遷移テーブル -->
-    <div class="section" v-if="editedSituation.playerActions.actions.length > 0 && editedSituation.opponentActions.actions.length > 0">
+    <div class="section" v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0">
       <h4>遷移テーブル</h4>
       <div class="player-actions-list">
         <div
-          v-for="playerAction in editedSituation.playerActions.actions"
+          v-for="playerAction in model.playerActions?.actions || []"
           :key="playerAction.id"
           class="player-action-section"
         >
@@ -54,7 +54,7 @@
           </div>
           <div class="opponent-actions-list">
             <div
-              v-for="oppAction in editedSituation.opponentActions.actions"
+              v-for="oppAction in model.opponentActions?.actions || []"
               :key="oppAction.id"
               class="opponent-action-item"
             >
@@ -131,65 +131,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
 import type {
     Situation,
     Transition,
     TerminalSituation,
-    ResourceConsumption,
 } from '@mari/ts-proto';
 import { ResourceType } from '@mari/ts-proto';
 import { generateId } from '../utils/game-definition-utils';
 
+const model = defineModel<Situation>({ required: true });
+
 const props = defineProps<{
-    situation: Situation;
     availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
 }>();
 
 const emit = defineEmits<{
-    (e: 'update:situation', situation: Situation): void;
     (e: 'delete'): void;
 }>();
 
-const editedSituation = ref<Situation>({ ...props.situation });
-let isUpdating = false;
-let isExternalUpdate = false;
-
-watch(
-    () => props.situation,
-    (newSituation) => {
-        if (isUpdating) return;
-        isExternalUpdate = true;
-        editedSituation.value = JSON.parse(JSON.stringify(newSituation));
-        nextTick(() => {
-            isExternalUpdate = false;
-        });
-    },
-    { deep: true }
-);
-
-watch(
-    editedSituation,
-    (newSituation) => {
-        if (isUpdating || isExternalUpdate) return;
-        isUpdating = true;
-        nextTick(() => {
-            emit('update:situation', JSON.parse(JSON.stringify(newSituation)));
-            nextTick(() => {
-                isUpdating = false;
-            });
-        });
-    },
-    { deep: true, flush: 'post' }
-);
-
 function addPlayerAction() {
+    if (!model.value.playerActions) return;
     // Create a new array to avoid direct mutation
-    editedSituation.value.playerActions = {
-        ...editedSituation.value.playerActions,
+    model.value.playerActions = {
+        ...model.value.playerActions,
         actions: [
-            ...editedSituation.value.playerActions.actions,
+            ...model.value.playerActions.actions,
             {
                 id: generateId('action'),
                 description: '',
@@ -200,24 +167,26 @@ function addPlayerAction() {
 }
 
 function removePlayerAction(index: number) {
-    const actionId = editedSituation.value.playerActions.actions[index].id;
+    if (!model.value.playerActions) return;
+    const actionId = model.value.playerActions.actions[index].id;
     // Create new arrays to avoid direct mutation
-    editedSituation.value.playerActions = {
-        ...editedSituation.value.playerActions,
-        actions: editedSituation.value.playerActions.actions.filter((_, i) => i !== index),
+    model.value.playerActions = {
+        ...model.value.playerActions,
+        actions: model.value.playerActions.actions.filter((_, i) => i !== index),
     };
-    editedSituation.value.transitions = editedSituation.value.transitions.filter(
+    model.value.transitions = model.value.transitions.filter(
         (t) => t.playerActionId !== actionId
     );
     updateTransitions();
 }
 
 function addOpponentAction() {
+    if (!model.value.opponentActions) return;
     // Create a new array to avoid direct mutation
-    editedSituation.value.opponentActions = {
-        ...editedSituation.value.opponentActions,
+    model.value.opponentActions = {
+        ...model.value.opponentActions,
         actions: [
-            ...editedSituation.value.opponentActions.actions,
+            ...model.value.opponentActions.actions,
             {
                 id: generateId('action'),
                 description: '',
@@ -228,27 +197,29 @@ function addOpponentAction() {
 }
 
 function removeOpponentAction(index: number) {
-    const actionId = editedSituation.value.opponentActions.actions[index].id;
+    if (!model.value.opponentActions) return;
+    const actionId = model.value.opponentActions.actions[index].id;
     // Create new arrays to avoid direct mutation
-    editedSituation.value.opponentActions = {
-        ...editedSituation.value.opponentActions,
-        actions: editedSituation.value.opponentActions.actions.filter((_, i) => i !== index),
+    model.value.opponentActions = {
+        ...model.value.opponentActions,
+        actions: model.value.opponentActions.actions.filter((_, i) => i !== index),
     };
-    editedSituation.value.transitions = editedSituation.value.transitions.filter(
+    model.value.transitions = model.value.transitions.filter(
         (t) => t.opponentActionId !== actionId
     );
     updateTransitions();
 }
 
 function updateTransitions() {
-    const existingTransitions = new Map<string, ProtoTransition>();
-    editedSituation.value.transitions.forEach((t) => {
+    if (!model.value.playerActions || !model.value.opponentActions) return;
+    const existingTransitions = new Map<string, Transition>();
+    model.value.transitions.forEach((t) => {
         existingTransitions.set(`${t.playerActionId}-${t.opponentActionId}`, t);
     });
 
-    const newTransitions: ProtoTransition[] = [];
-    for (const playerAction of editedSituation.value.playerActions.actions) {
-        for (const oppAction of editedSituation.value.opponentActions.actions) {
+    const newTransitions: Transition[] = [];
+    for (const playerAction of model.value.playerActions.actions) {
+        for (const oppAction of model.value.opponentActions.actions) {
             const key = `${playerAction.id}-${oppAction.id}`;
             const existing = existingTransitions.get(key);
             if (existing) {
@@ -263,14 +234,14 @@ function updateTransitions() {
             }
         }
     }
-    editedSituation.value.transitions = newTransitions;
+    model.value.transitions = newTransitions;
 }
 
 function getTransition(
     playerActionId: string,
     opponentActionId: string
 ): Transition | undefined {
-    return editedSituation.value.transitions.find(
+    return model.value.transitions.find(
         (t) => t.playerActionId === playerActionId && t.opponentActionId === opponentActionId
     );
 }
