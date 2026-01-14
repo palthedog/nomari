@@ -1,0 +1,25 @@
+{
+    "name": "@mari/eslint-config",
+    "version": "1.0.0",
+    "description": "Shared ESLint configuration for Mari project",
+    "type": "module",
+    "main": "./index.mjs",
+    "exports": {
+        ".": "./index.mjs",
+        "./vue": "./vue.mjs",
+        "./package.json": "./package.json"
+    },
+    "dependencies": {
+        "@eslint/js": "^9.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.0.0",
+        "@typescript-eslint/parser": "^8.0.0",
+        "eslint": "^9.0.0",
+        "eslint-plugin-vue": "^9.30.0",
+        "typescript": "^5.0.0",
+        "vue-eslint-parser": "^9.4.0"
+    },
+    "peerDependencies": {
+        "eslint": "^9.0.0",
+        "typescript": "^5.0.0"
+    }
+}
