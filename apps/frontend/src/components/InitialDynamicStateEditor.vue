@@ -1,47 +1,47 @@
 <template>
   <div class="initial-dynamic-state-editor">
     <h4>初期状態</h4>
+    
     <div class="resources-section">
       <div
         v-for="(resource, index) in model.resources"
         :key="index"
         class="resource-row"
       >
-        <select
-          v-model="resource.resourceType"
-          @change="updateResourceType(index, parseInt(($event.target as HTMLSelectElement).value, 10))"
-        >
-          <option :value="ResourceType.UNKNOWN">
-            Unknown
-          </option>
-          <option :value="ResourceType.PLAYER_HEALTH">
-            Player Health
-          </option>
-          <option :value="ResourceType.OPPONENT_HEALTH">
-            Opponent Health
-          </option>
-        </select>
-        <input
-          type="number"
-          :value="resource.value"
-          placeholder="Value"
-          @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
-        >
+        <div class="resource-label">
+            <template v-if="resource.resourceType === ResourceType.PLAYER_HEALTH">
+            プレイヤーの体力
+            </template>
+            <template v-else-if="resource.resourceType === ResourceType.OPPONENT_HEALTH">
+            相手の体力
+            </template>
+        </div>
+        
+        <div class="resource-value">
+            <input
+            type="number"
+            :value="resource.value"
+            placeholder="Value"
+            @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
+            >
+        </div>
+        
         <button
           type="button"
+          class="resource-delete-button"
           @click="removeResource(index)"
         >
           削除
         </button>
       </div>
-      <button
-        type="button"
-        @click="addResource"
-      >
-        Resourceを追加
-      </button>
-    </div>
+    <button
+    type="button"
+    @click="addResource"
+    >
+    Resourceを追加
+    </button>
   </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -98,26 +98,32 @@ function updateResourceValue(index: number, value: number) {
 }
 
 .resources-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.resource-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     gap: 10px;
     align-items: center;
 }
 
-.resource-row select,
-.resource-row input {
+.resource-row {
+    display: contents;
+}
+
+.resource-label {
+    padding: 8px;
+}
+
+.resource-value {
+    display: flex;
+}
+
+.resource-value input {
     flex: 1;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-.resource-row button {
+.resource-delete-button {
     padding: 8px 15px;
     background-color: #f44336;
     color: white;
@@ -126,11 +132,12 @@ function updateResourceValue(index: number, value: number) {
     cursor: pointer;
 }
 
-.resource-row button:hover {
+.resource-delete-button:hover {
     opacity: 0.8;
 }
 
 .resources-section > button {
+    grid-column: 1 / -1;
     padding: 8px 15px;
     background-color: #4CAF50;
     color: white;
