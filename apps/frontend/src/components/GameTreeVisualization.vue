@@ -1,185 +1,287 @@
 <template>
   <div class="game-tree-visualization">
     <h3>ゲーム木の可視化</h3>
+    <div class="tree-stats">
+      <span>ノード数: {{ nodeCount }}</span>
+    </div>
     <div class="svg-container">
-      <svg
-        :width="svgWidth"
-        :height="svgHeight"
-        class="tree-svg"
-      >
-        <!-- ノードとエッジを描画 -->
-        <g
-          v-for="nodeData in nodePositions"
-          :key="nodeData.node.nodeId"
-        >
-          <!-- エッジ（遷移） -->
-          <line
-            v-for="edge in nodeData.edges"
-            :key="`${nodeData.node.nodeId}-${edge.to}`"
-            :x1="nodeData.x"
-            :y1="nodeData.y"
-            :x2="edge.x"
-            :y2="edge.y"
-            stroke="#666"
-            stroke-width="2"
-            marker-end="url(#arrowhead)"
-          />
-        </g>
-        
-        <!-- ノード -->
-        <g
-          v-for="nodeData in nodePositions"
-          :key="nodeData.node.nodeId"
-        >
-          <rect
-            :x="nodeData.x - 60"
-            :y="nodeData.y - 30"
-            :width="120"
-            :height="60"
-            :fill="nodeData.node.nodeId === rootNodeId ? '#4CAF50' : '#2196F3'"
-            stroke="#333"
-            stroke-width="2"
-            rx="5"
-            class="node-rect"
-            @click="selectNode(nodeData.node.nodeId)"
-          />
-          <text
-            :x="nodeData.x"
-            :y="nodeData.y - 10"
-            text-anchor="middle"
-            fill="white"
-            font-weight="bold"
-            font-size="12"
-          >
-            {{ nodeData.node.nodeId }}
-          </text>
-          <text
-            :x="nodeData.x"
-            :y="nodeData.y + 10"
-            text-anchor="middle"
-            fill="white"
-            font-size="10"
-          >
-            {{ truncate(nodeData.node.description, 15) }}
-          </text>
-        </g>
-        
-        <!-- 矢印マーカー -->
+      <svg :width="svgWidth" :height="svgHeight" class="tree-svg">
+        <!-- Defs for markers -->
         <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="10"
-            refX="9"
-            refY="3"
-            orient="auto"
-          >
-            <polygon
-              points="0 0, 10 3, 0 6"
-              fill="#666"
-            />
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
           </marker>
         </defs>
+
+        <!-- Edges (draw first so they appear behind nodes) -->
+        <g class="edges">
+          <line v-for="edge in edges" :key="edge.id" :x1="edge.x1" :y1="edge.y1" :x2="edge.x2" :y2="edge.y2"
+            stroke="#999" stroke-width="2" marker-end="url(#arrowhead)" />
+        </g>
+
+        <!-- Nodes -->
+        <g v-for="nodeData in nodePositions" :key="nodeData.node.nodeId" class="node-group"
+          @click="selectNode(nodeData.node.nodeId)">
+          <rect :x="nodeData.x - nodeWidth / 2" :y="nodeData.y - nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
+            :fill="getNodeColor(nodeData)" stroke="#333" stroke-width="2" rx="5" class="node-rect" />
+          <!-- Node type indicator -->
+          <text :x="nodeData.x" :y="nodeData.y - 20" text-anchor="middle" fill="white" font-weight="bold"
+            font-size="11">
+            {{ getNodeTypeLabel(nodeData) }}
+          </text>
+          <!-- Description -->
+          <text :x="nodeData.x" :y="nodeData.y" text-anchor="middle" fill="white" font-size="10">
+            {{ truncate(nodeData.node.description, 18) }}
+          </text>
+          <!-- HP info -->
+          <text :x="nodeData.x" :y="nodeData.y + 18" text-anchor="middle" fill="white" font-size="9">
+            HP: {{ nodeData.node.state.playerHealth }} / {{ nodeData.node.state.opponentHealth }}
+          </text>
+        </g>
       </svg>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 
 const props = defineProps<{
   gameTree: GameTree;
 }>();
 
+const nodeWidth = 140;
+const nodeHeight = 60;
+const levelGap = 180;
+const nodeGap = 80;
+const startX = 100;
+const startY = 60;
+
 const svgWidth = ref(800);
 const svgHeight = ref(600);
-
-const rootNodeId = computed(() => props.gameTree.root);
 
 interface NodePosition {
   node: Node;
   x: number;
   y: number;
   level: number;
-  edges: Array<{ to: string; x: number; y: number }>;
+}
+
+interface Edge {
+  id: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
 }
 
 const nodePositions = ref<NodePosition[]>([]);
+const edges = ref<Edge[]>([]);
 
+const nodeCount = computed(() => Object.keys(props.gameTree.nodes).length);
+
+const rootNodeId = computed(() => props.gameTree.root);
+
+/**
+ * Truncate a string to a specified length.
+ */
 function truncate(str: string, length: number): string {
   if (str.length <= length) return str;
   return str.substring(0, length) + '...';
 }
 
+/**
+ * Check if a node is a terminal node (has rewards).
+ */
+function isTerminalNode(node: Node): boolean {
+  return node.playerReward !== undefined || node.opponentReward !== undefined;
+}
+
+/**
+ * Get the color for a node based on its type.
+ */
+function getNodeColor(nodeData: NodePosition): string {
+  const node = nodeData.node;
+
+  // Root node
+  if (node.nodeId === rootNodeId.value) {
+    return '#4CAF50'; // Green
+  }
+
+  // Terminal node (has rewards)
+  if (isTerminalNode(node)) {
+    const reward = node.playerReward?.value ?? 0;
+    if (reward > 0) {
+      return '#8BC34A'; // Light green - win
+    } else if (reward < 0) {
+      return '#F44336'; // Red - lose
+    } else {
+      return '#FF9800'; // Orange - draw
+    }
+  }
+
+  // Regular node
+  return '#2196F3'; // Blue
+}
+
+/**
+ * Get the label for a node type.
+ */
+function getNodeTypeLabel(nodeData: NodePosition): string {
+  const node = nodeData.node;
+
+  if (node.nodeId === rootNodeId.value) {
+    return 'Root';
+  }
+
+  if (isTerminalNode(node)) {
+    const reward = node.playerReward?.value ?? 0;
+    if (reward > 0) {
+      return 'Win';
+    } else if (reward < 0) {
+      return 'Lose';
+    } else {
+      return 'Draw';
+    }
+  }
+
+  return 'Node';
+}
+
+/**
+ * Calculate the layout of all nodes using BFS.
+ */
 function calculateLayout() {
   const positions = new Map<string, NodePosition>();
-  const levelWidth = 200;
-  const levelHeight = 150;
-  const startX = 100;
-  const startY = 100;
+  const edgeList: Edge[] = [];
 
-  function layoutNode(node: Node, level: number, index: number): NodePosition {
-    const nodeId = node.nodeId;
-    
-    if (positions.has(nodeId)) {
-      return positions.get(nodeId)!;
-    }
+  // Track which level each node is at and which nodes are at each level
+  const levelNodes: Map<number, string[]> = new Map();
+  const nodeLevel: Map<string, number> = new Map();
 
-    const x = startX + level * levelWidth;
-    const y = startY + (index * levelHeight);
-    
-    const nodePos: NodePosition = {
-      node,
-      x,
-      y,
-      level,
-      edges: []
-    };
-
-    positions.set(nodeId, nodePos);
-
-    // 子ノードを処理（簡易実装: 遷移先ノードIDのみ）
-    // 実際の実装では、nextNodeIdからノードを検索する必要がある
-    // 現在はルートノードのみ表示
-
-    return nodePos;
-  }
-
-  // ルートノードを配置
+  // BFS to determine levels
   const rootNode = props.gameTree.nodes[props.gameTree.root];
-  if (rootNode) {
-    const rootPos = layoutNode(rootNode, 0, 0);
-    positions.set(rootNode.nodeId, rootPos);
+  if (!rootNode) {
+    nodePositions.value = [];
+    edges.value = [];
+    return;
   }
 
-  // エッジ情報を追加（簡易実装）
-  // 実際の実装では、遷移先ノードを検索して配置する必要がある
+  const queue: Array<{ nodeId: string; level: number }> = [
+    { nodeId: rootNode.nodeId, level: 0 },
+  ];
+  const visited = new Set<string>();
+
+  while (queue.length > 0) {
+    const { nodeId, level } = queue.shift()!;
+
+    if (visited.has(nodeId)) {
+      continue;
+    }
+    visited.add(nodeId);
+
+    nodeLevel.set(nodeId, level);
+
+    if (!levelNodes.has(level)) {
+      levelNodes.set(level, []);
+    }
+    levelNodes.get(level)!.push(nodeId);
+
+    const node = props.gameTree.nodes[nodeId];
+    if (!node) continue;
+
+    // Add children to queue
+    for (const transition of node.transitions) {
+      if (!visited.has(transition.nextNodeId)) {
+        queue.push({ nodeId: transition.nextNodeId, level: level + 1 });
+      }
+    }
+  }
+
+  // Calculate positions for each node
+  for (const [level, nodeIds] of levelNodes.entries()) {
+    const x = startX + level * levelGap;
+    const totalHeight = (nodeIds.length - 1) * nodeGap;
+    const startYForLevel = startY + (svgHeight.value - totalHeight) / 2;
+
+    nodeIds.forEach((nodeId, index) => {
+      const node = props.gameTree.nodes[nodeId];
+      if (!node) return;
+
+      const y = startYForLevel + index * nodeGap;
+
+      positions.set(nodeId, {
+        node,
+        x,
+        y,
+        level,
+      });
+    });
+  }
+
+  // Create edges
+  for (const [, nodePos] of positions.entries()) {
+    for (const transition of nodePos.node.transitions) {
+      const targetPos = positions.get(transition.nextNodeId);
+      if (targetPos) {
+        // Calculate edge endpoints to start/end at node boundaries
+        const x1 = nodePos.x + nodeWidth / 2;
+        const y1 = nodePos.y;
+        const x2 = targetPos.x - nodeWidth / 2 - 10; // -10 for arrowhead
+        const y2 = targetPos.y;
+
+        edgeList.push({
+          id: `${nodePos.node.nodeId}-${transition.nextNodeId}`,
+          x1,
+          y1,
+          x2,
+          y2,
+        });
+      }
+    }
+  }
 
   nodePositions.value = Array.from(positions.values());
-  
-  // SVGサイズを調整
+  edges.value = edgeList;
+
+  // Adjust SVG size based on content
   if (nodePositions.value.length > 0) {
-    const maxX = Math.max(...nodePositions.value.map(p => p.x)) + 100;
-    const maxY = Math.max(...nodePositions.value.map(p => p.y)) + 100;
+    const maxX = Math.max(...nodePositions.value.map((p) => p.x)) + nodeWidth / 2 + 50;
+    const maxY = Math.max(...nodePositions.value.map((p) => p.y)) + nodeHeight / 2 + 50;
+    const minY = Math.min(...nodePositions.value.map((p) => p.y)) - nodeHeight / 2;
+
     svgWidth.value = Math.max(800, maxX);
-    svgHeight.value = Math.max(600, maxY);
+    svgHeight.value = Math.max(600, maxY - Math.min(0, minY) + 50);
+
+    // Adjust y positions if needed
+    if (minY < nodeHeight / 2 + 20) {
+      const offset = nodeHeight / 2 + 20 - minY;
+      for (const pos of nodePositions.value) {
+        pos.y += offset;
+      }
+      for (const edge of edges.value) {
+        edge.y1 += offset;
+        edge.y2 += offset;
+      }
+      svgHeight.value += offset;
+    }
   }
 }
 
 function selectNode(nodeId: string) {
-  // ノード選択時の処理（必要に応じてemit）
+  // Node selection handler (for future use)
   console.log('Selected node:', nodeId);
 }
 
-onMounted(() => {
-  calculateLayout();
-});
-
-watch(() => props.gameTree, () => {
-  calculateLayout();
-}, { deep: true });
+// Calculate layout when gameTree changes
+watch(
+  () => props.gameTree,
+  () => {
+    calculateLayout();
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <style scoped>
@@ -192,7 +294,13 @@ watch(() => props.gameTree, () => {
 
 .game-tree-visualization h3 {
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+}
+
+.tree-stats {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #666;
 }
 
 .svg-container {
@@ -207,11 +315,15 @@ watch(() => props.gameTree, () => {
   display: block;
 }
 
-.node-rect {
+.node-group {
   cursor: pointer;
 }
 
-.node-rect:hover {
+.node-rect {
+  transition: opacity 0.2s;
+}
+
+.node-group:hover .node-rect {
   opacity: 0.8;
 }
 </style>
