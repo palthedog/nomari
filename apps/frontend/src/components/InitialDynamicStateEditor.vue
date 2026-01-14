@@ -35,39 +35,24 @@ import { ResourceType } from '@mari/ts-proto';
 const model = defineModel<DynamicState>({ required: true });
 
 function addResource() {
-    // Create a new array to avoid direct mutation
-    model.value = {
-        ...model.value,
-        resources: [
-            ...model.value.resources,
-            {
-                resourceType: ResourceType.UNKNOWN,
-                value: 0,
-            },
-        ],
-    };
+    model.value.resources.push({
+        resourceType: ResourceType.UNKNOWN,
+        value: 0,
+    });
 }
 
 function removeResource(index: number) {
-    // Create a new array to avoid direct mutation
-    model.value = {
-        ...model.value,
-        resources: model.value.resources.filter((_, i) => i !== index),
-    };
+    model.value.resources.splice(index, 1);
 }
 
 function updateResource(index: number, field: 'type' | 'value', value: number) {
     if (model.value.resources[index]) {
-        // Create a new array to avoid direct mutation
-        const newResources = [...model.value.resources];
-        newResources[index] = {
-            ...newResources[index],
-            [field === 'type' ? 'resourceType' : 'value']: field === 'type' ? (value as ResourceType) : value,
-        };
-        model.value = {
-            ...model.value,
-            resources: newResources,
-        };
+        const resource = model.value.resources[index];
+        if (field === 'type') {
+            resource.resourceType = value as ResourceType;
+        } else {
+            resource.value = value;
+        }
     }
 }
 </script>

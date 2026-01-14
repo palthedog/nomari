@@ -152,28 +152,18 @@ const emit = defineEmits<{
 
 function addPlayerAction() {
     if (!model.value.playerActions) return;
-    // Create a new array to avoid direct mutation
-    model.value.playerActions = {
-        ...model.value.playerActions,
-        actions: [
-            ...model.value.playerActions.actions,
-            {
-                id: generateId('action'),
-                description: '',
-            },
-        ],
-    };
+    model.value.playerActions.actions.push({
+        id: generateId('action'),
+        description: '',
+    });
     updateTransitions();
 }
 
 function removePlayerAction(index: number) {
     if (!model.value.playerActions) return;
     const actionId = model.value.playerActions.actions[index].id;
-    // Create new arrays to avoid direct mutation
-    model.value.playerActions = {
-        ...model.value.playerActions,
-        actions: model.value.playerActions.actions.filter((_, i) => i !== index),
-    };
+    model.value.playerActions.actions.splice(index, 1);
+    // Remove transitions for this action
     model.value.transitions = model.value.transitions.filter(
         (t) => t.playerActionId !== actionId
     );
@@ -182,28 +172,18 @@ function removePlayerAction(index: number) {
 
 function addOpponentAction() {
     if (!model.value.opponentActions) return;
-    // Create a new array to avoid direct mutation
-    model.value.opponentActions = {
-        ...model.value.opponentActions,
-        actions: [
-            ...model.value.opponentActions.actions,
-            {
-                id: generateId('action'),
-                description: '',
-            },
-        ],
-    };
+    model.value.opponentActions.actions.push({
+        id: generateId('action'),
+        description: '',
+    });
     updateTransitions();
 }
 
 function removeOpponentAction(index: number) {
     if (!model.value.opponentActions) return;
     const actionId = model.value.opponentActions.actions[index].id;
-    // Create new arrays to avoid direct mutation
-    model.value.opponentActions = {
-        ...model.value.opponentActions,
-        actions: model.value.opponentActions.actions.filter((_, i) => i !== index),
-    };
+    model.value.opponentActions.actions.splice(index, 1);
+    // Remove transitions for this action
     model.value.transitions = model.value.transitions.filter(
         (t) => t.opponentActionId !== actionId
     );
@@ -263,14 +243,10 @@ function addResourceConsumption(playerActionId: string, opponentActionId: string
         if (!transition.resourceConsumptions) {
             transition.resourceConsumptions = [];
         }
-        // Create a new array to avoid direct mutation
-        transition.resourceConsumptions = [
-            ...transition.resourceConsumptions,
-            {
+        transition.resourceConsumptions.push({
             resourceType: ResourceType.UNKNOWN,
             value: 0,
-            },
-        ];
+        });
     }
 }
 
@@ -281,8 +257,7 @@ function removeResourceConsumption(
 ) {
     const transition = getTransition(playerActionId, opponentActionId);
     if (transition && transition.resourceConsumptions) {
-        // Create a new array to avoid direct mutation
-        transition.resourceConsumptions = transition.resourceConsumptions.filter((_, i) => i !== index);
+        transition.resourceConsumptions.splice(index, 1);
     }
 }
 
@@ -295,13 +270,12 @@ function updateResourceConsumption(
 ) {
     const transition = getTransition(playerActionId, opponentActionId);
     if (transition && transition.resourceConsumptions && transition.resourceConsumptions[index]) {
-        // Create a new array to avoid direct mutation that triggers infinite loops
-        const newConsumptions = [...transition.resourceConsumptions];
-        newConsumptions[index] = {
-            ...newConsumptions[index],
-            [field === 'type' ? 'resourceType' : 'value']: field === 'type' ? (value as ResourceType) : value,
-        };
-        transition.resourceConsumptions = newConsumptions;
+        const consumption = transition.resourceConsumptions[index];
+        if (field === 'type') {
+            consumption.resourceType = value as ResourceType;
+        } else {
+            consumption.value = value;
+        }
     }
 }
 

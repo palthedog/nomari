@@ -117,7 +117,7 @@
         </div>
         <div class="panel-content">
           <InitialDynamicStateEditor
-            v-if="selectedItemType === 'initial-state'"
+            v-if="selectedItemType === 'initial-state' && gameDefinition.initialDynamicState"
             v-model="gameDefinition.initialDynamicState"
           />
           <SituationEditor
@@ -144,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import type {
     GameDefinition,
     Situation,
@@ -153,7 +153,6 @@ import type {
 import {
     createEmptySituation,
     createEmptyTerminalSituation,
-    generateId,
 } from '../utils/game-definition-utils';
 import { validateGameDefinition, type ValidationError } from '../utils/validation';
 import SituationEditor from './SituationEditor.vue';
@@ -217,12 +216,7 @@ function updateSituation(updatedSituation: Situation) {
         (s) => s.situationId === updatedSituation.situationId
     );
     if (index !== -1) {
-        // Create a new array to avoid triggering unnecessary updates
-        gameDefinition.value.situations = [
-            ...gameDefinition.value.situations.slice(0, index),
-            updatedSituation,
-            ...gameDefinition.value.situations.slice(index + 1),
-        ];
+        gameDefinition.value.situations.splice(index, 1, updatedSituation);
     }
 }
 
@@ -277,12 +271,7 @@ function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
         (t) => t.situationId === updatedTerminalSituation.situationId
     );
     if (index !== -1) {
-        // Create a new array to avoid triggering unnecessary updates
-        gameDefinition.value.terminalSituations = [
-            ...gameDefinition.value.terminalSituations.slice(0, index),
-            updatedTerminalSituation,
-            ...gameDefinition.value.terminalSituations.slice(index + 1),
-        ];
+        gameDefinition.value.terminalSituations.splice(index, 1, updatedTerminalSituation);
     }
 }
 
@@ -503,9 +492,6 @@ function deleteTerminalSituation() {
     color: white;
 }
 
-.situation-item {
-    /* Default situation styling */
-}
 
 .terminal-situation-item {
     background-color: #fff3e0;
