@@ -9,7 +9,7 @@
       >
         <select
           v-model="resource.resourceType"
-          @change="updateResource(index, 'type', parseInt(($event.target as HTMLSelectElement).value, 10))"
+          @change="updateResourceType(index, parseInt(($event.target as HTMLSelectElement).value, 10))"
         >
           <option :value="ResourceType.UNKNOWN">Unknown</option>
           <option :value="ResourceType.PLAYER_HEALTH">Player Health</option>
@@ -18,7 +18,7 @@
         <input
           type="number"
           :value="resource.value"
-          @input="updateResource(index, 'value', parseFloat(($event.target as HTMLInputElement).value))"
+          @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
           placeholder="Value"
         />
         <button @click="removeResource(index)" type="button">削除</button>
@@ -45,14 +45,25 @@ function removeResource(index: number) {
     model.value.resources.splice(index, 1);
 }
 
-function updateResource(index: number, field: 'type' | 'value', value: number) {
+/**
+ * Update the type of a resource at the specified index.
+ * @param {number} index - The index of the resource in the array.
+ * @param {number} resourceType - The new resource type (ResourceType).
+ */
+function updateResourceType(index: number, resourceType: number) {
     if (model.value.resources[index]) {
-        const resource = model.value.resources[index];
-        if (field === 'type') {
-            resource.resourceType = value as ResourceType;
-        } else {
-            resource.value = value;
-        }
+        model.value.resources[index].resourceType = resourceType as ResourceType;
+    }
+}
+
+/**
+ * Update the value of a resource at the specified index.
+ * @param {number} index - The index of the resource in the array.
+ * @param {number} value - The new value for the resource.
+ */
+function updateResourceValue(index: number, value: number) {
+    if (model.value.resources[index]) {
+        model.value.resources[index].value = value;
     }
 }
 </script>
