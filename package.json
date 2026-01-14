@@ -10,7 +10,7 @@
         "predev": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
         "prebuild": "npm run generate --workspace=@mari/ts-proto",
         "build": "npm run build --workspaces",
-        "test": "npm run test --workspaces"
+        "test": "npm run test --workspaces --if-present"
     },
     "devDependencies": {
         "prettier": "^3.7.4"
