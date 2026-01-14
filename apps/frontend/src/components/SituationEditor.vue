@@ -1,47 +1,105 @@
 <template>
   <div class="situation-editor">
     <div class="header-actions">
-      <button @click="handleDelete" type="button" class="delete-btn">
+      <button
+        type="button"
+        class="delete-btn"
+        @click="handleDelete"
+      >
         削除
       </button>
     </div>
 
     <!-- 基本情報 -->
     <div class="section">
-      <div class="form-group" hidden>
+      <div
+        class="form-group"
+        hidden
+      >
         <label>Situation ID:</label>
-        <input v-model="model.situationId" type="text" readonly />
+        <input
+          v-model="model.situationId"
+          type="text"
+          readonly
+        >
       </div>
       <div class="form-group">
         <label>名前:</label>
-        <textarea v-model="model.description" placeholder="例: 密着+4F" rows="3"></textarea>
+        <textarea
+          v-model="model.description"
+          placeholder="例: 密着+4F"
+          rows="3"
+        />
       </div>
     </div>
 
     <!-- プレイヤー選択肢 -->
     <div class="section">
       <h4>プレイヤー選択肢</h4>
-      <div v-for="(action, index) in model.playerActions?.actions || []" :key="index" class="form-row">
-        <input type="hidden" v-model="action.id" />
-        <input v-model="action.description" placeholder="行動の説明" />
-        <button @click="removePlayerAction(index)" type="button">削除</button>
+      <div
+        v-for="(action, index) in model.playerActions?.actions || []"
+        :key="index"
+        class="form-row"
+      >
+        <input
+          v-model="action.id"
+          type="hidden"
+        >
+        <input
+          v-model="action.description"
+          placeholder="行動の説明"
+        >
+        <button
+          type="button"
+          @click="removePlayerAction(index)"
+        >
+          削除
+        </button>
       </div>
-      <button @click="addPlayerAction" type="button">追加</button>
+      <button
+        type="button"
+        @click="addPlayerAction"
+      >
+        追加
+      </button>
     </div>
 
     <!-- 相手選択肢 -->
     <div class="section">
       <h4>相手選択肢</h4>
-      <div v-for="(action, index) in model.opponentActions?.actions || []" :key="index" class="form-row">
-        <input type="hidden" v-model="action.id" />
-        <input v-model="action.description" placeholder="行動の説明" />
-        <button @click="removeOpponentAction(index)" type="button">削除</button>
+      <div
+        v-for="(action, index) in model.opponentActions?.actions || []"
+        :key="index"
+        class="form-row"
+      >
+        <input
+          v-model="action.id"
+          type="hidden"
+        >
+        <input
+          v-model="action.description"
+          placeholder="行動の説明"
+        >
+        <button
+          type="button"
+          @click="removeOpponentAction(index)"
+        >
+          削除
+        </button>
       </div>
-      <button @click="addOpponentAction" type="button">追加</button>
+      <button
+        type="button"
+        @click="addOpponentAction"
+      >
+        追加
+      </button>
     </div>
 
     <!-- 遷移テーブル -->
-    <div class="section" v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0">
+    <div
+      v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0"
+      class="section"
+    >
       <h4>遷移テーブル</h4>
       <div class="player-actions-list">
         <div
@@ -68,15 +126,17 @@
                     :value="getTransition(playerAction.id, oppAction.id)?.nextSituationId || ''"
                     @change="updateNextSituationId(playerAction.id, oppAction.id, ($event.target as HTMLSelectElement).value)"
                   >
-                    <option value="">次の状況を選択してください</option>
+                    <option value="">
+                      次の状況を選択してください
+                    </option>
                     <optgroup label="Situations">
                       <option
                         v-for="situation in availableSituations"
                         :key="situation.situationId"
                         :value="situation.situationId"
                       >
-                      <!-- {{ situation.situationId }} -->
-                      {{ situation.description || '(説明なし)' }}
+                        <!-- {{ situation.situationId }} -->
+                        {{ situation.description || '(説明なし)' }}
                       </option>
                     </optgroup>
                     <optgroup label="Terminal Situations">
@@ -85,8 +145,8 @@
                         :key="terminal.situationId"
                         :value="terminal.situationId"
                       >
-                      <!-- {{ terminal.situationId }} -->
-                      {{ terminal.name || '(名前なし)' }}
+                        <!-- {{ terminal.situationId }} -->
+                        {{ terminal.name || '(名前なし)' }}
                       </option>
                     </optgroup>
                   </select>
@@ -102,21 +162,32 @@
                       :value="consumption.resourceType"
                       @change="updateResourceConsumption(playerAction.id, oppAction.id, idx, 'type', parseInt(($event.target as HTMLSelectElement).value, 10))"
                     >
-                      <option :value="ResourceType.UNKNOWN">Unknown</option>
-                      <option :value="ResourceType.PLAYER_HEALTH">プレイヤーのダメージ</option>
-                      <option :value="ResourceType.OPPONENT_HEALTH">相手のダメージ</option>
+                      <option :value="ResourceType.UNKNOWN">
+                        Unknown
+                      </option>
+                      <option :value="ResourceType.PLAYER_HEALTH">
+                        プレイヤーのダメージ
+                      </option>
+                      <option :value="ResourceType.OPPONENT_HEALTH">
+                        相手のダメージ
+                      </option>
                     </select>
                     <input
                       type="number"
                       :value="consumption.value"
-                      @input="updateResourceConsumption(playerAction.id, oppAction.id, idx, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)"
                       placeholder="Value"
-                    />
-                    <button @click="removeResourceConsumption(playerAction.id, oppAction.id, idx)" type="button">削除</button>
+                      @input="updateResourceConsumption(playerAction.id, oppAction.id, idx, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)"
+                    >
+                    <button
+                      type="button"
+                      @click="removeResourceConsumption(playerAction.id, oppAction.id, idx)"
+                    >
+                      削除
+                    </button>
                   </div>
                   <button
-                    @click="addResourceConsumption(playerAction.id, oppAction.id)"
                     type="button"
+                    @click="addResourceConsumption(playerAction.id, oppAction.id)"
                   >
                     ダメージ等を追加
                   </button>
@@ -141,7 +212,7 @@ import { generateId } from '../utils/game-definition-utils';
 
 const model = defineModel<Situation>({ required: true });
 
-const props = defineProps<{
+defineProps<{
     availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
 }>();

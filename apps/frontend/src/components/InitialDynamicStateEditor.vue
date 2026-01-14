@@ -11,19 +11,35 @@
           v-model="resource.resourceType"
           @change="updateResourceType(index, parseInt(($event.target as HTMLSelectElement).value, 10))"
         >
-          <option :value="ResourceType.UNKNOWN">Unknown</option>
-          <option :value="ResourceType.PLAYER_HEALTH">Player Health</option>
-          <option :value="ResourceType.OPPONENT_HEALTH">Opponent Health</option>
+          <option :value="ResourceType.UNKNOWN">
+            Unknown
+          </option>
+          <option :value="ResourceType.PLAYER_HEALTH">
+            Player Health
+          </option>
+          <option :value="ResourceType.OPPONENT_HEALTH">
+            Opponent Health
+          </option>
         </select>
         <input
           type="number"
           :value="resource.value"
-          @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
           placeholder="Value"
-        />
-        <button @click="removeResource(index)" type="button">削除</button>
+          @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
+        >
+        <button
+          type="button"
+          @click="removeResource(index)"
+        >
+          削除
+        </button>
       </div>
-      <button @click="addResource" type="button">Resourceを追加</button>
+      <button
+        type="button"
+        @click="addResource"
+      >
+        Resourceを追加
+      </button>
     </div>
   </div>
 </template>

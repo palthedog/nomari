@@ -3,8 +3,18 @@
     <header class="app-header">
       <h1>Mari Editor</h1>
       <div class="header-actions">
-        <button @click="exportJSON" type="button">JSONでエクスポート</button>
-        <button @click="exportProto" type="button">Protoでエクスポート</button>
+        <button
+          type="button"
+          @click="exportJSON"
+        >
+          JSONでエクスポート
+        </button>
+        <button
+          type="button"
+          @click="exportProto"
+        >
+          Protoでエクスポート
+        </button>
       </div>
     </header>
 

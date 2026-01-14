@@ -2,9 +2,16 @@
   <div class="game-tree-visualization">
     <h3>ゲーム木の可視化</h3>
     <div class="svg-container">
-      <svg :width="svgWidth" :height="svgHeight" class="tree-svg">
+      <svg
+        :width="svgWidth"
+        :height="svgHeight"
+        class="tree-svg"
+      >
         <!-- ノードとエッジを描画 -->
-        <g v-for="nodeData in nodePositions" :key="nodeData.node.id">
+        <g
+          v-for="nodeData in nodePositions"
+          :key="nodeData.node.id"
+        >
           <!-- エッジ（遷移） -->
           <line
             v-for="edge in nodeData.edges"
@@ -20,7 +27,10 @@
         </g>
         
         <!-- ノード -->
-        <g v-for="nodeData in nodePositions" :key="nodeData.node.id">
+        <g
+          v-for="nodeData in nodePositions"
+          :key="nodeData.node.id"
+        >
           <rect
             :x="nodeData.x - 60"
             :y="nodeData.y - 30"
@@ -30,8 +40,8 @@
             stroke="#333"
             stroke-width="2"
             rx="5"
-            @click="selectNode(nodeData.node.id)"
             class="node-rect"
+            @click="selectNode(nodeData.node.id)"
           />
           <text
             :x="nodeData.x"
@@ -64,7 +74,10 @@
             refY="3"
             orient="auto"
           >
-            <polygon points="0 0, 10 3, 0 6" fill="#666" />
+            <polygon
+              points="0 0, 10 3, 0 6"
+              fill="#666"
+            />
           </marker>
         </defs>
       </svg>

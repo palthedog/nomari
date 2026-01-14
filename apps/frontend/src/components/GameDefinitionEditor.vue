@@ -2,10 +2,16 @@
   <div class="game-definition-editor">
     <div class="header">
       <h2>GameDefinition エディタ</h2>
-      <div v-if="validationErrors.length > 0" class="validation-errors">
+      <div
+        v-if="validationErrors.length > 0"
+        class="validation-errors"
+      >
         <h4>バリデーションエラー:</h4>
         <ul>
-          <li v-for="(error, index) in validationErrors" :key="index">
+          <li
+            v-for="(error, index) in validationErrors"
+            :key="index"
+          >
             <strong>{{ error.field }}:</strong> {{ error.message }}
           </li>
         </ul>
@@ -13,20 +19,31 @@
       <div class="header-controls">
         <div class="form-group">
           <label>Game ID:</label>
-          <input v-model="gameDefinition.id" type="text" />
+          <input
+            v-model="gameDefinition.id"
+            type="text"
+          >
         </div>
         <div class="form-group">
           <label>Name:</label>
-          <input v-model="gameDefinition.name" type="text" />
+          <input
+            v-model="gameDefinition.name"
+            type="text"
+          >
         </div>
         <div class="form-group">
           <label>Description:</label>
-          <input v-model="gameDefinition.description" type="text" />
+          <input
+            v-model="gameDefinition.description"
+            type="text"
+          >
         </div>
         <div class="form-group">
           <label>Root Situation ID:</label>
           <select v-model="gameDefinition.rootSituationId">
-            <option value="">選択してください</option>
+            <option value="">
+              選択してください
+            </option>
             <option
               v-for="situation in gameDefinition.situations"
               :key="situation.situationId"
@@ -70,16 +87,19 @@
               <h4>状況(Situation)</h4>
             </div>
             <ul class="section-list">
-            <li
-              v-for="situation in gameDefinition.situations"
-              :key="situation.situationId"
+              <li
+                v-for="situation in gameDefinition.situations"
+                :key="situation.situationId"
                 class="section-item situation-item"
-              :class="{ active: selectedSituationId === situation.situationId }"
-              @click="selectSituation(situation.situationId)"
-            >
-              {{ situation.description || '(説明なし)' }}
-            </li>
-              <li class="section-item add-button" @click="addSituation">
+                :class="{ active: selectedSituationId === situation.situationId }"
+                @click="selectSituation(situation.situationId)"
+              >
+                {{ situation.description || '(説明なし)' }}
+              </li>
+              <li
+                class="section-item add-button"
+                @click="addSituation"
+              >
                 <span class="add-icon">+</span>
                 追加
               </li>
@@ -102,11 +122,14 @@
                 <span class="terminal-badge">Terminal</span>
                 {{ terminal.name || '(名前なし)' }}
               </li>
-              <li class="section-item add-button" @click="addTerminalSituation">
+              <li
+                class="section-item add-button"
+                @click="addTerminalSituation"
+              >
                 <span class="add-icon">+</span>
                 追加
               </li>
-          </ul>
+            </ul>
           </div>
         </div>
       </div>
@@ -123,9 +146,9 @@
           <SituationEditor
             v-else-if="selectedSituation"
             :model-value="selectedSituation"
-            @update:model-value="updateSituation"
             :available-situations="gameDefinition.situations"
             :available-terminal-situations="gameDefinition.terminalSituations"
+            @update:model-value="updateSituation"
             @delete="deleteSituation"
           />
           <TerminalSituationEditor
@@ -134,7 +157,10 @@
             @update:model-value="updateTerminalSituation"
             @delete="deleteTerminalSituation"
           />
-          <div v-else class="no-selection">
+          <div
+            v-else
+            class="no-selection"
+          >
             <p>編集する要素を選択してください</p>
           </div>
         </div>

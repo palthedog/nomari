@@ -1,31 +1,52 @@
 <template>
   <div class="terminal-situation-editor">
     <div class="header-actions">
-      <button @click="handleDelete" type="button" class="delete-btn">
+      <button
+        type="button"
+        class="delete-btn"
+        @click="handleDelete"
+      >
         Terminal Situationを削除
       </button>
     </div>
 
     <!-- 基本情報 -->
     <div class="section">
-      <div class="form-group" hidden>
+      <div
+        class="form-group"
+        hidden
+      >
         <label>Situation ID:</label>
-        <input v-model="model.situationId" type="text" readonly />
+        <input
+          v-model="model.situationId"
+          type="text"
+          readonly
+        >
       </div>
       <div class="form-group">
         <label>Type:</label>
         <select v-model="model.type">
-          <option :value="TerminalSituationType.UNKNOWN">Unknown</option>
-          <option :value="TerminalSituationType.NEUTRAL">Neutral</option>
+          <option :value="TerminalSituationType.UNKNOWN">
+            Unknown
+          </option>
+          <option :value="TerminalSituationType.NEUTRAL">
+            Neutral
+          </option>
         </select>
       </div>
       <div class="form-group">
         <label>Name:</label>
-        <input v-model="model.name" type="text" />
+        <input
+          v-model="model.name"
+          type="text"
+        >
       </div>
       <div class="form-group">
         <label>Description:</label>
-        <textarea v-model="model.description" rows="3"></textarea>
+        <textarea
+          v-model="model.description"
+          rows="3"
+        />
       </div>
     </div>
   </div>
