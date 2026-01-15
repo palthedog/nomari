@@ -8,7 +8,6 @@ import type {
 } from '@mari/ts-proto';
 import {
     ResourceType,
-    TerminalSituationType,
 } from '@mari/ts-proto';
 
 /**
@@ -45,13 +44,11 @@ export function createInitialGameDefinition(): GameDefinition {
         [
             {
                 situationId: cornerNeutralSituationId,
-                type: TerminalSituationType.NEUTRAL,
                 name: '画面端 五分',
                 description: '画面端にいるけど、距離がいったん離れた',
             },
             {
                 situationId: neutralSituationId,
-                type: TerminalSituationType.NEUTRAL,
                 name: '脱出 五分',
                 description: '画面端脱出',
             },
@@ -161,7 +158,6 @@ export function createEmptySituation(): Situation {
 export function createEmptyTerminalSituation(): TerminalSituation {
     return {
         situationId: generateId('terminal'),
-        type: TerminalSituationType.NEUTRAL,
         name: '',
         description: '',
     };

@@ -4,12 +4,10 @@
             <h3>ゲーム木構築設定</h3>
         </div>
         <div class="panel-content">
-            <InitialDynamicStateEditor
-                v-if="gameDefinition.initialDynamicState"
+            <InitialDynamicStateEditor v-if="gameDefinition.initialDynamicState"
                 v-model="gameDefinition.initialDynamicState" />
 
-            <RewardComputationMethodEditor
-                v-model="gameDefinition.rewardComputationMethod" />
+            <RewardComputationMethodEditor v-model="gameDefinition.rewardComputationMethod" />
 
             <div class="update-button-section">
                 <button type="button" class="update-tree-btn" @click="handleUpdate">
@@ -21,7 +19,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineModel } from 'vue';
 import type { GameDefinition } from '@mari/ts-proto';
 import InitialDynamicStateEditor from './InitialDynamicStateEditor.vue';
 import RewardComputationMethodEditor from './RewardComputationMethodEditor.vue';

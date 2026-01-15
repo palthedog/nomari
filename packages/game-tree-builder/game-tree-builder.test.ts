@@ -2,7 +2,6 @@ import { buildGameTree, GameTreeBuildErrorCode } from './game-tree-builder';
 import {
     GameDefinition,
     ResourceType,
-    TerminalSituationType,
     RewardComputationMethod,
     CornerState,
 } from '@mari/ts-proto';
@@ -113,7 +112,6 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [
                     {
                         situationId: 'neutral',
-                        type: TerminalSituationType.NEUTRAL,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
                     },
@@ -471,7 +469,6 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [
                     {
                         situationId: 'neutral',
-                        type: TerminalSituationType.NEUTRAL,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
                     },
@@ -708,7 +705,6 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [
                         {
                             situationId: 'neutral',
-                            type: TerminalSituationType.NEUTRAL,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.UNKNOWN,
@@ -863,7 +859,6 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [
                         {
                             situationId: 'neutral',
-                            type: TerminalSituationType.NEUTRAL,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.PLAYER_IN_CORNER,
@@ -941,7 +936,6 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [
                         {
                             situationId: 'neutral',
-                            type: TerminalSituationType.NEUTRAL,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.OPPONENT_IN_CORNER,
@@ -1019,7 +1013,6 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [
                         {
                             situationId: 'neutral',
-                            type: TerminalSituationType.NEUTRAL,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.NONE,
@@ -1097,7 +1090,6 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [
                         {
                             situationId: 'neutral',
-                            type: TerminalSituationType.NEUTRAL,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.UNKNOWN,

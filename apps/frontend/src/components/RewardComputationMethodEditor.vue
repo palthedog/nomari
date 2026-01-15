@@ -4,38 +4,41 @@
 
         <div class="method-selection">
             <label class="radio-option">
-                <input type="radio" value="winProbability" :checked="selectedMethod === 'winProbability'"
-                    @change="selectMethod('winProbability')">
-                <span>勝率ベース</span>
-            </label>
-            <label class="radio-option">
                 <input type="radio" value="damageRace" :checked="selectedMethod === 'damageRace'"
                     @change="selectMethod('damageRace')">
                 <span>ダメージレース</span>
             </label>
+            <label class="radio-option">
+                <input type="radio" value="winProbability" :checked="selectedMethod === 'winProbability'"
+                    @change="selectMethod('winProbability')">
+                <span>勝率ベース</span>
+            </label>
         </div>
 
+        <!-- Description for Damage Race -->
+        <div v-if="selectedMethod === 'damageRace'" class="damage-race-settings">
+            <div class="help-text">
+                与えたダメージ - 受けたダメージ をそのまま報酬として使用します。
+            </div>
+        </div>
+
+        <!-- Description for Win Probability -->
         <div v-if="selectedMethod === 'winProbability'" class="win-probability-settings">
             <div class="form-group">
                 <label for="corner-penalty">Corner ペナルティ (0.0 ～ 1.0):</label>
-                <input id="corner-penalty" type="number" min="0" max="1" step="0.01"
-                    :value="cornerPenalty" @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))">
+                <input id="corner-penalty" type="number" min="0" max="1" step="0.01" :value="cornerPenalty"
+                    @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))">
                 <div class="help-text">
                     画面端にいる場合の勝率ペナルティ。例: 0.1 は 10% のペナルティを意味します。
                 </div>
             </div>
         </div>
 
-        <div v-if="selectedMethod === 'damageRace'" class="damage-race-settings">
-            <div class="help-text">
-                与えたダメージ - 受けたダメージ をそのまま報酬として使用します。
-            </div>
-        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import type { RewardComputationMethod } from '@mari/ts-proto';
 
 const model = defineModel<RewardComputationMethod | undefined>({ required: false });
@@ -58,7 +61,7 @@ type MethodType = 'winProbability' | 'damageRace';
 
 const selectedMethod = computed<MethodType>(() => {
     if (!model.value || !model.value.method.oneofKind) {
-        return 'winProbability'; // Default to win probability
+        return 'damageRace'; // Default to damage race
     }
     if (model.value.method.oneofKind === 'damageRace') {
         return 'damageRace';
@@ -66,7 +69,7 @@ const selectedMethod = computed<MethodType>(() => {
     if (model.value.method.oneofKind === 'winProbability') {
         return 'winProbability';
     }
-    return 'winProbability'; // Default to win probability
+    return 'damageRace'; // Default to damage race
 });
 
 const cornerPenalty = computed(() => {

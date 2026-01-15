@@ -3,7 +3,6 @@ import {
     DynamicState,
     ResourceConsumption,
     ResourceType,
-    TerminalSituationType,
     Situation,
     TerminalSituation,
     Action,
@@ -265,57 +264,38 @@ function createTerminalSituationNode(
     initialPlayerHealth: number,
     initialOpponentHealth: number
 ): Node {
-    if (terminalSituation.type === TerminalSituationType.NEUTRAL) {
-        let playerReward: number;
-        let opponentReward: number;
+    let playerReward: number;
+    let opponentReward: number;
 
-        if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
-            if (rewardComputationMethod.method.oneofKind === 'damageRace') {
-                ({ playerReward, opponentReward } = calculateRewardForDamageRace(
-                    playerHealth,
-                    opponentHealth,
-                    initialPlayerHealth,
-                    initialOpponentHealth
-                ));
-            } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
-                const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
-                ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
-                    playerHealth,
-                    opponentHealth,
-                    terminalSituation.cornerState,
-                    cornerPenalty
-                ));
-            } else {
-                // Fallback to default
-                const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
-                playerReward = rewards.playerReward;
-                opponentReward = rewards.opponentReward;
-            }
+    if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
+        if (rewardComputationMethod.method.oneofKind === 'damageRace') {
+            ({ playerReward, opponentReward } = calculateRewardForDamageRace(
+                playerHealth,
+                opponentHealth,
+                initialPlayerHealth,
+                initialOpponentHealth
+            ));
+        } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
+            const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
+            ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
+                playerHealth,
+                opponentHealth,
+                terminalSituation.cornerState,
+                cornerPenalty
+            ));
         } else {
-            // Default behavior when reward computation method is not specified
+            // Fallback to default
             const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
             playerReward = rewards.playerReward;
             opponentReward = rewards.opponentReward;
         }
-
-        return {
-            nodeId: nodeId,
-            name: terminalSituation.name,
-            description: terminalSituation.description || terminalSituation.name,
-            state: {
-                situation_id: terminalSituation.situationId,
-                playerHealth: playerHealth,
-                opponentHealth: opponentHealth,
-            },
-            transitions: [],
-            playerActions: undefined,
-            opponentActions: undefined,
-            playerReward: { value: playerReward },
-            opponentReward: { value: opponentReward },
-        };
+    } else {
+        // Default behavior when reward computation method is not specified
+        const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
+        playerReward = rewards.playerReward;
+        opponentReward = rewards.opponentReward;
     }
 
-    // For other terminal types, create a node with no rewards (to be set by caller if needed)
     return {
         nodeId: nodeId,
         name: terminalSituation.name,
@@ -328,6 +308,8 @@ function createTerminalSituationNode(
         transitions: [],
         playerActions: undefined,
         opponentActions: undefined,
+        playerReward: { value: playerReward },
+        opponentReward: { value: opponentReward },
     };
 }
 

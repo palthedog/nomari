@@ -40,31 +40,14 @@ message Situation {
   repeated Transition transitions = 6;
 }
 
-enum TerminalSituationType {
-  TERMINAL_SITUATION_TYPE_UNKNOWN = 0;
-  
-  // Neutral terminal situation. Like, non Oki situation.
-  // Let's calculate rewards at this point.
-  TERMINAL_SITUATION_TYPE_NEUTRAL = 1;
-  
-  // TODO: Do users want to have win, lose, and draw terminal situations?
-  // Mari game tree build should create terminal nodes for win/lose/draw automatically.
-  /*
-  TERMINAL_SITUATION_TYPE_WIN = 2;
-  TERMINAL_SITUATION_TYPE_LOSE = 3;
-  TERMINAL_SITUATION_TYPE_DRAW = 4;
-  */
-}
-
 message TerminalSituation {
   string situation_id = 1;
-  TerminalSituationType type = 2;
 
-  string name = 3;
-  string description = 4;
+  string name = 2;
+  string description = 3;
 
   // Corner state information for reward computation
-  optional CornerState corner_state = 5;
+  optional CornerState corner_state = 4;
 }
 
 enum CornerState {
