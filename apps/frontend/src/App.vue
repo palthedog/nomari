@@ -196,14 +196,11 @@ function handleNodeSelect(nodeId: string) {
 function handleSolverStart(iterations: number) {
   // Rebuild game tree before starting strategy computation
   updateGameTree();
-  
-  // Wait for next tick to ensure game tree is updated
-  // Then start solving with the newly built tree
-  setTimeout(() => {
-    if (gameTree.value) {
-      startSolving(gameTree.value, iterations);
-    }
-  }, 0);
+
+  // Start solving with the newly built tree
+  if (gameTree.value) {
+    startSolving(gameTree.value, iterations);
+  }
 }
 
 function handleSolverPause() {
