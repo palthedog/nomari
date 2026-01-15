@@ -139,7 +139,52 @@ function calculateRewardForNeutral(
 }
 
 /**
+ * Adjust win probability based on corner state using odds ratio.
+ * Handles edge cases where probability is very close to 0 or 1.
+ */
+function adjustProbabilityWithCornerPenalty(
+    winProbability: number,
+    cornerState: CornerState,
+    cornerPenalty: number
+): number {
+    // Handle edge cases where probability is exactly 0 or 1, or very close to them
+    // Use a threshold to handle cases where one player has overwhelming advantage
+    // Threshold of 0.999 means if probability is >= 99.9%, treat as 100%
+    // Threshold of 0.001 means if probability is <= 0.1%, treat as 0%
+    const PROBABILITY_THRESHOLD_HIGH = 0.999;
+    const PROBABILITY_THRESHOLD_LOW = 0.001;
+    if (winProbability >= PROBABILITY_THRESHOLD_HIGH) {
+        // Probability is effectively 100% - even with penalty, it should remain 100%
+        return 1.0;
+    }
+    if (winProbability <= PROBABILITY_THRESHOLD_LOW) {
+        // Probability is effectively 0% - even with bonus, it should remain 0%
+        return 0.0;
+    }
+
+    // Convert probability to odds
+    const odds = winProbability / (1 - winProbability);
+
+    // Apply corner penalty as odds ratio multiplier
+    let adjustedOdds: number;
+    if (cornerState === CornerState.PLAYER_IN_CORNER) {
+        // Player in corner: reduce odds (multiply by (1 - penalty))
+        adjustedOdds = odds * (1 - cornerPenalty);
+    } else {
+        // Opponent in corner: increase odds (multiply by (1 + penalty))
+        adjustedOdds = odds * (1 + cornerPenalty);
+    }
+
+    // Convert odds back to probability
+    const adjustedProbability = adjustedOdds / (1 + adjustedOdds);
+
+    // Clamp to [0, 1] to handle any floating point errors
+    return Math.max(0, Math.min(1, adjustedProbability));
+}
+
+/**
  * Calculate reward for neutral terminal situation based on win probability with corner information.
+ * Uses odds ratio to adjust probability, ensuring it stays within [0, 1] bounds.
  */
 function calculateRewardForWinProbabilityWithCorner(
     playerHealth: number,
@@ -155,11 +200,9 @@ function calculateRewardForWinProbabilityWithCorner(
         winProbability = playerHealth / totalHealth;
     }
 
-    // Apply corner penalty if applicable
-    if (cornerState === CornerState.PLAYER_IN_CORNER) {
-        winProbability = Math.max(0, winProbability - cornerPenalty);
-    } else if (cornerState === CornerState.OPPONENT_IN_CORNER) {
-        winProbability = Math.min(1, winProbability + cornerPenalty);
+    // Apply corner penalty using odds ratio if applicable
+    if (cornerState === CornerState.PLAYER_IN_CORNER || cornerState === CornerState.OPPONENT_IN_CORNER) {
+        winProbability = adjustProbabilityWithCornerPenalty(winProbability, cornerState, cornerPenalty);
     }
     // For NONE, UNKNOWN, or undefined, no penalty is applied
 

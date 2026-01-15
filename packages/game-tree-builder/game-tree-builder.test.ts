@@ -1043,10 +1043,12 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.opponentReward).toBeDefined();
 
                 // Win probability = 6000 / (6000 + 4000) = 0.6
-                // With corner penalty: 0.6 - 0.1 = 0.5
-                // Reward = 0.5 * 20000 - 10000 = 0
-                expect(nextNode.playerReward!.value).toBeCloseTo(0, 1);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 1);
+                // Odds = 0.6 / 0.4 = 1.5
+                // With corner penalty (player in corner): adjusted odds = 1.5 * (1 - 0.1) = 1.35
+                // Adjusted probability = 1.35 / (1 + 1.35) ≈ 0.574468
+                // Reward = 0.574468 * 20000 - 10000 ≈ 1489.36
+                expect(nextNode.playerReward!.value).toBeCloseTo(1489.36, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(-1489.36, 0);
             });
 
             it('should calculate rewards based on win probability with corner bonus when opponent is in corner', () => {
@@ -1120,10 +1122,12 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.opponentReward).toBeDefined();
 
                 // Win probability = 4000 / (4000 + 6000) = 0.4
-                // With corner bonus: 0.4 + 0.1 = 0.5
-                // Reward = 0.5 * 20000 - 10000 = 0
-                expect(nextNode.playerReward!.value).toBeCloseTo(0, 1);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 1);
+                // Odds = 0.4 / 0.6 = 2/3 ≈ 0.666667
+                // With corner bonus (opponent in corner): adjusted odds = (2/3) * 1.1 = 0.733333
+                // Adjusted probability = 0.733333 / (1 + 0.733333) = 0.733333 / 1.733333 ≈ 0.423077
+                // Reward = 0.423077 * 20000 - 10000 ≈ -1538.46
+                expect(nextNode.playerReward!.value).toBeCloseTo(-1538.46, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(1538.46, 0);
             });
 
             it('should not apply corner penalty when corner state is NONE', () => {
@@ -1201,6 +1205,162 @@ describe('gameTreeBuilder', () => {
                 // Reward = 0.6 * 20000 - 10000 = 2000
                 expect(nextNode.playerReward!.value).toBeCloseTo(2000, 1);
                 expect(nextNode.opponentReward!.value).toBeCloseTo(-2000, 1);
+            });
+
+            it('should keep probability at 100% even when player is in corner', () => {
+                const gameDefinition: GameDefinition = {
+                    gameId: 'max-probability-corner-game',
+                    name: 'Max Probability Corner Game',
+                    description: 'A game with 100% win probability and corner penalty',
+                    rootSituationId: 'situation1',
+                    situations: [
+                        {
+                            situationId: 'situation1',
+                            description: 'First situation',
+                            playerActions: {
+                                actions: [
+                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                ],
+                            },
+                            opponentActions: {
+                                actions: [
+                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                ],
+                            },
+                            transitions: [
+                                {
+                                    playerActionId: 'action1',
+                                    opponentActionId: 'action2',
+                                    nextSituationId: 'neutral',
+                                    resourceConsumptions: [],
+                                },
+                            ],
+                        },
+                    ],
+                    terminalSituations: [
+                        {
+                            situationId: 'neutral',
+                            name: 'Neutral',
+                            description: 'Neutral terminal situation',
+                            cornerState: CornerState.PLAYER_IN_CORNER,
+                        },
+                    ],
+                    initialDynamicState: {
+                        resources: [
+                            { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 1 },
+                        ],
+                    },
+                    rewardComputationMethod: {
+                        method: {
+                            oneofKind: 'winProbability',
+                            winProbability: {
+                                cornerPenalty: 0.1, // 10% penalty
+                            },
+                        },
+                    },
+                };
+
+                const result = buildGameTree(gameDefinition);
+                expect(result.success).toBe(true);
+                if (!result.success) {
+                    throw new Error('Expected success but got error: ' + result.error.message);
+                }
+                const gameTree = result.gameTree;
+                const rootNode = gameTree.nodes[gameTree.root];
+
+                const transition = rootNode.transitions[0];
+                expect(transition).toBeDefined();
+                expect(transition.nextNodeId).toBeDefined();
+                const nextNode = gameTree.nodes[transition.nextNodeId!];
+                expect(nextNode).toBeDefined();
+                expect(nextNode.playerReward).toBeDefined();
+                expect(nextNode.opponentReward).toBeDefined();
+
+                // Win probability = 10000 / (10000 + 1) ≈ 0.99990001 (very close to 100%)
+                // With epsilon threshold, this should be treated as 100%
+                // Even with corner penalty, probability should remain at 100%
+                // Reward = 1.0 * 20000 - 10000 = 10000
+                expect(nextNode.playerReward!.value).toBe(10000);
+                expect(nextNode.opponentReward!.value).toBe(-10000);
+            });
+
+            it('should keep probability at 0% even when opponent is in corner', () => {
+                const gameDefinition: GameDefinition = {
+                    gameId: 'min-probability-corner-game',
+                    name: 'Min Probability Corner Game',
+                    description: 'A game with 0% win probability and corner bonus',
+                    rootSituationId: 'situation1',
+                    situations: [
+                        {
+                            situationId: 'situation1',
+                            description: 'First situation',
+                            playerActions: {
+                                actions: [
+                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                ],
+                            },
+                            opponentActions: {
+                                actions: [
+                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                ],
+                            },
+                            transitions: [
+                                {
+                                    playerActionId: 'action1',
+                                    opponentActionId: 'action2',
+                                    nextSituationId: 'neutral',
+                                    resourceConsumptions: [],
+                                },
+                            ],
+                        },
+                    ],
+                    terminalSituations: [
+                        {
+                            situationId: 'neutral',
+                            name: 'Neutral',
+                            description: 'Neutral terminal situation',
+                            cornerState: CornerState.OPPONENT_IN_CORNER,
+                        },
+                    ],
+                    initialDynamicState: {
+                        resources: [
+                            { resourceType: ResourceType.PLAYER_HEALTH, value: 1 },
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 10000 },
+                        ],
+                    },
+                    rewardComputationMethod: {
+                        method: {
+                            oneofKind: 'winProbability',
+                            winProbability: {
+                                cornerPenalty: 0.1, // 10% bonus (opponent in corner)
+                            },
+                        },
+                    },
+                };
+
+                const result = buildGameTree(gameDefinition);
+                expect(result.success).toBe(true);
+                if (!result.success) {
+                    throw new Error('Expected success but got error: ' + result.error.message);
+                }
+                const gameTree = result.gameTree;
+                const rootNode = gameTree.nodes[gameTree.root];
+
+                const transition = rootNode.transitions[0];
+                expect(transition).toBeDefined();
+                expect(transition.nextNodeId).toBeDefined();
+                const nextNode = gameTree.nodes[transition.nextNodeId!];
+                expect(nextNode).toBeDefined();
+                expect(nextNode.playerReward).toBeDefined();
+                expect(nextNode.opponentReward).toBeDefined();
+
+                // Win probability = 1 / (1 + 10000) ≈ 0.00009999 (very close to 0%)
+                // With epsilon threshold, this should be treated as 0%
+                // Even with corner bonus, probability should remain at 0%
+                // Reward = 0.0 * 20000 - 10000 = -10000
+                expect(nextNode.playerReward!.value).toBe(-10000);
+                expect(nextNode.opponentReward!.value).toBe(10000);
             });
 
             it('should use default behavior when reward computation method is not specified', () => {
