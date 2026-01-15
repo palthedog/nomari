@@ -45,19 +45,13 @@
     <div v-if="error" class="error-section">
       <strong>エラー:</strong> {{ error }}
     </div>
-
-    <!-- Exploitability chart placeholder -->
-    <div class="chart-section" :hidden="true">
-      <ExploitabilityChart :data="exploitabilityHistory" />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type { GameTree } from '@mari/game-tree/game-tree';
-import type { SolverStatus, StrategyData } from '../workers/solver-types';
-import ExploitabilityChart from './ExploitabilityChart.vue';
+import type { SolverStatus } from '../workers/solver-types';
 
 const props = defineProps<{
   gameTree: GameTree | null;
@@ -75,8 +69,7 @@ const emit = defineEmits<{
 }>();
 
 // Local state
-const iterations = ref(1000);
-const timeLimit = ref(60);
+const iterations = ref(10000);
 
 // Computed properties
 const isRunning = computed(() => props.status === 'running');

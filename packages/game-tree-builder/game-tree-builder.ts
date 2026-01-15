@@ -7,6 +7,8 @@ import {
     Situation,
     TerminalSituation,
     Action,
+    RewardComputationMethod,
+    CornerState,
 } from '@mari/ts-proto';
 import {
     GameTree,
@@ -138,13 +140,64 @@ function calculateRewardForNeutral(
 }
 
 /**
+ * Calculate reward for neutral terminal situation based on win probability with corner information.
+ */
+function calculateRewardForWinProbabilityWithCorner(
+    playerHealth: number,
+    opponentHealth: number,
+    cornerState: CornerState | undefined,
+    cornerPenalty: number
+): { playerReward: number; opponentReward: number } {
+    const totalHealth = playerHealth + opponentHealth;
+    let winProbability: number;
+    if (totalHealth === 0) {
+        winProbability = 0.5; // When both zero, treat as equally likely (draw)
+    } else {
+        winProbability = playerHealth / totalHealth;
+    }
+
+    // Apply corner penalty if applicable
+    if (cornerState === CornerState.PLAYER_IN_CORNER) {
+        winProbability = Math.max(0, winProbability - cornerPenalty);
+    } else if (cornerState === CornerState.OPPONENT_IN_CORNER) {
+        winProbability = Math.min(1, winProbability + cornerPenalty);
+    }
+    // For NONE, UNKNOWN, or undefined, no penalty is applied
+
+    return calculateRewardForWinProbability(winProbability);
+}
+
+/**
+ * Calculate reward based on damage race (damage dealt - damage received).
+ * No scaling is applied - the damage race value is used directly as reward.
+ */
+function calculateRewardForDamageRace(
+    playerHealth: number,
+    opponentHealth: number,
+    initialPlayerHealth: number,
+    initialOpponentHealth: number
+): { playerReward: number; opponentReward: number } {
+    const damageDealt = initialOpponentHealth - opponentHealth;
+    const damageReceived = initialPlayerHealth - playerHealth;
+    const damageRace = damageDealt - damageReceived;
+
+    // Use damage race value directly without scaling
+    const playerReward = damageRace;
+    const opponentReward = -damageRace; // Zero-sum game
+    return { playerReward, opponentReward };
+}
+
+/**
  * Create a terminal node based on terminal type
  */
 function createTerminalNode(
     nodeId: string,
     type: 'win' | 'lose' | 'draw',
     playerHealth: number,
-    opponentHealth: number
+    opponentHealth: number,
+    rewardComputationMethod: RewardComputationMethod | undefined,
+    initialPlayerHealth: number,
+    initialOpponentHealth: number
 ): Node {
     let playerReward: number;
     let opponentReward: number;
@@ -154,10 +207,35 @@ function createTerminalNode(
     } else if (type === 'lose') {
         ({ playerReward, opponentReward } = calculateRewardForWinProbability(0));
     } else {
-        // draw: use neutral calculation
-        const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
-        playerReward = rewards.playerReward;
-        opponentReward = rewards.opponentReward;
+        // draw: use selected reward computation method
+        if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
+            if (rewardComputationMethod.method.oneofKind === 'damageRace') {
+                ({ playerReward, opponentReward } = calculateRewardForDamageRace(
+                    playerHealth,
+                    opponentHealth,
+                    initialPlayerHealth,
+                    initialOpponentHealth
+                ));
+            } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
+                const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
+                ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
+                    playerHealth,
+                    opponentHealth,
+                    undefined, // No corner state for auto-generated terminal nodes
+                    cornerPenalty
+                ));
+            } else {
+                // Fallback to default
+                const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
+                playerReward = rewards.playerReward;
+                opponentReward = rewards.opponentReward;
+            }
+        } else {
+            // Default behavior when reward computation method is not specified
+            const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
+            playerReward = rewards.playerReward;
+            opponentReward = rewards.opponentReward;
+        }
     }
 
     return {
@@ -182,10 +260,44 @@ function createTerminalSituationNode(
     nodeId: string,
     terminalSituation: TerminalSituation,
     playerHealth: number,
-    opponentHealth: number
+    opponentHealth: number,
+    rewardComputationMethod: RewardComputationMethod | undefined,
+    initialPlayerHealth: number,
+    initialOpponentHealth: number
 ): Node {
     if (terminalSituation.type === TerminalSituationType.NEUTRAL) {
-        const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
+        let playerReward: number;
+        let opponentReward: number;
+
+        if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
+            if (rewardComputationMethod.method.oneofKind === 'damageRace') {
+                ({ playerReward, opponentReward } = calculateRewardForDamageRace(
+                    playerHealth,
+                    opponentHealth,
+                    initialPlayerHealth,
+                    initialOpponentHealth
+                ));
+            } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
+                const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
+                ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
+                    playerHealth,
+                    opponentHealth,
+                    terminalSituation.cornerState,
+                    cornerPenalty
+                ));
+            } else {
+                // Fallback to default
+                const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
+                playerReward = rewards.playerReward;
+                opponentReward = rewards.opponentReward;
+            }
+        } else {
+            // Default behavior when reward computation method is not specified
+            const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
+            playerReward = rewards.playerReward;
+            opponentReward = rewards.opponentReward;
+        }
+
         return {
             nodeId: nodeId,
             name: terminalSituation.name,
@@ -198,8 +310,8 @@ function createTerminalSituationNode(
             transitions: [],
             playerActions: undefined,
             opponentActions: undefined,
-            playerReward: { value: rewards.playerReward },
-            opponentReward: { value: rewards.opponentReward },
+            playerReward: { value: playerReward },
+            opponentReward: { value: opponentReward },
         };
     }
 
@@ -228,6 +340,14 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     const nodeMap = new Map<string, Node>();
     const nodeStateMap = new Map<string, DynamicState>(); // Track state for each node
     const creatingNodes = new Set<string>(); // Track nodes currently being created to prevent infinite loops
+
+    // Store initial dynamic state for damage race calculation
+    const initialDynamicState = gameDefinition.initialDynamicState || { resources: [] };
+    const initialPlayerHealth = getResourceValue(initialDynamicState, ResourceType.PLAYER_HEALTH);
+    const initialOpponentHealth = getResourceValue(initialDynamicState, ResourceType.OPPONENT_HEALTH);
+
+    // Get reward computation method
+    const rewardComputationMethod = gameDefinition.rewardComputationMethod;
 
     // Map situations and terminal situations by ID
     const situationMap = new Map<string, Situation>();
@@ -283,7 +403,15 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 state,
                 ResourceType.OPPONENT_HEALTH
             );
-            const node = createTerminalNode(nodeKey, terminalCheck.type!, playerHealth, opponentHealth);
+            const node = createTerminalNode(
+                nodeKey,
+                terminalCheck.type!,
+                playerHealth,
+                opponentHealth,
+                rewardComputationMethod,
+                initialPlayerHealth,
+                initialOpponentHealth
+            );
 
             nodeMap.set(nodeKey, node);
             nodeStateMap.set(nodeKey, state);
@@ -295,7 +423,15 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         if (terminalSituation) {
             const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
             const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
-            const node = createTerminalSituationNode(nodeKey, terminalSituation, playerHealth, opponentHealth);
+            const node = createTerminalSituationNode(
+                nodeKey,
+                terminalSituation,
+                playerHealth,
+                opponentHealth,
+                rewardComputationMethod,
+                initialPlayerHealth,
+                initialOpponentHealth
+            );
 
             nodeMap.set(nodeKey, node);
             nodeStateMap.set(nodeKey, state);
@@ -421,7 +557,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     // Build the tree starting from root
     const rootNodeResult = getOrCreateNode(
         gameDefinition.rootSituationId,
-        gameDefinition.initialDynamicState || { resources: [] }
+        initialDynamicState
     );
 
     if (isError(rootNodeResult)) {

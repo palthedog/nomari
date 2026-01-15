@@ -1,8 +1,10 @@
 <template>
   <div class="game-tree-visualization">
-    <h3>ゲーム木の可視化</h3>
-    <div class="tree-stats">
-      <span>ノード数: {{ nodeCount }}</span>
+    <div class="game-tree-header">
+      <div class="game-tree-title">ゲーム木</div>
+      <div class="tree-stats">
+        <span>ノード数: {{ nodeCount }}</span>
+      </div>
     </div>
     <div class="svg-container">
       <svg :width="svgWidth" :height="svgHeight" class="tree-svg">
@@ -21,10 +23,10 @@
 
         <!-- Nodes -->
         <g v-for="nodeData in nodePositions" :key="nodeData.node.nodeId" class="node-group"
-          :class="{ selected: isSelectedNode(nodeData.node.nodeId) }"
-          @click="selectNode(nodeData.node.nodeId)">
+          :class="{ selected: isSelectedNode(nodeData.node.nodeId) }" @click="selectNode(nodeData.node.nodeId)">
           <rect :x="nodeData.x - nodeWidth / 2" :y="nodeData.y - nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
-            :fill="getNodeColor(nodeData)" :stroke="getNodeStroke(nodeData.node.nodeId)" :stroke-width="getNodeStrokeWidth(nodeData.node.nodeId)" rx="5" class="node-rect" />
+            :fill="getNodeColor(nodeData)" :stroke="getNodeStroke(nodeData.node.nodeId)"
+            :stroke-width="getNodeStrokeWidth(nodeData.node.nodeId)" rx="5" class="node-rect" />
           <!-- Node type indicator -->
           <text :x="nodeData.x" :y="nodeData.y - 20" text-anchor="middle" fill="white" font-weight="bold"
             font-size="11">
@@ -389,10 +391,19 @@ watch(
   margin-bottom: 10px;
 }
 
+.game-tree-header {
+  display: flex;
+  align-items: baseline;
+}
+
+.game-tree-title {
+  font-size: 16px;
+}
+
 .tree-stats {
-  margin-bottom: 10px;
   font-size: 12px;
   color: #666;
+  margin-left: 10px;
 }
 
 .svg-container {

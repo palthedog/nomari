@@ -19,6 +19,9 @@ message GameDefinition {
 
   // Initial dynamic state of the game
   DynamicState initial_dynamic_state = 7;
+
+  // Reward computation method for terminal nodes
+  RewardComputationMethod reward_computation_method = 8;
 }
 
 message Situation {
@@ -59,13 +62,32 @@ message TerminalSituation {
 
   string name = 3;
   string description = 4;
+
+  // Corner state information for reward computation
+  optional CornerState corner_state = 5;
 }
 
-message RewardComputationRule {
-  // TODO: Add reward computation rule
-  // The reward should be calculated based on the player's probability of winning.
-  // It's easy to calculate the probability in case of terminal node type is win or lose.
-  // However, for draw, the win probability should be calculated based on both player's remaining resources.
+enum CornerState {
+  CORNER_STATE_UNKNOWN = 0;                 // Unknown (for compatibility with existing data)
+  CORNER_STATE_NONE = 1;                    // Neither player is in corner
+  CORNER_STATE_PLAYER_IN_CORNER = 2;        // Player is in corner
+  CORNER_STATE_OPPONENT_IN_CORNER = 3;      // Opponent is in corner
+}
+
+message RewardComputationMethod {
+  message DamageRace {
+    // No configuration needed at this time
+  }
+  message WinProbability {
+    // Corner penalty for win probability calculation (0.0 ~ 1.0)
+    // Example: 0.1 means 10% penalty when in corner
+    double corner_penalty = 1;
+  }
+
+  oneof method {
+    DamageRace damage_race = 1;
+    WinProbability win_probability = 2;
+  }
 }
 
 enum ResourceType {
