@@ -139,67 +139,8 @@ function calculateRewardForNeutral(
 }
 
 /**
- * Adjust win probability based on corner state using logit space shift.
- * This ensures symmetric adjustments around 50% probability.
- * Handles edge cases where probability is very close to 0 or 1.
- */
-function adjustProbabilityWithCornerPenalty(
-    winProbability: number,
-    cornerState: CornerState,
-    cornerPenalty: number
-): number {
-    // Handle edge cases where probability is exactly 0 or 1, or very close to them
-    // Use a threshold to handle cases where one player has overwhelming advantage
-    // Threshold of 0.999 means if probability is >= 99.9%, treat as 100%
-    // Threshold of 0.001 means if probability is <= 0.1%, treat as 0%
-    const PROBABILITY_THRESHOLD_HIGH = 0.999;
-    const PROBABILITY_THRESHOLD_LOW = 0.001;
-    // Large logit value for edge case penalty conversion
-    // Used when penalty is very close to 0 or 1 to ensure strong effect
-    const EDGE_CASE_PENALTY_LOGIT = 10;
-    if (winProbability >= PROBABILITY_THRESHOLD_HIGH) {
-        // Probability is effectively 100% - even with penalty, it should remain 100%
-        return 1.0;
-    }
-    if (winProbability <= PROBABILITY_THRESHOLD_LOW) {
-        // Probability is effectively 0% - even with bonus, it should remain 0%
-        return 0.0;
-    }
-
-    // Convert probability to logit (log-odds)
-    const logit = Math.log(winProbability / (1 - winProbability));
-
-    // Convert corner penalty from probability space to logit space
-    // Handle edge cases for penalty values
-    let penaltyLogit: number;
-    if (cornerPenalty >= PROBABILITY_THRESHOLD_HIGH) {
-        penaltyLogit = EDGE_CASE_PENALTY_LOGIT; // Large positive value for high penalty
-    } else if (cornerPenalty <= PROBABILITY_THRESHOLD_LOW) {
-        penaltyLogit = -EDGE_CASE_PENALTY_LOGIT; // Large negative value for low penalty
-    } else {
-        penaltyLogit = Math.log(cornerPenalty / (1 - cornerPenalty));
-    }
-
-    // Apply corner penalty as logit shift
-    let adjustedLogit: number;
-    if (cornerState === CornerState.PLAYER_IN_CORNER) {
-        // Player in corner: shift logit down (subtract penalty)
-        adjustedLogit = logit - penaltyLogit;
-    } else {
-        // Opponent in corner: shift logit up (add penalty)
-        adjustedLogit = logit + penaltyLogit;
-    }
-
-    // Convert logit back to probability using sigmoid function
-    const adjustedProbability = 1 / (1 + Math.exp(-adjustedLogit));
-
-    // Clamp to [0, 1] to handle any floating point errors
-    return Math.max(0, Math.min(1, adjustedProbability));
-}
-
-/**
  * Calculate reward for neutral terminal situation based on win probability with corner information.
- * Uses odds ratio to adjust probability, ensuring it stays within [0, 1] bounds.
+ * Uses HP difference with sigmoid function to calculate win probability.
  */
 function calculateRewardForWinProbabilityWithCorner(
     playerHealth: number,
@@ -207,19 +148,20 @@ function calculateRewardForWinProbabilityWithCorner(
     cornerState: CornerState | undefined,
     cornerPenalty: number
 ): { playerReward: number; opponentReward: number } {
-    const totalHealth = playerHealth + opponentHealth;
-    let winProbability: number;
-    if (totalHealth === 0) {
-        winProbability = 0.5; // When both zero, treat as equally likely (draw)
-    } else {
-        winProbability = playerHealth / totalHealth;
+    // 1. Calculate HP difference
+    let score = playerHealth - opponentHealth;
+
+    // 2. Apply HP value adjustment based on corner state
+    if (cornerState === CornerState.PLAYER_IN_CORNER) {
+        score -= cornerPenalty;
+    } else if (cornerState === CornerState.OPPONENT_IN_CORNER) {
+        score += cornerPenalty;
     }
 
-    // Apply corner penalty using odds ratio if applicable
-    if (cornerState === CornerState.PLAYER_IN_CORNER || cornerState === CornerState.OPPONENT_IN_CORNER) {
-        winProbability = adjustProbabilityWithCornerPenalty(winProbability, cornerState, cornerPenalty);
-    }
-    // For NONE, UNKNOWN, or undefined, no penalty is applied
+    // 3. Convert to probability [0, 1] using sigmoid function
+    // k = 0.0003: HP difference of 5000 yields approximately 80% win probability
+    const k = 0.0003;
+    const winProbability = 1 / (1 + Math.exp(-k * score));
 
     return calculateRewardForWinProbability(winProbability);
 }
@@ -424,7 +366,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
 
         // Check if node is currently being created (infinite loop prevention)
         if (creatingNodes.has(nodeKey)) {
-            // DynamicStateに変化がない循環参照はエラーとする
+            // Cycle with no DynamicState change is an error
             return {
                 code: GameTreeBuildErrorCode.CYCLE_DETECTED,
                 message: `Cycle detected: Infinite loop found with same DynamicState. ` +

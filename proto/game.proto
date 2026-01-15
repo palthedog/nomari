@@ -62,8 +62,8 @@ message RewardComputationMethod {
     // No configuration needed at this time
   }
   message WinProbability {
-    // Corner penalty for win probability calculation (0.0 ~ 1.0)
-    // Example: 0.1 means 10% penalty when in corner
+    // Corner penalty for win probability calculation (HP value)
+    // Example: 2000 means HP2000 worth of penalty when in corner (20% of max HP 10000)
     double corner_penalty = 1;
   }
 

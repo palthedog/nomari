@@ -567,7 +567,7 @@ describe('gameTreeBuilder', () => {
                 },
             };
 
-            // DynamicStateに変化がない循環参照はエラーになるべき
+            // Cycle with no DynamicState change should be an error
             const result = buildGameTree(gameDefinition);
             expect(result.success).toBe(false);
             if (!result.success) {
@@ -647,7 +647,7 @@ describe('gameTreeBuilder', () => {
                 },
             };
 
-            // DynamicStateが変化する循環参照は許可される（体力が減り続けるので、いずれ終端ノードに到達する）
+            // Cycle with DynamicState change is allowed (health decreases continuously, so it will eventually reach a terminal node)
             const result = buildGameTree(gameDefinition);
             expect(result.success).toBe(true);
             if (!result.success) {
@@ -1020,7 +1020,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.1, // 10% penalty
+                                cornerPenalty: 1000, // HP1000 worth of penalty
                             },
                         },
                     },
@@ -1042,13 +1042,11 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Win probability = 6000 / (6000 + 4000) = 0.6
-                // Logit = log(0.6 / 0.4) = log(1.5) ≈ 0.405465
-                // With corner penalty (player in corner): adjusted logit = 0.405465 - 0.1 = 0.305465
-                // Adjusted probability = 1 / (1 + exp(-0.305465)) ≈ 0.5758
-                // Reward = 0.5758 * 20000 - 10000 ≈ 1516
-                expect(nextNode.playerReward!.value).toBeCloseTo(1516, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-1516, 0);
+                // Score = 6000 - 4000 - 1000 = 1000 (player in corner, so subtract penalty)
+                // Win probability = 1 / (1 + exp(-0.0003 * 1000)) ≈ 0.5744
+                // Reward = 0.5744 * 20000 - 10000 ≈ 1488
+                expect(nextNode.playerReward!.value).toBeCloseTo(1488, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(-1488, 0);
             });
 
             it('should calculate rewards based on win probability with corner bonus when opponent is in corner', () => {
@@ -1099,7 +1097,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.1, // 10% bonus (opponent in corner)
+                                cornerPenalty: 1000, // HP1000 worth of bonus (opponent in corner)
                             },
                         },
                     },
@@ -1121,13 +1119,11 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Win probability = 4000 / (4000 + 6000) = 0.4
-                // Logit = log(0.4 / 0.6) = log(2/3) ≈ -0.405465
-                // With corner bonus (opponent in corner): adjusted logit = -0.405465 + 0.1 = -0.305465
-                // Adjusted probability = 1 / (1 + exp(0.305465)) ≈ 0.4242
-                // Reward = 0.4242 * 20000 - 10000 ≈ -1516
-                expect(nextNode.playerReward!.value).toBeCloseTo(-1516, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(1516, 0);
+                // Score = 4000 - 6000 + 1000 = -1000 (opponent in corner, so add bonus)
+                // Win probability = 1 / (1 + exp(-0.0003 * -1000)) ≈ 0.4256
+                // Reward = 0.4256 * 20000 - 10000 ≈ -1488
+                expect(nextNode.playerReward!.value).toBeCloseTo(-1488, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(1488, 0);
             });
 
             it('should not apply corner penalty when corner state is NONE', () => {
@@ -1178,7 +1174,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.1,
+                                cornerPenalty: 1000,
                             },
                         },
                     },
@@ -1200,15 +1196,15 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Win probability = 6000 / (6000 + 4000) = 0.6
-                // No corner penalty applied
-                // Reward = 0.6 * 20000 - 10000 = 2000
-                expect(nextNode.playerReward!.value).toBeCloseTo(2000, 1);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-2000, 1);
+                // Score = 6000 - 4000 = 2000 (no corner penalty applied)
+                // Win probability = 1 / (1 + exp(-0.0003 * 2000)) ≈ 0.6457
+                // Reward = 0.6457 * 20000 - 10000 ≈ 2914
+                expect(nextNode.playerReward!.value).toBeCloseTo(2914, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(-2914, 0);
             });
 
-            it('should apply symmetric adjustments around 50% probability using logit space', () => {
-                // Test that +0.3 and -0.3 penalties from 50% probability are symmetric
+            it('should apply symmetric adjustments around 50% probability using HP difference', () => {
+                // Test that symmetric HP penalties from 50% probability are symmetric
                 const gameDefinitionPlayerInCorner: GameDefinition = {
                     gameId: 'symmetric-test-player-corner',
                     name: 'Symmetric Test Player Corner',
@@ -1256,7 +1252,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.3,
+                                cornerPenalty: 3000, // HP3000 worth of penalty
                             },
                         },
                     },
@@ -1309,7 +1305,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.3,
+                                cornerPenalty: 3000, // HP3000 worth of bonus (opponent in corner)
                             },
                         },
                     },
@@ -1337,13 +1333,12 @@ describe('gameTreeBuilder', () => {
                 const nextNodePlayer = gameTreePlayer.nodes[transitionPlayer.nextNodeId!];
                 const nextNodeOpponent = gameTreeOpponent.nodes[transitionOpponent.nextNodeId!];
 
-                // Win probability = 5000 / (5000 + 5000) = 0.5 (50%)
-                // With player in corner (penalty -0.3): logit = 0 - 0.3 = -0.3
-                // Adjusted probability = 1 / (1 + exp(0.3)) ≈ 0.4256
-                // Reward ≈ 0.4256 * 20000 - 10000 ≈ -1488
-                // With opponent in corner (bonus +0.3): logit = 0 + 0.3 = 0.3
-                // Adjusted probability = 1 / (1 + exp(-0.3)) ≈ 0.5744
-                // Reward ≈ 0.5744 * 20000 - 10000 ≈ 1488
+                // Score with player in corner = 5000 - 5000 - 3000 = -3000
+                // Win probability = 1 / (1 + exp(-0.0003 * -3000)) ≈ 0.2890
+                // Reward ≈ 0.2890 * 20000 - 10000 ≈ -4220
+                // Score with opponent in corner = 5000 - 5000 + 3000 = 3000
+                // Win probability = 1 / (1 + exp(-0.0003 * 3000)) ≈ 0.7110
+                // Reward ≈ 0.7110 * 20000 - 10000 ≈ 4220
                 // The absolute values should be symmetric (approximately equal)
                 const rewardPlayer = nextNodePlayer.playerReward!.value;
                 const rewardOpponent = nextNodeOpponent.playerReward!.value;
@@ -1401,7 +1396,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.1, // 10% penalty
+                                cornerPenalty: 1000, // HP1000 worth of penalty
                             },
                         },
                     },
@@ -1423,12 +1418,11 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Win probability = 10000 / (10000 + 1) ≈ 0.99990001 (very close to 100%)
-                // With epsilon threshold, this should be treated as 100%
-                // Even with corner penalty, probability should remain at 100%
-                // Reward = 1.0 * 20000 - 10000 = 10000
-                expect(nextNode.playerReward!.value).toBe(10000);
-                expect(nextNode.opponentReward!.value).toBe(-10000);
+                // Score = 10000 - 1 - 1000 = 8999
+                // Win probability = 1 / (1 + exp(-0.0003 * 8999)) ≈ 0.9999 (very close to 100%)
+                // Reward ≈ 0.9999 * 20000 - 10000 ≈ 9998
+                expect(nextNode.playerReward!.value).toBeGreaterThan(9990);
+                expect(nextNode.opponentReward!.value).toBeLessThan(-9990);
             });
 
             it('should keep probability at 0% even when opponent is in corner', () => {
@@ -1479,7 +1473,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 0.1, // 10% bonus (opponent in corner)
+                                cornerPenalty: 1000, // HP1000 worth of bonus (opponent in corner)
                             },
                         },
                     },
@@ -1501,12 +1495,11 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Win probability = 1 / (1 + 10000) ≈ 0.00009999 (very close to 0%)
-                // With epsilon threshold, this should be treated as 0%
-                // Even with corner bonus, probability should remain at 0%
-                // Reward = 0.0 * 20000 - 10000 = -10000
-                expect(nextNode.playerReward!.value).toBe(-10000);
-                expect(nextNode.opponentReward!.value).toBe(10000);
+                // Score = 1 - 10000 + 1000 = -8999
+                // Win probability = 1 / (1 + exp(-0.0003 * -8999)) ≈ 0.0001 (very close to 0%)
+                // Reward ≈ 0.0001 * 20000 - 10000 ≈ -9998
+                expect(nextNode.playerReward!.value).toBeLessThan(-9990);
+                expect(nextNode.opponentReward!.value).toBeGreaterThan(9990);
             });
 
             it('should use default behavior when reward computation method is not specified', () => {

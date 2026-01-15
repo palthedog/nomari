@@ -25,11 +25,11 @@
         <!-- Description for Win Probability -->
         <div v-if="selectedMethod === 'winProbability'" class="win-probability-settings">
             <div class="form-group">
-                <label for="corner-penalty">Corner ペナルティ (0.0 ～ 1.0):</label>
-                <input id="corner-penalty" type="number" min="0" max="1" step="0.01" :value="cornerPenalty"
+                <label for="corner-penalty">Corner ペナルティ (HP値):</label>
+                <input id="corner-penalty" type="number" min="0" max="10000" step="100" :value="cornerPenalty"
                     @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))">
                 <div class="help-text">
-                    画面端にいる場合の勝率ペナルティ。例: 0.1 は 10% のペナルティを意味します。
+                    画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します（最大HP10000の場合、20%相当）。
                 </div>
             </div>
         </div>
@@ -72,9 +72,9 @@ const selectedMethod = computed<MethodType>(() => {
 
 const cornerPenalty = computed(() => {
     if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
-        return model.value.method.winProbability.cornerPenalty || 0;
+        return model.value.method.winProbability.cornerPenalty || 2000;
     }
-    return 0;
+    return 2000;
 });
 
 function selectMethod(method: MethodType) {
