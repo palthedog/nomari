@@ -154,6 +154,9 @@ function adjustProbabilityWithCornerPenalty(
     // Threshold of 0.001 means if probability is <= 0.1%, treat as 0%
     const PROBABILITY_THRESHOLD_HIGH = 0.999;
     const PROBABILITY_THRESHOLD_LOW = 0.001;
+    // Large logit value for edge case penalty conversion
+    // Used when penalty is very close to 0 or 1 to ensure strong effect
+    const EDGE_CASE_PENALTY_LOGIT = 10;
     if (winProbability >= PROBABILITY_THRESHOLD_HIGH) {
         // Probability is effectively 100% - even with penalty, it should remain 100%
         return 1.0;
@@ -166,14 +169,25 @@ function adjustProbabilityWithCornerPenalty(
     // Convert probability to logit (log-odds)
     const logit = Math.log(winProbability / (1 - winProbability));
 
+    // Convert corner penalty from probability space to logit space
+    // Handle edge cases for penalty values
+    let penaltyLogit: number;
+    if (cornerPenalty >= PROBABILITY_THRESHOLD_HIGH) {
+        penaltyLogit = EDGE_CASE_PENALTY_LOGIT; // Large positive value for high penalty
+    } else if (cornerPenalty <= PROBABILITY_THRESHOLD_LOW) {
+        penaltyLogit = -EDGE_CASE_PENALTY_LOGIT; // Large negative value for low penalty
+    } else {
+        penaltyLogit = Math.log(cornerPenalty / (1 - cornerPenalty));
+    }
+
     // Apply corner penalty as logit shift
     let adjustedLogit: number;
     if (cornerState === CornerState.PLAYER_IN_CORNER) {
         // Player in corner: shift logit down (subtract penalty)
-        adjustedLogit = logit - cornerPenalty;
+        adjustedLogit = logit - penaltyLogit;
     } else {
         // Opponent in corner: shift logit up (add penalty)
-        adjustedLogit = logit + cornerPenalty;
+        adjustedLogit = logit + penaltyLogit;
     }
 
     // Convert logit back to probability using sigmoid function
