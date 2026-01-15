@@ -7,6 +7,7 @@ import type {
     Transition,
 } from '@mari/ts-proto';
 import {
+    CornerState,
     ResourceType,
 } from '@mari/ts-proto';
 
@@ -46,11 +47,13 @@ export function createInitialGameDefinition(): GameDefinition {
                 situationId: cornerNeutralSituationId,
                 name: '画面端 五分',
                 description: '画面端にいるけど、距離がいったん離れた',
+                cornerState: CornerState.OPPONENT_IN_CORNER,
             },
             {
                 situationId: neutralSituationId,
                 name: '脱出 五分',
                 description: '画面端脱出',
+                cornerState: CornerState.PLAYER_IN_CORNER,
             },
         ];
 
