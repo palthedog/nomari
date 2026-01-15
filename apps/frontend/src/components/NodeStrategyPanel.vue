@@ -10,12 +10,14 @@
         <div v-else class="node-details">
             <!-- Node info -->
             <div class="node-info">
+                <!--
                 <div class="info-row">
                     <span class="label">ノードID:</span>
                     <span class="value">{{ selectedNode.nodeId }}</span>
                 </div>
+                -->
                 <div class="info-row">
-                    <span class="label">説明:</span>
+                    <span class="label">状況:</span>
                     <span class="value">{{ selectedNode.description }}</span>
                 </div>
                 <div class="info-row">

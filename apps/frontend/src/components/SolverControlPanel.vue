@@ -5,60 +5,21 @@
     <!-- Iteration settings -->
     <div class="control-group">
       <label for="iterations">イテレーション数</label>
-      <input
-        id="iterations"
-        v-model.number="iterations"
-        type="number"
-        min="100"
-        max="100000"
-        step="100"
-        :disabled="isRunning"
-      />
-    </div>
-
-    <!-- Time limit (future feature) -->
-    <div class="control-group future-feature">
-      <label for="timeLimit">時間制限（秒）</label>
-      <input
-        id="timeLimit"
-        v-model.number="timeLimit"
-        type="number"
-        min="1"
-        max="3600"
-        disabled
-        title="将来の機能: 時間制限で計算を停止"
-      />
-      <span class="feature-badge">Coming Soon</span>
+      <input id="iterations" v-model.number="iterations" type="number" min="100" max="100000" step="100"
+        :disabled="isRunning" />
     </div>
 
     <!-- Control buttons -->
     <div class="button-group">
-      <button
-        type="button"
-        class="primary-btn"
-        :disabled="!canStart"
-        @click="handleStart"
-      >
+      <button type="button" class="primary-btn" :disabled="!canStart" @click="handleStart">
         {{ isComplete ? '再計算' : '戦略を計算' }}
       </button>
 
-      <button
-        type="button"
-        class="secondary-btn"
-        :disabled="!isRunning"
-        title="将来の機能: 一時停止"
-        @click="handlePause"
-      >
+      <button type="button" class="secondary-btn" :disabled="!isRunning" title="将来の機能: 一時停止" @click="handlePause">
         一時停止
       </button>
 
-      <button
-        type="button"
-        class="secondary-btn"
-        :disabled="!isPaused"
-        title="将来の機能: 再開"
-        @click="handleResume"
-      >
+      <button type="button" class="secondary-btn" :disabled="!isPaused" title="将来の機能: 再開" @click="handleResume">
         再開
       </button>
     </div>
@@ -70,10 +31,7 @@
         <span>{{ progress }} / {{ totalIterations }}</span>
       </div>
       <div class="progress-bar">
-        <div
-          class="progress-fill"
-          :style="{ width: progressPercent + '%' }"
-        ></div>
+        <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
       </div>
     </div>
 
@@ -89,7 +47,7 @@
     </div>
 
     <!-- Exploitability chart placeholder -->
-    <div class="chart-section">
+    <div class="chart-section" :hidden="true">
       <ExploitabilityChart :data="exploitabilityHistory" />
     </div>
   </div>
