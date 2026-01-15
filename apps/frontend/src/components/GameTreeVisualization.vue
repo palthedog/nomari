@@ -21,9 +21,10 @@
 
         <!-- Nodes -->
         <g v-for="nodeData in nodePositions" :key="nodeData.node.nodeId" class="node-group"
+          :class="{ selected: isSelectedNode(nodeData.node.nodeId) }"
           @click="selectNode(nodeData.node.nodeId)">
           <rect :x="nodeData.x - nodeWidth / 2" :y="nodeData.y - nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
-            :fill="getNodeColor(nodeData)" stroke="#333" stroke-width="2" rx="5" class="node-rect" />
+            :fill="getNodeColor(nodeData)" :stroke="getNodeStroke(nodeData.node.nodeId)" :stroke-width="getNodeStrokeWidth(nodeData.node.nodeId)" rx="5" class="node-rect" />
           <!-- Node type indicator -->
           <text :x="nodeData.x" :y="nodeData.y - 20" text-anchor="middle" fill="white" font-weight="bold"
             font-size="11">
@@ -54,6 +55,11 @@ import type { GameTree, Node } from '@mari/game-tree/game-tree';
 
 const props = defineProps<{
   gameTree: GameTree;
+  selectedNodeId: string | null;
+}>();
+
+const emit = defineEmits<{
+  'node-select': [nodeId: string];
 }>();
 
 const nodeWidth = 140;
@@ -336,8 +342,28 @@ function calculateLayout() {
 }
 
 function selectNode(nodeId: string) {
-  // Node selection handler (for future use)
-  console.log('Selected node:', nodeId);
+  emit('node-select', nodeId);
+}
+
+/**
+ * Check if a node is currently selected.
+ */
+function isSelectedNode(nodeId: string): boolean {
+  return props.selectedNodeId === nodeId;
+}
+
+/**
+ * Get the stroke color for a node (highlight if selected).
+ */
+function getNodeStroke(nodeId: string): string {
+  return isSelectedNode(nodeId) ? '#FFD700' : '#333';
+}
+
+/**
+ * Get the stroke width for a node (thicker if selected).
+ */
+function getNodeStrokeWidth(nodeId: string): number {
+  return isSelectedNode(nodeId) ? 4 : 2;
 }
 
 // Calculate layout when gameTree changes
@@ -391,5 +417,9 @@ watch(
 
 .node-group:hover .node-rect {
   opacity: 0.8;
+}
+
+.node-group.selected .node-rect {
+  filter: drop-shadow(0 0 6px #FFD700);
 }
 </style>

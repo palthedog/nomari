@@ -1,4 +1,4 @@
-import { GameTree, Node, NodeTransition, Reward } from '@mari/game-tree/game-tree';
+import { GameTree, Node } from '@mari/game-tree/game-tree';
 
 /**
  * Internal node representation for CFR computation

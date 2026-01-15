@@ -16,38 +16,108 @@
     </header>
 
     <div class="app-content">
+      <!-- Left: Game Definition Editor -->
       <div class="editor-section">
         <GameDefinitionEditor v-model="gameDefinition" />
       </div>
+
+      <!-- Center: Game Tree Visualization + Solver Controls -->
       <div class="visualization-section">
         <div v-if="buildError" class="build-error">
           <strong>エラー:</strong> {{ buildError }}
         </div>
-        <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
+
+        <!-- Solver Control Panel (shown when game tree exists) -->
+        <SolverControlPanel
+          v-if="gameTree"
+          :game-tree="gameTree"
+          :status="solverStatus"
+          :progress="solverProgress"
+          :total-iterations="solverTotalIterations"
+          :error="solverError"
+          :exploitability-history="exploitabilityHistory"
+          @start="handleSolverStart"
+          @pause="handleSolverPause"
+          @resume="handleSolverResume"
+        />
+
+        <!-- Game Tree Visualization -->
+        <GameTreeVisualization
+          v-if="gameTree"
+          :game-tree="gameTree"
+          :selected-node-id="selectedNodeId"
+          @node-select="handleNodeSelect"
+        />
+
         <div v-else-if="!buildError" class="no-tree-message">
           「ゲーム木を更新」ボタンを押してゲーム木を生成してください
         </div>
+      </div>
+
+      <!-- Right: Node Strategy Panel -->
+      <div class="strategy-section">
+        <NodeStrategyPanel
+          :selected-node="selectedNode"
+          :strategy-data="selectedNodeStrategy"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import type { GameDefinition } from '@mari/ts-proto';
-import type { GameTree } from '@mari/game-tree/game-tree';
+import type { GameTree, Node } from '@mari/game-tree/game-tree';
 import { buildGameTree } from '@mari/game-tree-builder';
 import { exportAsJSON, exportAsProto } from './utils/export';
 import { createInitialGameDefinition } from './utils/game-definition-utils';
+import { useSolver } from './composables/use-solver';
 import GameDefinitionEditor from './components/GameDefinitionEditor.vue';
 import GameTreeVisualization from './components/GameTreeVisualization.vue';
+import SolverControlPanel from './components/SolverControlPanel.vue';
+import NodeStrategyPanel from './components/NodeStrategyPanel.vue';
 
+// Game definition and tree state
 const gameDefinition = ref<GameDefinition>(createInitialGameDefinition());
 const gameTree = ref<GameTree | null>(null);
 const buildError = ref<string | null>(null);
 
+// Node selection state
+const selectedNodeId = ref<string | null>(null);
+
+// Solver composable
+const {
+  status: solverStatus,
+  progress: solverProgress,
+  totalIterations: solverTotalIterations,
+  strategies: solverStrategies,
+  error: solverError,
+  exploitabilityHistory,
+  startSolving,
+  pause: pauseSolver,
+  resume: resumeSolver,
+} = useSolver();
+
+// Computed properties
+const selectedNode = computed<Node | null>(() => {
+  if (!gameTree.value || !selectedNodeId.value) {
+    return null;
+  }
+  return gameTree.value.nodes[selectedNodeId.value] ?? null;
+});
+
+const selectedNodeStrategy = computed(() => {
+  if (!selectedNodeId.value) {
+    return null;
+  }
+  return solverStrategies.value[selectedNodeId.value] ?? null;
+});
+
+// Game tree functions
 function updateGameTree() {
   buildError.value = null;
+  selectedNodeId.value = null;
   const result = buildGameTree(gameDefinition.value);
   if (result.success) {
     gameTree.value = result.gameTree;
@@ -63,6 +133,26 @@ function exportJSON() {
 
 function exportProto() {
   exportAsProto(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.proto`);
+}
+
+// Node selection handler
+function handleNodeSelect(nodeId: string) {
+  selectedNodeId.value = nodeId;
+}
+
+// Solver handlers
+function handleSolverStart(iterations: number) {
+  if (gameTree.value) {
+    startSolving(gameTree.value, iterations);
+  }
+}
+
+function handleSolverPause() {
+  pauseSolver();
+}
+
+function handleSolverResume() {
+  resumeSolver();
 }
 </script>
 
@@ -126,6 +216,8 @@ body {
 
 .editor-section {
   flex: 1;
+  min-width: 300px;
+  max-width: 400px;
   border-right: 1px solid #ddd;
   overflow: hidden;
   display: flex;
@@ -133,7 +225,16 @@ body {
 }
 
 .visualization-section {
+  flex: 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.strategy-section {
   flex: 1;
+  min-width: 280px;
+  max-width: 350px;
   overflow: hidden;
   display: flex;
   flex-direction: column;

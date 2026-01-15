@@ -13,6 +13,7 @@
     "dependencies": {
         "@mari/game-tree": "*",
         "@mari/game-tree-builder": "*",
+        "@mari/solver": "*",
         "@mari/ts-proto": "*",
         "loglevel": "^1.9.2",
         "vue": "^3.5.26"

@@ -328,12 +328,14 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             playerActions: {
                 actions: situation.playerActions!.actions.map((a: Action) => ({
                     actionId: a.actionId,
+                    name: a.name,
                     description: a.description,
                 })),
             },
             opponentActions: {
                 actions: situation.opponentActions!.actions.map((a: Action) => ({
                     actionId: a.actionId,
+                    name: a.name,
                     description: a.description,
                 })),
             },
