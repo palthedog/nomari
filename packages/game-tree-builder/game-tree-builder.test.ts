@@ -823,6 +823,152 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
                 expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
             });
+
+            it('should calculate rewards based on damage race for win terminal', () => {
+                const gameDefinition: GameDefinition = {
+                    gameId: 'damage-race-win-game',
+                    name: 'Damage Race Win Game',
+                    description: 'A game with damage race reward computation ending in win',
+                    rootSituationId: 'situation1',
+                    situations: [
+                        {
+                            situationId: 'situation1',
+                            description: 'Attack opponent',
+                            playerActions: {
+                                actions: [
+                                    { actionId: 'attack', name: '', description: 'Attack' },
+                                ],
+                            },
+                            opponentActions: {
+                                actions: [
+                                    { actionId: 'defend', name: '', description: 'Defend' },
+                                ],
+                            },
+                            transitions: [
+                                {
+                                    playerActionId: 'attack',
+                                    opponentActionId: 'defend',
+                                    nextSituationId: 'situation2',
+                                    resourceConsumptions: [
+                                        {
+                                            resourceType: ResourceType.OPPONENT_HEALTH,
+                                            value: 2000,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                    terminalSituations: [],
+                    initialDynamicState: {
+                        resources: [
+                            { resourceType: ResourceType.PLAYER_HEALTH, value: 2000 },
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 },
+                        ],
+                    },
+                    rewardComputationMethod: {
+                        method: {
+                            oneofKind: 'damageRace',
+                            damageRace: {},
+                        },
+                    },
+                };
+
+                const result = buildGameTree(gameDefinition);
+                expect(result.success).toBe(true);
+                if (!result.success) {
+                    throw new Error('Expected success but got error: ' + result.error.message);
+                }
+                const gameTree = result.gameTree;
+                const rootNode = gameTree.nodes[gameTree.root];
+
+                const transition = rootNode.transitions[0];
+                expect(transition).toBeDefined();
+                expect(transition.nextNodeId).toBeDefined();
+                const nextNode = gameTree.nodes[transition.nextNodeId!];
+                expect(nextNode).toBeDefined();
+                expect(nextNode.playerReward).toBeDefined();
+                expect(nextNode.opponentReward).toBeDefined();
+
+                // Damage dealt = 2000 - 0 = 2000
+                // Damage received = 2000 - 2000 = 0
+                // Damage race = 2000 - 0 = 2000
+                expect(nextNode.playerReward!.value).toBe(2000);
+                expect(nextNode.opponentReward!.value).toBe(-2000);
+            });
+
+            it('should calculate rewards based on damage race for lose terminal', () => {
+                const gameDefinition: GameDefinition = {
+                    gameId: 'damage-race-lose-game',
+                    name: 'Damage Race Lose Game',
+                    description: 'A game with damage race reward computation ending in lose',
+                    rootSituationId: 'situation1',
+                    situations: [
+                        {
+                            situationId: 'situation1',
+                            description: 'Opponent attacks',
+                            playerActions: {
+                                actions: [
+                                    { actionId: 'defend', name: '', description: 'Defend' },
+                                ],
+                            },
+                            opponentActions: {
+                                actions: [
+                                    { actionId: 'attack', name: '', description: 'Attack' },
+                                ],
+                            },
+                            transitions: [
+                                {
+                                    playerActionId: 'defend',
+                                    opponentActionId: 'attack',
+                                    nextSituationId: 'situation2',
+                                    resourceConsumptions: [
+                                        {
+                                            resourceType: ResourceType.PLAYER_HEALTH,
+                                            value: 2000,
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                    terminalSituations: [],
+                    initialDynamicState: {
+                        resources: [
+                            { resourceType: ResourceType.PLAYER_HEALTH, value: 2000 },
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 },
+                        ],
+                    },
+                    rewardComputationMethod: {
+                        method: {
+                            oneofKind: 'damageRace',
+                            damageRace: {},
+                        },
+                    },
+                };
+
+                const result = buildGameTree(gameDefinition);
+                expect(result.success).toBe(true);
+                if (!result.success) {
+                    throw new Error('Expected success but got error: ' + result.error.message);
+                }
+                const gameTree = result.gameTree;
+                const rootNode = gameTree.nodes[gameTree.root];
+
+                const transition = rootNode.transitions[0];
+                expect(transition).toBeDefined();
+                expect(transition.nextNodeId).toBeDefined();
+                const nextNode = gameTree.nodes[transition.nextNodeId!];
+                expect(nextNode).toBeDefined();
+                expect(nextNode.playerReward).toBeDefined();
+                expect(nextNode.opponentReward).toBeDefined();
+
+                // Damage dealt = 2000 - 2000 = 0
+                // Damage received = 2000 - 0 = 2000
+                // Damage race = 0 - 2000 = -2000
+                expect(nextNode.playerReward!.value).toBe(-2000);
+                expect(nextNode.opponentReward!.value).toBe(2000);
+            });
         });
 
         describe('win probability with corner', () => {

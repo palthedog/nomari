@@ -78,7 +78,8 @@
         </div>
 
         <div class="strategy-section">
-          <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy" />
+          <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
+            :expected-values="expectedValues" />
         </div>
       </template>
     </div>
@@ -93,6 +94,7 @@ import { buildGameTree } from '@mari/game-tree-builder';
 import { exportAsJSON, exportAsProto } from './utils/export';
 import { createInitialGameDefinition } from './utils/game-definition-utils';
 import { useSolver } from './composables/use-solver';
+import { calculateExpectedValues, type ExpectedValuesMap } from './utils/expected-value-calculator';
 import GameDefinitionEditor from './components/GameDefinitionEditor.vue';
 import GameTreeVisualization from './components/GameTreeVisualization.vue';
 import SolverControlPanel from './components/SolverControlPanel.vue';
@@ -151,6 +153,19 @@ const selectedNodeStrategy = computed(() => {
     return null;
   }
   return solverStrategies.value[selectedNodeId.value] ?? null;
+});
+
+// Calculate expected values for all nodes
+const expectedValues = computed<ExpectedValuesMap | null>(() => {
+  if (!gameTree.value || Object.keys(solverStrategies.value).length === 0) {
+    return null;
+  }
+  try {
+    return calculateExpectedValues(gameTree.value, solverStrategies.value);
+  } catch (error) {
+    console.error('Error calculating expected values:', error);
+    return null;
+  }
 });
 
 // Auto-switch to strategy mode when strategy is computed

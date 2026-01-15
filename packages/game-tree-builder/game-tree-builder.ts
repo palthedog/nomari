@@ -201,21 +201,23 @@ function createTerminalNode(
     let playerReward: number;
     let opponentReward: number;
 
-    if (type === 'win') {
+    // Check reward computation method first
+    if (rewardComputationMethod && rewardComputationMethod.method.oneofKind === 'damageRace') {
+        // Use damage race for all terminal types (win/lose/draw)
+        ({ playerReward, opponentReward } = calculateRewardForDamageRace(
+            playerHealth,
+            opponentHealth,
+            initialPlayerHealth,
+            initialOpponentHealth
+        ));
+    } else if (type === 'win') {
         ({ playerReward, opponentReward } = calculateRewardForWinProbability(1));
     } else if (type === 'lose') {
         ({ playerReward, opponentReward } = calculateRewardForWinProbability(0));
     } else {
         // draw: use selected reward computation method
         if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
-            if (rewardComputationMethod.method.oneofKind === 'damageRace') {
-                ({ playerReward, opponentReward } = calculateRewardForDamageRace(
-                    playerHealth,
-                    opponentHealth,
-                    initialPlayerHealth,
-                    initialOpponentHealth
-                ));
-            } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
+            if (rewardComputationMethod.method.oneofKind === 'winProbability') {
                 const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
                 ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
                     playerHealth,

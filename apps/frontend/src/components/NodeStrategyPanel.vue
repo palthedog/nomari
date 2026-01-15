@@ -39,13 +39,33 @@
 
             <!-- Strategy display -->
             <div v-else-if="hasStrategy" class="strategy-section">
+                <!-- Node expected value -->
+                <div v-if="nodeExpectedValues" class="node-expected-value">
+                    <div class="expected-value-row">
+                        <div class="expected-value-label">プレイヤー期待値:</div>
+                        <div class="expected-value-number">{{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
+                        }}</div>
+                    </div>
+                    <div class="expected-value-row" v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined">
+                        <div class="expected-value-label">相手期待値:</div>
+                        <div class="expected-value-number opponent-value">{{
+                            formatExpectedValue(nodeExpectedValues.opponentNodeExpectedValue) }}</div>
+                    </div>
+                </div>
+
                 <!-- Player strategy -->
                 <div v-if="playerStrategy.length > 0" class="strategy-group">
                     <h4>プレイヤー戦略</h4>
                     <div class="action-list">
                         <div v-for="action in playerStrategy" :key="action.actionId" class="action-row">
                             <div class="action-info">
-                                <span class="action-name">{{ getActionName(action.actionId, 'player') }}</span>
+                                <div class="action-name-row">
+                                    <span class="action-name">{{ getActionName(action.actionId, 'player') }}</span>
+                                    <span class="action-expected-value"
+                                        v-if="getActionExpectedValue(action.actionId) !== null">
+                                        期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
+                                    </span>
+                                </div>
                                 <span class="action-prob">{{ formatPercent(action.probability) }}</span>
                             </div>
                             <div class="prob-bar">
@@ -62,7 +82,13 @@
                     <div class="action-list">
                         <div v-for="action in opponentStrategy" :key="action.actionId" class="action-row">
                             <div class="action-info">
-                                <span class="action-name">{{ getActionName(action.actionId, 'opponent') }}</span>
+                                <div class="action-name-row">
+                                    <span class="action-name">{{ getActionName(action.actionId, 'opponent') }}</span>
+                                    <span class="action-expected-value"
+                                        v-if="getOpponentActionExpectedValue(action.actionId) !== null">
+                                        期待値: {{ formatExpectedValue(getOpponentActionExpectedValue(action.actionId)) }}
+                                    </span>
+                                </div>
                                 <span class="action-prob">{{ formatPercent(action.probability) }}</span>
                             </div>
                             <div class="prob-bar">
@@ -112,10 +138,12 @@
 import { computed } from 'vue';
 import type { Node } from '@mari/game-tree/game-tree';
 import type { StrategyData } from '../workers/solver-types';
+import type { ExpectedValuesMap } from '../utils/expected-value-calculator';
 
 const props = defineProps<{
     selectedNode: Node | null;
     strategyData: StrategyData | null;
+    expectedValues: ExpectedValuesMap | null;
 }>();
 
 // Computed properties
@@ -139,6 +167,36 @@ const opponentStrategy = computed(() => {
     return props.strategyData?.opponentStrategy ?? [];
 });
 
+// Get expected values for the selected node
+const nodeExpectedValues = computed(() => {
+    if (!props.selectedNode || !props.expectedValues) {
+        return null;
+    }
+    return props.expectedValues[props.selectedNode.nodeId] ?? null;
+});
+
+// Get expected value for a specific action
+function getActionExpectedValue(actionId: string): number | null {
+    if (!nodeExpectedValues.value) {
+        return null;
+    }
+    const actionValue = nodeExpectedValues.value.actionExpectedValues.find(
+        (a) => a.actionId === actionId
+    );
+    return actionValue?.expectedValue ?? null;
+}
+
+// Get expected value for a specific opponent action
+function getOpponentActionExpectedValue(actionId: string): number | null {
+    if (!nodeExpectedValues.value || !nodeExpectedValues.value.opponentActionExpectedValues) {
+        return null;
+    }
+    const actionValue = nodeExpectedValues.value.opponentActionExpectedValues.find(
+        (a) => a.actionId === actionId
+    );
+    return actionValue?.expectedValue ?? null;
+}
+
 // Helper functions
 function formatReward(value: number | undefined): string {
     if (value === undefined) return '-';
@@ -147,6 +205,11 @@ function formatReward(value: number | undefined): string {
 
 function formatPercent(value: number): string {
     return (value * 100).toFixed(1) + '%';
+}
+
+function formatExpectedValue(value: number | null): string {
+    if (value === null) return '-';
+    return Math.round(value).toLocaleString();
 }
 
 function getActionName(actionId: string, player: 'player' | 'opponent'): string {
@@ -270,6 +333,42 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
     margin-bottom: 0;
 }
 
+.node-expected-value {
+    background-color: #e3f2fd;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.expected-value-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.expected-value-label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+.expected-value-number {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1976d2;
+}
+
+.opponent-value {
+    color: #d32f2f;
+}
+
+.opponent-value {
+    color: #d32f2f;
+}
+
 .strategy-group h4 {
     margin: 0 0 12px 0;
     font-size: 14px;
@@ -294,9 +393,21 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
     margin-bottom: 6px;
 }
 
+.action-name-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .action-name {
     font-size: 13px;
     color: #333;
+}
+
+.action-expected-value {
+    font-size: 11px;
+    color: #666;
+    font-weight: 500;
 }
 
 .action-prob {
