@@ -332,6 +332,40 @@ export class CFRSolver {
     }
 
     /**
+     * Get average strategy for opponent at a node
+     */
+    public getAverageOpponentStrategy(nodeId: string): Map<string, number> | null {
+        const node = this.nodes.get(nodeId);
+        if (!node) {
+            return null;
+        }
+
+        const strategy = new Map<string, number>();
+        let normalizingSum = 0;
+
+        for (const action of node.opponentActions) {
+            const sum = node.strategySum.get(action) ?? 0;
+            strategy.set(action, sum);
+            normalizingSum += sum;
+        }
+
+        if (normalizingSum > 0) {
+            for (const action of node.opponentActions) {
+                const current = strategy.get(action) ?? 0;
+                strategy.set(action, current / normalizingSum);
+            }
+        } else {
+            // Uniform if no strategy sum
+            const uniformProb = 1.0 / node.opponentActions.length;
+            for (const action of node.opponentActions) {
+                strategy.set(action, uniformProb);
+            }
+        }
+
+        return strategy;
+    }
+
+    /**
      * Get average strategy for the root node
      */
     public getRootStrategy(): Map<string, number> | null {

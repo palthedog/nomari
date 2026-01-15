@@ -11,8 +11,6 @@ export default defineConfig({
             '@mari/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),
             '@mari/game-tree-builder/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
             '@mari/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
-            '@mari/solver/cfr': path.resolve(__dirname, '../../packages/solver/cfr.ts'),
-            '@mari/solver': path.resolve(__dirname, '../../packages/solver/cfr.ts'),
         },
     },
     worker: {
