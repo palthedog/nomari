@@ -1,14 +1,6 @@
-# Basic rules
-## Language
-All comments in source codes must be written in English
-
-## Style Guide
-Follow Google Style Guides for all programming languages.
-https://google.github.io/styleguide/
-
-If you are not capable to memory the rules, try to:
-- update `.cursorrules` to 
-- update lint tool configurations
+---
+alwaysApply: true
+---
 
 # File Naming Convention
 

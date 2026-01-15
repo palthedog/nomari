@@ -3,10 +3,46 @@ alwaysApply: true
 ---
 
 # Style Guide
+## ブロックのネストを深くしない
+"Early Return"パターンを積極的に採用してください。
+```
+// GOOD!
+function example(var) {
+  if (!conditionCheck(var)) {
+    return;
+  }
+  // process `var`...
+  // ...
+}
+```
 
-Follow Google Style Guides for all programming languages.
-https://google.github.io/styleguide/
+```
+// BAD!
+function example(var) {
+  if (conditionCheck(var)) {
+    // process `var`...
+    // ...
+  }
+}
+```
+これは "for loop" 等についても同様です。for の中で条件を満たさない場合は `continue` を呼び出しましょう。
+```
+// GOOD!
+for(let var in array) {
+  if (!conditionCheck(var)) {
+    continue;
+  }
+  // process `var`...
+  // ...
+}
+```
 
-If you are not capable to memory the rules, try to:
-- update `.cursor/rules/` files
-- update lint tool configurations
+```
+// BAD!
+for(let var in array) {
+  if (conditionCheck(var)) {
+    // process `var`...
+    // ...
+  }
+}
+```
