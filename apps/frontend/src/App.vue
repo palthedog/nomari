@@ -12,9 +12,6 @@
         </div>
 
         <div class="header-actions">
-          <button type="button" class="update-tree-btn" @click="updateGameTree">
-            ゲーム木を更新
-          </button>
           <button type="button" @click="exportJSON">
             JSONでエクスポート
           </button>
@@ -26,10 +23,20 @@
     </header>
 
     <div class="app-content">
-      <!-- Edit Mode: GameDefinition + GameTree -->
+      <!-- Edit Mode: GameDefinitionEditor | GameTreeBuildPanel -->
       <template v-if="viewMode === 'edit'">
         <div class="editor-section">
           <GameDefinitionEditor v-model="gameDefinition" />
+        </div>
+        <div class="build-panel-section">
+          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
+        </div>
+      </template>
+
+      <!-- Game Tree Mode: GameTreeBuildPanel | GameTreeVisualization -->
+      <template v-else-if="viewMode === 'game-tree'">
+        <div class="build-panel-section">
+          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
         </div>
         <div class="visualization-section">
           <div v-if="buildError" class="build-error">
@@ -50,8 +57,8 @@
         </div>
       </template>
 
-      <!-- Review Mode: GameTree + Strategy -->
-      <template v-else-if="viewMode === 'review'">
+      <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
+      <template v-else-if="viewMode === 'strategy'">
         <div class="visualization-section">
           <div v-if="buildError" class="build-error">
             <strong>エラー:</strong> {{ buildError }}
@@ -90,9 +97,10 @@ import GameDefinitionEditor from './components/GameDefinitionEditor.vue';
 import GameTreeVisualization from './components/GameTreeVisualization.vue';
 import SolverControlPanel from './components/SolverControlPanel.vue';
 import NodeStrategyPanel from './components/NodeStrategyPanel.vue';
+import GameTreeBuildPanel from './components/GameTreeBuildPanel.vue';
 
 // View mode type definition
-type ViewMode = 'edit' | 'review';
+type ViewMode = 'edit' | 'game-tree' | 'strategy';
 
 interface ViewModeConfig {
   id: ViewMode;
@@ -101,8 +109,9 @@ interface ViewModeConfig {
 
 // View mode configuration (easily extensible)
 const viewModes: ViewModeConfig[] = [
-  { id: 'edit', label: '編集モード' },
-  { id: 'review', label: '確認モード' },
+  { id: 'edit', label: '編集' },
+  { id: 'game-tree', label: 'ゲーム木' },
+  { id: 'strategy', label: '戦略' },
 ];
 
 // View mode state
@@ -144,12 +153,12 @@ const selectedNodeStrategy = computed(() => {
   return solverStrategies.value[selectedNodeId.value] ?? null;
 });
 
-// Auto-switch to review mode when strategy is computed
+// Auto-switch to strategy mode when strategy is computed
 watch(
   () => solverStrategies.value,
   (strategies) => {
-    if (Object.keys(strategies).length > 0 && viewMode.value === 'edit') {
-      viewMode.value = 'review';
+    if (Object.keys(strategies).length > 0 && viewMode.value !== 'strategy') {
+      viewMode.value = 'strategy';
     }
   },
   { deep: true }
@@ -162,6 +171,8 @@ function updateGameTree() {
   const result = buildGameTree(gameDefinition.value);
   if (result.success) {
     gameTree.value = result.gameTree;
+    // Auto-switch to game-tree mode after successful build
+    viewMode.value = 'game-tree';
   } else {
     gameTree.value = null;
     buildError.value = result.error.message;
@@ -290,7 +301,16 @@ body {
   overflow: hidden;
 }
 
-/* Edit mode: 2 columns with equal width */
+/* Common section styles */
+.build-panel-section {
+  flex: 0 0 350px;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ddd;
+}
+
 .editor-section {
   flex: 1;
   min-width: 0;
@@ -308,7 +328,6 @@ body {
   flex-direction: column;
 }
 
-/* Review mode: GameTree takes more space */
 .strategy-section {
   flex: 0 0 400px;
   min-width: 0;
@@ -332,14 +351,5 @@ body {
   height: 100%;
   color: #666;
   font-size: 14px;
-}
-
-.update-tree-btn {
-  background-color: #4CAF50 !important;
-  color: white !important;
-}
-
-.update-tree-btn:hover {
-  background-color: #45a049 !important;
 }
 </style>

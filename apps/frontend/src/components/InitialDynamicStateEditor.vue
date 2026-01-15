@@ -101,13 +101,17 @@ function updateResourceValue(index: number, value: number) {
 
 .resource-value {
     display: flex;
+    min-width: 0;
 }
 
 .resource-value input {
     flex: 1;
+    min-width: 0;
+    width: 100%;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
 }
 
 .resources-section>button {

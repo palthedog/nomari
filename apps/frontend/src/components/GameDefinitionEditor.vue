@@ -45,15 +45,6 @@
           <h3>編集可能な要素</h3>
         </div>
         <div class="panel-content">
-          <!-- 初期状態 -->
-          <div class="section-group">
-            <div class="section-item initial-state-item" :class="{ active: selectedItemType === 'initial-state' }"
-              @click="selectInitialState">
-              <span class="section-icon">⚙️</span>
-              初期状態
-            </div>
-          </div>
-
           <!-- 状況(Situation) -->
           <div class="section-group">
             <div class="section-header">
@@ -98,9 +89,7 @@
           <h3>編集</h3>
         </div>
         <div class="panel-content">
-          <InitialDynamicStateEditor v-if="selectedItemType === 'initial-state' && gameDefinition.initialDynamicState"
-            v-model="gameDefinition.initialDynamicState" />
-          <SituationEditor v-else-if="selectedSituation" :model-value="selectedSituation"
+          <SituationEditor v-if="selectedSituation" :model-value="selectedSituation"
             :available-situations="gameDefinition.situations"
             :available-terminal-situations="gameDefinition.terminalSituations" @update:model-value="updateSituation"
             @delete="deleteSituation" />
@@ -129,11 +118,10 @@ import {
 import { validateGameDefinition, type ValidationError } from '../utils/validation';
 import SituationEditor from './SituationEditor.vue';
 import TerminalSituationEditor from './TerminalSituationEditor.vue';
-import InitialDynamicStateEditor from './InitialDynamicStateEditor.vue';
 
 const gameDefinition = defineModel<GameDefinition>({ required: true });
 
-const selectedItemType = ref<'initial-state' | 'situation' | 'terminal-situation' | null>(null);
+const selectedItemType = ref<'situation' | 'terminal-situation' | null>(null);
 const selectedSituationId = ref<string | null>(null);
 const selectedTerminalSituationId = ref<string | null>(null);
 
@@ -158,12 +146,6 @@ const selectedTerminalSituation = computed(() => {
     ) || null
   );
 });
-
-function selectInitialState() {
-  selectedItemType.value = 'initial-state';
-  selectedSituationId.value = null;
-  selectedTerminalSituationId.value = null;
-}
 
 function selectSituation(situationId: string) {
   selectedItemType.value = 'situation';
