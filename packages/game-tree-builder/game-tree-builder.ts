@@ -139,7 +139,8 @@ function calculateRewardForNeutral(
 }
 
 /**
- * Adjust win probability based on corner state using odds ratio.
+ * Adjust win probability based on corner state using logit space shift.
+ * This ensures symmetric adjustments around 50% probability.
  * Handles edge cases where probability is very close to 0 or 1.
  */
 function adjustProbabilityWithCornerPenalty(
@@ -162,21 +163,21 @@ function adjustProbabilityWithCornerPenalty(
         return 0.0;
     }
 
-    // Convert probability to odds
-    const odds = winProbability / (1 - winProbability);
+    // Convert probability to logit (log-odds)
+    const logit = Math.log(winProbability / (1 - winProbability));
 
-    // Apply corner penalty as odds ratio multiplier
-    let adjustedOdds: number;
+    // Apply corner penalty as logit shift
+    let adjustedLogit: number;
     if (cornerState === CornerState.PLAYER_IN_CORNER) {
-        // Player in corner: reduce odds (multiply by (1 - penalty))
-        adjustedOdds = odds * (1 - cornerPenalty);
+        // Player in corner: shift logit down (subtract penalty)
+        adjustedLogit = logit - cornerPenalty;
     } else {
-        // Opponent in corner: increase odds (multiply by (1 + penalty))
-        adjustedOdds = odds * (1 + cornerPenalty);
+        // Opponent in corner: shift logit up (add penalty)
+        adjustedLogit = logit + cornerPenalty;
     }
 
-    // Convert odds back to probability
-    const adjustedProbability = adjustedOdds / (1 + adjustedOdds);
+    // Convert logit back to probability using sigmoid function
+    const adjustedProbability = 1 / (1 + Math.exp(-adjustedLogit));
 
     // Clamp to [0, 1] to handle any floating point errors
     return Math.max(0, Math.min(1, adjustedProbability));

@@ -1043,12 +1043,12 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.opponentReward).toBeDefined();
 
                 // Win probability = 6000 / (6000 + 4000) = 0.6
-                // Odds = 0.6 / 0.4 = 1.5
-                // With corner penalty (player in corner): adjusted odds = 1.5 * (1 - 0.1) = 1.35
-                // Adjusted probability = 1.35 / (1 + 1.35) ≈ 0.574468
-                // Reward = 0.574468 * 20000 - 10000 ≈ 1489.36
-                expect(nextNode.playerReward!.value).toBeCloseTo(1489.36, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-1489.36, 0);
+                // Logit = log(0.6 / 0.4) = log(1.5) ≈ 0.405465
+                // With corner penalty (player in corner): adjusted logit = 0.405465 - 0.1 = 0.305465
+                // Adjusted probability = 1 / (1 + exp(-0.305465)) ≈ 0.5758
+                // Reward = 0.5758 * 20000 - 10000 ≈ 1516
+                expect(nextNode.playerReward!.value).toBeCloseTo(1516, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(-1516, 0);
             });
 
             it('should calculate rewards based on win probability with corner bonus when opponent is in corner', () => {
@@ -1122,12 +1122,12 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.opponentReward).toBeDefined();
 
                 // Win probability = 4000 / (4000 + 6000) = 0.4
-                // Odds = 0.4 / 0.6 = 2/3 ≈ 0.666667
-                // With corner bonus (opponent in corner): adjusted odds = (2/3) * 1.1 = 0.733333
-                // Adjusted probability = 0.733333 / (1 + 0.733333) = 0.733333 / 1.733333 ≈ 0.423077
-                // Reward = 0.423077 * 20000 - 10000 ≈ -1538.46
-                expect(nextNode.playerReward!.value).toBeCloseTo(-1538.46, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(1538.46, 0);
+                // Logit = log(0.4 / 0.6) = log(2/3) ≈ -0.405465
+                // With corner bonus (opponent in corner): adjusted logit = -0.405465 + 0.1 = -0.305465
+                // Adjusted probability = 1 / (1 + exp(0.305465)) ≈ 0.4242
+                // Reward = 0.4242 * 20000 - 10000 ≈ -1516
+                expect(nextNode.playerReward!.value).toBeCloseTo(-1516, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(1516, 0);
             });
 
             it('should not apply corner penalty when corner state is NONE', () => {
@@ -1205,6 +1205,152 @@ describe('gameTreeBuilder', () => {
                 // Reward = 0.6 * 20000 - 10000 = 2000
                 expect(nextNode.playerReward!.value).toBeCloseTo(2000, 1);
                 expect(nextNode.opponentReward!.value).toBeCloseTo(-2000, 1);
+            });
+
+            it('should apply symmetric adjustments around 50% probability using logit space', () => {
+                // Test that +0.3 and -0.3 penalties from 50% probability are symmetric
+                const gameDefinitionPlayerInCorner: GameDefinition = {
+                    gameId: 'symmetric-test-player-corner',
+                    name: 'Symmetric Test Player Corner',
+                    description: 'Test symmetric adjustment with player in corner',
+                    rootSituationId: 'situation1',
+                    situations: [
+                        {
+                            situationId: 'situation1',
+                            description: 'First situation',
+                            playerActions: {
+                                actions: [
+                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                ],
+                            },
+                            opponentActions: {
+                                actions: [
+                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                ],
+                            },
+                            transitions: [
+                                {
+                                    playerActionId: 'action1',
+                                    opponentActionId: 'action2',
+                                    nextSituationId: 'neutral',
+                                    resourceConsumptions: [],
+                                },
+                            ],
+                        },
+                    ],
+                    terminalSituations: [
+                        {
+                            situationId: 'neutral',
+                            name: 'Neutral',
+                            description: 'Neutral terminal situation',
+                            cornerState: CornerState.PLAYER_IN_CORNER,
+                        },
+                    ],
+                    initialDynamicState: {
+                        resources: [
+                            { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 5000 },
+                        ],
+                    },
+                    rewardComputationMethod: {
+                        method: {
+                            oneofKind: 'winProbability',
+                            winProbability: {
+                                cornerPenalty: 0.3,
+                            },
+                        },
+                    },
+                };
+
+                const gameDefinitionOpponentInCorner: GameDefinition = {
+                    gameId: 'symmetric-test-opponent-corner',
+                    name: 'Symmetric Test Opponent Corner',
+                    description: 'Test symmetric adjustment with opponent in corner',
+                    rootSituationId: 'situation1',
+                    situations: [
+                        {
+                            situationId: 'situation1',
+                            description: 'First situation',
+                            playerActions: {
+                                actions: [
+                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                ],
+                            },
+                            opponentActions: {
+                                actions: [
+                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                ],
+                            },
+                            transitions: [
+                                {
+                                    playerActionId: 'action1',
+                                    opponentActionId: 'action2',
+                                    nextSituationId: 'neutral',
+                                    resourceConsumptions: [],
+                                },
+                            ],
+                        },
+                    ],
+                    terminalSituations: [
+                        {
+                            situationId: 'neutral',
+                            name: 'Neutral',
+                            description: 'Neutral terminal situation',
+                            cornerState: CornerState.OPPONENT_IN_CORNER,
+                        },
+                    ],
+                    initialDynamicState: {
+                        resources: [
+                            { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 5000 },
+                        ],
+                    },
+                    rewardComputationMethod: {
+                        method: {
+                            oneofKind: 'winProbability',
+                            winProbability: {
+                                cornerPenalty: 0.3,
+                            },
+                        },
+                    },
+                };
+
+                const resultPlayer = buildGameTree(gameDefinitionPlayerInCorner);
+                expect(resultPlayer.success).toBe(true);
+                if (!resultPlayer.success) {
+                    throw new Error('Expected success but got error: ' + resultPlayer.error.message);
+                }
+
+                const resultOpponent = buildGameTree(gameDefinitionOpponentInCorner);
+                expect(resultOpponent.success).toBe(true);
+                if (!resultOpponent.success) {
+                    throw new Error('Expected success but got error: ' + resultOpponent.error.message);
+                }
+
+                const gameTreePlayer = resultPlayer.gameTree;
+                const gameTreeOpponent = resultOpponent.gameTree;
+                const rootNodePlayer = gameTreePlayer.nodes[gameTreePlayer.root];
+                const rootNodeOpponent = gameTreeOpponent.nodes[gameTreeOpponent.root];
+
+                const transitionPlayer = rootNodePlayer.transitions[0];
+                const transitionOpponent = rootNodeOpponent.transitions[0];
+                const nextNodePlayer = gameTreePlayer.nodes[transitionPlayer.nextNodeId!];
+                const nextNodeOpponent = gameTreeOpponent.nodes[transitionOpponent.nextNodeId!];
+
+                // Win probability = 5000 / (5000 + 5000) = 0.5 (50%)
+                // With player in corner (penalty -0.3): logit = 0 - 0.3 = -0.3
+                // Adjusted probability = 1 / (1 + exp(0.3)) ≈ 0.4256
+                // Reward ≈ 0.4256 * 20000 - 10000 ≈ -1488
+                // With opponent in corner (bonus +0.3): logit = 0 + 0.3 = 0.3
+                // Adjusted probability = 1 / (1 + exp(-0.3)) ≈ 0.5744
+                // Reward ≈ 0.5744 * 20000 - 10000 ≈ 1488
+                // The absolute values should be symmetric (approximately equal)
+                const rewardPlayer = nextNodePlayer.playerReward!.value;
+                const rewardOpponent = nextNodeOpponent.playerReward!.value;
+
+                expect(rewardPlayer).toBeLessThan(0); // Player in corner should reduce reward
+                expect(rewardOpponent).toBeGreaterThan(0); // Opponent in corner should increase reward
+                expect(Math.abs(rewardPlayer)).toBeCloseTo(Math.abs(rewardOpponent), 0);
             });
 
             it('should keep probability at 100% even when player is in corner', () => {
