@@ -48,10 +48,8 @@ onMounted(() => {
     if (!model.value || !model.value.method.oneofKind) {
         model.value = {
             method: {
-                oneofKind: 'winProbability',
-                winProbability: {
-                    cornerPenalty: 0,
-                },
+                oneofKind: 'damageRace',
+                damageRace: {}
             },
         };
     }

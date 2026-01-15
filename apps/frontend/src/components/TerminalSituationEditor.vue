@@ -20,12 +20,21 @@
         <label>Description:</label>
         <textarea v-model="model.description" rows="3" />
       </div>
+      <div class="form-group">
+        <label>画面端の状態:</label>
+        <select v-model="model.cornerState">
+          <option :value="CornerState.NONE">どちらも画面端にいない</option>
+          <option :value="CornerState.PLAYER_IN_CORNER">プレイヤーが画面端にいる</option>
+          <option :value="CornerState.OPPONENT_IN_CORNER">相手が画面端にいる</option>
+        </select>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { TerminalSituation } from '@mari/ts-proto';
+import { CornerState } from '@mari/ts-proto';
 
 const model = defineModel<TerminalSituation>({ required: true });
 
