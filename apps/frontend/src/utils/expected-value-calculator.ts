@@ -113,24 +113,27 @@ export function calculateExpectedValues(
         const actionExpectedValues: ActionExpectedValue[] = [];
 
         if (node.playerActions) {
-            for (const playerAction of node.playerActions.actions) {
+            const playerActions = node.playerActions;
+            for (const playerAction of playerActions.actions) {
                 let actionExpectedValue = 0;
 
                 // Find all transitions for this player action
                 for (const transition of node.transitions) {
-                    if (transition.playerActionId === playerAction.actionId) {
-                        // Get opponent action probability
-                        const opponentActionProb = getActionProbability(
-                            transition.opponentActionId,
-                            opponentStrategy
-                        );
-
-                        // Get next node expected value (recursive)
-                        const nextNodeValues = calculateNodeExpectedValues(transition.nextNodeId);
-
-                        // Add to action expected value: opponent prob × next node value
-                        actionExpectedValue += opponentActionProb * nextNodeValues.nodeExpectedValue;
+                    if (transition.playerActionId !== playerAction.actionId) {
+                        continue;
                     }
+
+                    // Get opponent action probability
+                    const opponentActionProb = getActionProbability(
+                        transition.opponentActionId,
+                        opponentStrategy
+                    );
+
+                    // Get next node expected value (recursive)
+                    const nextNodeValues = calculateNodeExpectedValues(transition.nextNodeId);
+
+                    // Add to action expected value: opponent prob × next node value
+                    actionExpectedValue += opponentActionProb * nextNodeValues.nodeExpectedValue;
                 }
 
                 actionExpectedValues.push({
@@ -151,24 +154,27 @@ export function calculateExpectedValues(
         const opponentActionExpectedValues: ActionExpectedValue[] = [];
 
         if (node.opponentActions) {
-            for (const opponentAction of node.opponentActions.actions) {
+            const opponentActions = node.opponentActions;
+            for (const opponentAction of opponentActions.actions) {
                 let actionExpectedValue = 0;
 
                 // Find all transitions for this opponent action
                 for (const transition of node.transitions) {
-                    if (transition.opponentActionId === opponentAction.actionId) {
-                        // Get player action probability
-                        const playerActionProb = getActionProbability(
-                            transition.playerActionId,
-                            playerStrategy
-                        );
-
-                        // Get next node expected value (recursive)
-                        const nextNodeValues = calculateNodeExpectedValues(transition.nextNodeId);
-
-                        // Add to action expected value: player prob × next node opponent value
-                        actionExpectedValue += playerActionProb * (nextNodeValues.opponentNodeExpectedValue ?? 0);
+                    if (transition.opponentActionId !== opponentAction.actionId) {
+                        continue;
                     }
+
+                    // Get player action probability
+                    const playerActionProb = getActionProbability(
+                        transition.playerActionId,
+                        playerStrategy
+                    );
+
+                    // Get next node expected value (recursive)
+                    const nextNodeValues = calculateNodeExpectedValues(transition.nextNodeId);
+
+                    // Add to action expected value: player prob × next node opponent value
+                    actionExpectedValue += playerActionProb * (nextNodeValues.opponentNodeExpectedValue ?? 0);
                 }
 
                 opponentActionExpectedValues.push({
@@ -208,13 +214,21 @@ export function calculateExpectedValues(
 
         // Add child nodes to queue
         const node = nodeMap[nodeId];
-        if (node && !isTerminalNode(node)) {
-            for (const transition of node.transitions) {
-                if (!visited.has(transition.nextNodeId)) {
-                    visited.add(transition.nextNodeId);
-                    queue.push(transition.nextNodeId);
-                }
+        if (!node) {
+            continue;
+        }
+
+        if (isTerminalNode(node)) {
+            continue;
+        }
+
+        for (const transition of node.transitions) {
+            if (visited.has(transition.nextNodeId)) {
+                continue;
             }
+
+            visited.add(transition.nextNodeId);
+            queue.push(transition.nextNodeId);
         }
     }
 
