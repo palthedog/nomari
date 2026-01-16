@@ -1,8 +1,8 @@
 {
     "name": "@mari/solver",
     "version": "1.0.0",
-    "description": "CFR Solver for Mari game",
-    "main": "cfr.js",
+    "description": "LP Solver for Mari game",
+    "main": "lp.js",
     "scripts": {
         "test": "jest",
         "build": "tsc",

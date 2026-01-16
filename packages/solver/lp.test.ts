@@ -742,8 +742,8 @@ describe('LPSolver', () => {
         });
     });
 
-    describe('Interface compatibility with CFR', () => {
-        it('should have same interface as CFRSolver', () => {
+    describe('Solver interface', () => {
+        it('should have required solver methods', () => {
             const gameTree = createRockPaperScissorsGame();
             const solver = new LPSolver(gameTree);
 

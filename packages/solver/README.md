@@ -8,10 +8,6 @@ This package contains implementations of algorithms for finding Nash equilibrium
 
 ## Solvers
 
-### CFR Solver
-
-CFR (Counterfactual Regret Minimization) solver is an iterative algorithm that converges to a Nash equilibrium through repeated self-play.
-
 ### LP Solver
 
 LP (Linear Programming) solver computes the exact Nash equilibrium for simultaneous games using linear programming. It:
@@ -19,32 +15,12 @@ LP (Linear Programming) solver computes the exact Nash equilibrium for simultane
 2. Solves from terminal nodes backwards using LP
 3. Computes optimal mixed strategies efficiently
 
-The LP solver typically finds the exact solution faster than CFR for small to medium-sized games.
-
 ## Files
 
-- `cfr.ts`: CFR solver implementation
-- `cfr.test.ts`: Unit tests for CFR solver
 - `lp.ts`: LP solver implementation  
 - `lp.test.ts`: Unit tests for LP solver
 
 ## Usage
-
-### CFR Solver
-
-```typescript
-import { CFRSolver } from '@mari/solver/cfr';
-import { GameTree } from '@mari/game-tree/game-tree';
-
-const gameTree: GameTree = { /* ... */ };
-const solver = new CFRSolver(gameTree);
-
-// Run CFR iterations
-solver.solve(10000);
-
-// Get the optimal strategy
-const strategy = solver.getRootStrategy();
-```
 
 ### LP Solver
 
@@ -62,8 +38,8 @@ solver.solve();
 const strategy = solver.getRootStrategy();
 ```
 
-Both solvers have the same interface:
-- `solve(iterations?)`: Solve the game
+The LP solver provides the following interface:
+- `solve()`: Solve the game
 - `getRootStrategy()`: Get strategy at root node
 - `getAverageStrategy(nodeId)`: Get strategy at specific node
 - `getAverageOpponentStrategy(nodeId)`: Get opponent strategy at specific node
@@ -77,7 +53,7 @@ npm test
 
 ## Biased Reward Game
 
-The biased reward game tests the solvers with asymmetric rewards:
+The biased reward game tests the solver with asymmetric rewards:
 
 - **Attacker actions**: Strike (攻撃), Throw (投げ)
 - **Defender actions**: Guard (ガード), Throw Escape (投げ抜け), Vertical Jump (垂直ジャンプ)
@@ -91,4 +67,4 @@ Rewards:
 - Strike wins: 3000 points
 - Throw wins: 1000 points
 
-The solvers should learn that strike is preferred over throw due to higher reward, while accounting for defender counter-strategies.
+The solver should learn that strike is preferred over throw due to higher reward, while accounting for defender counter-strategies.
