@@ -11,14 +11,14 @@
         <!-- Defs for markers -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+            <polygon points="0 0, 10 3.5, 0 7" fill="var(--text-secondary)" />
           </marker>
         </defs>
 
         <!-- Edges (draw first so they appear behind nodes) -->
         <g class="edges">
           <line v-for="edge in edges" :key="edge.id" :x1="edge.x1" :y1="edge.y1" :x2="edge.x2" :y2="edge.y2"
-            stroke="#999" stroke-width="2" marker-end="url(#arrowhead)" />
+            stroke="var(--text-tertiary)" stroke-width="2" marker-end="url(#arrowhead)" />
         </g>
 
         <!-- Nodes -->
@@ -402,16 +402,16 @@ watch(
 
 .tree-stats {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   margin-left: 10px;
 }
 
 .svg-container {
   flex: 1;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   overflow: auto;
-  background-color: #f9f9f9;
+  background-color: var(--bg-tertiary);
 }
 
 .tree-svg {

@@ -69,7 +69,7 @@ function updateResourceValue(index: number, value: number) {
 <style scoped>
 .initial-dynamic-state-editor {
     padding: 15px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-primary);
     border-radius: 4px;
     background-color: white;
 }
@@ -109,7 +109,7 @@ function updateResourceValue(index: number, value: number) {
     min-width: 0;
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-input);
     border-radius: 4px;
     box-sizing: border-box;
 }
@@ -117,7 +117,7 @@ function updateResourceValue(index: number, value: number) {
 .resources-section>button {
     grid-column: 1 / -1;
     padding: 8px 15px;
-    background-color: #4CAF50;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     border-radius: 4px;

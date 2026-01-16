@@ -75,14 +75,14 @@ function handleStart() {
 <style scoped>
 .solver-control-panel {
   padding: 16px;
-  background-color: #fafafa;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-secondary);
 }
 
 .solver-control-panel h3 {
   margin: 0 0 16px 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .button-group {
@@ -104,31 +104,31 @@ function handleStart() {
 }
 
 .primary-btn {
-  background-color: #4CAF50;
+  background-color: var(--color-primary);
   color: white;
 }
 
 .primary-btn:hover:not(:disabled) {
-  background-color: #43a047;
+  background-color: var(--color-primary-hover);
 }
 
 .primary-btn:disabled {
-  background-color: #c8e6c9;
+  background-color: var(--color-disabled);
   cursor: not-allowed;
 }
 
 .secondary-btn {
-  background-color: #e0e0e0;
-  color: #333;
+  background-color: var(--border-secondary);
+  color: var(--text-primary);
 }
 
 .secondary-btn:hover:not(:disabled) {
-  background-color: #bdbdbd;
+  background-color: var(--text-disabled);
 }
 
 .secondary-btn:disabled {
-  background-color: #f5f5f5;
-  color: #bdbdbd;
+  background-color: var(--bg-disabled);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 
@@ -138,7 +138,7 @@ function handleStart() {
 }
 
 .status-label {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .status-value {
@@ -147,25 +147,25 @@ function handleStart() {
 }
 
 .status-idle {
-  color: #9e9e9e;
+  color: var(--text-disabled);
 }
 
 .status-running {
-  color: #2196F3;
+  color: var(--color-accent-blue);
 }
 
 .status-paused {
-  color: #FF9800;
+  color: var(--color-warning);
 }
 
 .status-complete {
-  color: #4CAF50;
+  color: var(--color-success);
 }
 
 .error-section {
   padding: 10px;
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: var(--bg-error);
+  color: var(--color-error-dark);
   border-radius: 4px;
   font-size: 13px;
   margin-bottom: 12px;

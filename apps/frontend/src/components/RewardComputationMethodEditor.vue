@@ -118,7 +118,7 @@ function updateCornerPenalty(value: number) {
 <style scoped>
 .reward-computation-method-editor {
     padding: 15px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-primary);
     border-radius: 4px;
     background-color: white;
 }
@@ -146,7 +146,7 @@ function updateCornerPenalty(value: number) {
 }
 
 .radio-option:hover {
-    background-color: #f5f5f5;
+    background-color: var(--bg-quaternary);
 }
 
 .radio-option input[type="radio"] {
@@ -157,7 +157,7 @@ function updateCornerPenalty(value: number) {
 .damage-race-settings {
     margin-top: 15px;
     padding: 15px;
-    background-color: #f9f9f9;
+    background-color: var(--bg-tertiary);
     border-radius: 4px;
 }
 
@@ -173,7 +173,7 @@ function updateCornerPenalty(value: number) {
 
 .form-group input[type="number"] {
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-input);
     border-radius: 4px;
     width: 100%;
     max-width: 200px;
@@ -181,7 +181,7 @@ function updateCornerPenalty(value: number) {
 
 .help-text {
     font-size: 12px;
-    color: #666;
+    color: var(--text-secondary);
     margin-top: 4px;
 }
 </style>

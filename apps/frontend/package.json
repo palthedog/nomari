@@ -16,13 +16,15 @@
         "@mari/solver": "*",
         "@mari/ts-proto": "*",
         "loglevel": "^1.9.2",
-        "vue": "^3.5.26"
+        "vue": "^3.5.26",
+        "vuetify": "^3.7.1"
     },
     "devDependencies": {
         "@mari/eslint-config": "*",
         "@vitejs/plugin-vue": "^6.0.3",
         "eslint": "^9.39.2",
         "typescript": "^5.9.3",
-        "vite": "^7.3.1"
+        "vite": "^7.3.1",
+        "vite-plugin-vuetify": "^2.0.1"
     }
 }

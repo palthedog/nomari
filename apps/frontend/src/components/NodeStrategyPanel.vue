@@ -230,16 +230,16 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #fff;
-    border-left: 1px solid #e0e0e0;
+    background-color: var(--bg-primary);
+    border-left: 1px solid var(--border-secondary);
 }
 
 .node-strategy-panel h3 {
     margin: 0;
     padding: 16px;
     font-size: 16px;
-    color: #333;
-    border-bottom: 1px solid #e0e0e0;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-secondary);
 }
 
 .no-selection {
@@ -248,7 +248,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #9e9e9e;
+    color: var(--text-disabled);
     text-align: center;
     padding: 20px;
 }
@@ -270,7 +270,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 }
 
 .node-info {
-    background-color: #f5f5f5;
+    background-color: var(--bg-quaternary);
     border-radius: 4px;
     padding: 12px;
     margin-bottom: 16px;
@@ -287,12 +287,12 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 }
 
 .info-row .label {
-    color: #666;
+    color: var(--text-secondary);
     min-width: 80px;
 }
 
 .info-row .value {
-    color: #333;
+    color: var(--text-primary);
     font-weight: 500;
     word-break: break-all;
 }
@@ -300,7 +300,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 .terminal-indicator {
     text-align: center;
     padding: 16px;
-    background-color: #fff3e0;
+    background-color: var(--bg-warning);
     border-radius: 4px;
     margin-bottom: 16px;
 }
@@ -308,7 +308,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 .terminal-badge {
     display: inline-block;
     padding: 4px 12px;
-    background-color: #ff9800;
+    background-color: var(--color-warning);
     color: white;
     font-size: 12px;
     font-weight: 500;
@@ -318,7 +318,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 
 .rewards {
     font-size: 14px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .strategy-section {
@@ -334,7 +334,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 }
 
 .node-expected-value {
-    background-color: #e3f2fd;
+    background-color: var(--bg-secondary);
     border-radius: 4px;
     padding: 12px;
     margin-bottom: 16px;
@@ -351,28 +351,28 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 
 .expected-value-label {
     font-size: 13px;
-    color: #666;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 .expected-value-number {
     font-size: 16px;
     font-weight: 600;
-    color: #1976d2;
+    color: var(--color-accent-blue);
 }
 
 .opponent-value {
-    color: #d32f2f;
+    color: var(--color-error);
 }
 
 .opponent-value {
-    color: #d32f2f;
+    color: var(--color-error);
 }
 
 .strategy-group h4 {
     margin: 0 0 12px 0;
     font-size: 14px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .action-list {
@@ -382,7 +382,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 }
 
 .action-row {
-    background-color: #fafafa;
+    background-color: var(--bg-secondary);
     border-radius: 4px;
     padding: 10px;
 }
@@ -401,24 +401,24 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 
 .action-name {
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .action-expected-value {
     font-size: 11px;
-    color: #666;
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 .action-prob {
     font-size: 13px;
     font-weight: 600;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .prob-bar {
     height: 8px;
-    background-color: #e0e0e0;
+    background-color: var(--border-secondary);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -429,17 +429,17 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 }
 
 .player-fill {
-    background-color: #4CAF50;
+    background-color: var(--color-primary);
 }
 
 .opponent-fill {
-    background-color: #f44336;
+    background-color: var(--color-error);
 }
 
 .no-strategy {
     text-align: center;
     padding: 24px;
-    color: #9e9e9e;
+    color: var(--text-disabled);
 }
 
 .no-strategy p {
@@ -455,20 +455,20 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 }
 
 .actions-section details {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-secondary);
     border-radius: 4px;
 }
 
 .actions-section summary {
     padding: 10px 12px;
     font-size: 13px;
-    color: #666;
+    color: var(--text-secondary);
     cursor: pointer;
-    background-color: #fafafa;
+    background-color: var(--bg-secondary);
 }
 
 .actions-section summary:hover {
-    background-color: #f0f0f0;
+    background-color: var(--bg-hover);
 }
 
 .available-actions {
@@ -486,7 +486,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 .action-group h5 {
     margin: 0 0 8px 0;
     font-size: 12px;
-    color: #666;
+    color: var(--text-secondary);
 }
 
 .action-group ul {
@@ -496,7 +496,7 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 
 .action-group li {
     font-size: 12px;
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 4px;
 }
 </style>

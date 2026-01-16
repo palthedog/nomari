@@ -39,14 +39,14 @@ function handleUpdate() {
     display: flex;
     flex-direction: column;
     height: 100%;
-    border-right: 1px solid #ddd;
-    background-color: #f9f9f9;
+    border-right: 1px solid var(--border-primary);
+    background-color: var(--bg-tertiary);
 }
 
 .panel-header {
     padding: 15px;
-    background-color: #fff;
-    border-bottom: 1px solid #ddd;
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .panel-header h3 {
@@ -67,13 +67,13 @@ function handleUpdate() {
 .update-button-section {
     margin-top: auto;
     padding-top: 15px;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid var(--border-primary);
 }
 
 .update-tree-btn {
     width: 100%;
     padding: 12px 16px;
-    background-color: #4CAF50;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     border-radius: 4px;
@@ -84,10 +84,10 @@ function handleUpdate() {
 }
 
 .update-tree-btn:hover {
-    background-color: #45a049;
+    background-color: var(--color-primary-hover);
 }
 
 .update-tree-btn:active {
-    background-color: #3d8b40;
+    background-color: var(--color-primary-hover);
 }
 </style>

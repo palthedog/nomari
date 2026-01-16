@@ -236,7 +236,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background-color: #e87366;
+  background-color: var(--color-accent-coral);
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -278,7 +278,7 @@ body {
 
 .mode-btn.active {
   background-color: white;
-  color: #2196F3;
+  color: var(--color-accent-blue);
 }
 
 .header-actions {
@@ -289,7 +289,7 @@ body {
 .header-actions button {
   padding: 8px 16px;
   background-color: white;
-  color: #2196F3;
+  color: var(--color-accent-blue);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -297,7 +297,7 @@ body {
 }
 
 .header-actions button:hover {
-  background-color: #f0f0f0;
+  background-color: var(--bg-hover);
 }
 
 .app-content {
@@ -313,13 +313,13 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--border-primary);
 }
 
 .editor-section {
   flex: 1;
   min-width: 0;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--border-primary);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -339,14 +339,14 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #ddd;
+  border-left: 1px solid var(--border-primary);
 }
 
 .build-error {
   padding: 15px;
-  background-color: #ffebee;
-  color: #c62828;
-  border-bottom: 1px solid #ef9a9a;
+  background-color: var(--bg-error);
+  color: var(--color-error-dark);
+  border-bottom: 1px solid var(--color-error-border);
 }
 
 .no-tree-message {
@@ -354,7 +354,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 </style>

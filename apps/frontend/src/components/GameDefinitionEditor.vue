@@ -283,8 +283,8 @@ function deleteTerminalSituation() {
 
 .header {
   padding: 20px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #ddd;
+  background-color: var(--bg-quaternary);
+  border-bottom: 1px solid var(--border-primary);
 }
 
 .header h2 {
@@ -311,7 +311,7 @@ function deleteTerminalSituation() {
 .form-group input,
 .form-group select {
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   min-width: 150px;
 }
@@ -326,7 +326,7 @@ function deleteTerminalSituation() {
   flex: 0 0 300px;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid var(--border-primary);
   overflow: hidden;
 }
 
@@ -339,8 +339,8 @@ function deleteTerminalSituation() {
 
 .panel-header {
   padding: 15px 20px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #ddd;
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -357,7 +357,7 @@ function deleteTerminalSituation() {
 
 .panel-header button {
   padding: 8px 16px;
-  background-color: #4CAF50;
+  background-color: var(--color-primary);
   color: white;
   border: none;
   border-radius: 4px;
@@ -390,7 +390,7 @@ function deleteTerminalSituation() {
   margin: 0;
   font-size: 14px;
   font-weight: bold;
-  color: #666;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -399,14 +399,14 @@ function deleteTerminalSituation() {
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .section-item {
   padding: 10px 12px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -419,11 +419,11 @@ function deleteTerminalSituation() {
 }
 
 .section-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--bg-hover);
 }
 
 .section-item.active {
-  background-color: #f2a655;
+  background-color: var(--color-accent-orange);
   color: white;
 }
 
@@ -432,40 +432,40 @@ function deleteTerminalSituation() {
 }
 
 .initial-state-item {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
-  background-color: #f9f9f9;
+  background-color: var(--bg-tertiary);
 }
 
 .initial-state-item:hover {
-  background-color: #e8e8e8;
+  background-color: var(--bg-hover);
 }
 
 .initial-state-item.active {
-  background-color: #2196F3;
+  background-color: var(--color-accent-blue);
   color: white;
 }
 
 
 .terminal-situation-item {
-  background-color: #fff3e0;
-  border-left: 4px solid #ff9800;
+  background-color: var(--bg-warning);
+  border-left: 4px solid var(--color-warning);
 }
 
 .terminal-situation-item:hover {
-  background-color: #ffe0b2;
+  background-color: var(--bg-hover);
 }
 
 .terminal-situation-item.active {
-  background-color: #ff9800;
+  background-color: var(--color-warning);
   color: white;
-  border-left-color: #f57c00;
+  border-left-color: var(--color-warning);
 }
 
 .terminal-badge {
   display: inline-block;
   padding: 2px 8px;
-  background-color: #ff9800;
+  background-color: var(--color-warning);
   color: white;
   border-radius: 12px;
   font-size: 11px;
@@ -478,15 +478,15 @@ function deleteTerminalSituation() {
 }
 
 .add-button {
-  background-color: #f5f5f5;
-  color: #666;
+  background-color: var(--bg-quaternary);
+  color: var(--text-secondary);
   font-weight: 500;
   justify-content: center;
-  border-top: 2px solid #ddd;
+  border-top: 2px solid var(--border-primary);
 }
 
 .add-button:hover {
-  background-color: #4CAF50;
+  background-color: var(--color-primary);
   color: white;
 }
 
@@ -499,21 +499,21 @@ function deleteTerminalSituation() {
 .no-selection {
   padding: 40px;
   text-align: center;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .validation-errors {
   margin: 15px 0;
   padding: 15px;
-  background-color: #ffebee;
-  border: 1px solid #f44336;
+  background-color: var(--bg-error);
+  border: 1px solid var(--color-error);
   border-radius: 4px;
 }
 
 .validation-errors h4 {
   margin-top: 0;
   margin-bottom: 10px;
-  color: #c62828;
+  color: var(--color-error-dark);
 }
 
 .validation-errors ul {
@@ -523,6 +523,6 @@ function deleteTerminalSituation() {
 
 .validation-errors li {
   margin-bottom: 5px;
-  color: #c62828;
+  color: var(--color-error-dark);
 }
 </style>

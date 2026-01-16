@@ -298,7 +298,7 @@ function handleDelete() {
 
 .delete-btn {
   padding: 8px 16px;
-  background-color: #f44336;
+  background-color: var(--color-error);
   color: white;
   border: none;
   border-radius: 4px;
@@ -313,7 +313,7 @@ function handleDelete() {
 .section {
   margin-bottom: 30px;
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
 }
 
@@ -333,7 +333,7 @@ function handleDelete() {
 }
 
 .form-group input[readonly] {
-  background-color: #f5f5f5;
+  background-color: var(--bg-quaternary);
   cursor: not-allowed;
 }
 
@@ -342,7 +342,7 @@ function handleDelete() {
 .form-group select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
 }
 
@@ -356,7 +356,7 @@ function handleDelete() {
 .form-row input {
   flex: 1;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
 }
 
@@ -370,7 +370,7 @@ function handleDelete() {
 
 .form-row button {
   padding: 8px 15px;
-  background-color: #f44336;
+  background-color: var(--color-error);
   color: white;
   border: none;
   border-radius: 4px;
@@ -379,7 +379,7 @@ function handleDelete() {
 
 button {
   padding: 8px 15px;
-  background-color: #4CAF50;
+  background-color: var(--color-primary);
   color: white;
   border: none;
   border-radius: 4px;
@@ -399,16 +399,16 @@ button:hover {
 }
 
 .player-action-section {
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   padding: 15px;
-  background-color: #fafafa;
+  background-color: var(--bg-secondary);
 }
 
 .player-action-header {
   margin-bottom: 15px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #ddd;
+  border-bottom: 2px solid var(--border-primary);
   font-size: 16px;
 }
 
@@ -420,16 +420,16 @@ button:hover {
 }
 
 .opponent-action-item {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-secondary);
   border-radius: 4px;
   padding: 12px;
-  background-color: white;
+  background-color: var(--bg-primary);
 }
 
 .opponent-action-label {
   font-weight: bold;
   margin-bottom: 10px;
-  color: #555;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
@@ -455,13 +455,13 @@ button:hover {
 .transition-inputs select {
   flex: 1;
   padding: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
 }
 
 .resource-consumptions {
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: var(--bg-tertiary);
   border-radius: 4px;
 }
 
@@ -483,13 +483,13 @@ button:hover {
 .consumption-row input {
   flex: 1;
   padding: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
 }
 
 .consumption-row button {
   padding: 6px 12px;
-  background-color: #f44336;
+  background-color: var(--color-error);
   color: white;
   border: none;
   border-radius: 4px;

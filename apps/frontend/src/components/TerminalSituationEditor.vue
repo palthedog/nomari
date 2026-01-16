@@ -65,7 +65,7 @@ function handleDelete() {
 
 .delete-btn {
   padding: 8px 16px;
-  background-color: #f44336;
+  background-color: var(--color-error);
   color: white;
   border: none;
   border-radius: 4px;
@@ -80,7 +80,7 @@ function handleDelete() {
 .section {
   margin-bottom: 30px;
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
 }
 
@@ -100,7 +100,7 @@ function handleDelete() {
 }
 
 .form-group input[readonly] {
-  background-color: #f5f5f5;
+  background-color: var(--bg-quaternary);
   cursor: not-allowed;
 }
 
@@ -109,7 +109,7 @@ function handleDelete() {
 .form-group select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
 }
 </style>
