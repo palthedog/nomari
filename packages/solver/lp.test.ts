@@ -624,6 +624,124 @@ describe('LPSolver', () => {
         });
     });
 
+    describe('Action ID collision with reserved variable names', () => {
+        /**
+         * Create a game where action IDs collide with reserved LP variable names.
+         * This tests that action IDs are properly namespaced.
+         * 
+         * Using 'v' as action ID which collides with the game value variable.
+         */
+        function createGameWithReservedActionId(): GameTree {
+            // Player has action 'v' which collides with LP value variable
+            const v: Action = { actionId: 'v', name: 'V', description: 'Action V' };
+            const w: Action = { actionId: 'w', name: 'W', description: 'Action W' };
+
+            const x: Action = { actionId: 'x', name: 'X', description: 'Action X' };
+            const y: Action = { actionId: 'y', name: 'Y', description: 'Action Y' };
+
+            const playerActions: PlayerActions = {
+                actions: [v, w]
+            };
+
+            const opponentActions: PlayerActions = {
+                actions: [x, y]
+            };
+
+            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
+                nodeId: id,
+                description: `Terminal: ${id}`,
+                state: { playerHealth: 0, opponentHealth: 0 },
+                transitions: [],
+                playerReward: { value: playerReward },
+                opponentReward: { value: opponentReward },
+            });
+
+            // Payoff matrix:
+            //        x    y
+            //   v    3   -1
+            //   w   -1    2
+            // This should have a mixed equilibrium
+            const transitions: NodeTransition[] = [
+                { playerActionId: 'v', opponentActionId: 'x', nextNodeId: 'v-x' },
+                { playerActionId: 'v', opponentActionId: 'y', nextNodeId: 'v-y' },
+                { playerActionId: 'w', opponentActionId: 'x', nextNodeId: 'w-x' },
+                { playerActionId: 'w', opponentActionId: 'y', nextNodeId: 'w-y' },
+            ];
+
+            const root: Node = {
+                nodeId: 'root',
+                description: 'Reserved Action ID Game',
+                state: { playerHealth: 0, opponentHealth: 0 },
+                playerActions,
+                opponentActions,
+                transitions,
+            };
+
+            const nodes: Record<string, Node> = {
+                'root': root,
+                'v-x': createTerminalNode('v-x', 3, -3),
+                'v-y': createTerminalNode('v-y', -1, 1),
+                'w-x': createTerminalNode('w-x', -1, 1),
+                'w-y': createTerminalNode('w-y', 2, -2),
+            };
+
+            return { id: 'reserved-action-id', root: 'root', nodes };
+        }
+
+        it('should handle action ID "v" without collision with LP value variable', () => {
+            const gameTree = createGameWithReservedActionId();
+            const solver = new LPSolver(gameTree);
+
+            solver.solve();
+
+            const strategy = solver.getRootStrategy();
+            expect(strategy).not.toBeNull();
+
+            // Both actions should have valid probabilities
+            const vProb = strategy!.get('v') ?? 0;
+            const wProb = strategy!.get('w') ?? 0;
+
+            // Probabilities should be valid (between 0 and 1)
+            expect(vProb).toBeGreaterThanOrEqual(0);
+            expect(vProb).toBeLessThanOrEqual(1);
+            expect(wProb).toBeGreaterThanOrEqual(0);
+            expect(wProb).toBeLessThanOrEqual(1);
+
+            // Probabilities should sum to 1
+            expect(vProb + wProb).toBeCloseTo(1.0, 5);
+
+            // This should be a mixed strategy (not pure)
+            // For this payoff matrix, both actions should have positive probability
+            expect(vProb).toBeGreaterThan(0.1);
+            expect(wProb).toBeGreaterThan(0.1);
+        });
+
+        it('should compute correct equilibrium when action ID is "v"', () => {
+            const gameTree = createGameWithReservedActionId();
+            const solver = new LPSolver(gameTree);
+
+            solver.solve();
+
+            const strategy = solver.getRootStrategy();
+            expect(strategy).not.toBeNull();
+
+            // For the payoff matrix:
+            //        x    y
+            //   v    3   -1
+            //   w   -1    2
+            // 
+            // Nash equilibrium can be calculated analytically:
+            // Let p = P(v), then expected payoff for opponent choosing x vs y should be equal
+            // For player: p*3 + (1-p)*(-1) = p*(-1) + (1-p)*2
+            //            3p - 1 + p = -p + 2 - 2p
+            //            4p - 1 = 2 - 3p
+            //            7p = 3
+            //            p = 3/7
+            const vProb = strategy!.get('v') ?? 0;
+            expect(vProb).toBeCloseTo(3 / 7, 2);
+        });
+    });
+
     describe('Interface compatibility with CFR', () => {
         it('should have same interface as CFRSolver', () => {
             const gameTree = createRockPaperScissorsGame();
