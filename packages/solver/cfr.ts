@@ -11,9 +11,11 @@ class CFRNode {
     children: Map<string, CFRNode>; // key: `${playerActionId}-${opponentActionId}`
     rewards: Map<string, [number, number]>; // [playerReward, opponentReward]
 
-    // CFR data structures
-    regretSum: Map<string, number>; // action -> cumulative regret
-    strategySum: Map<string, number>; // action -> cumulative strategy
+    // CFR data structures (separated by player)
+    playerRegretSum: Map<string, number>; // player action -> cumulative regret
+    opponentRegretSum: Map<string, number>; // opponent action -> cumulative regret
+    playerStrategySum: Map<string, number>; // player action -> cumulative strategy
+    opponentStrategySum: Map<string, number>; // opponent action -> cumulative strategy
     reachProb: number;
 
     constructor(nodeId: string, isTerminal: boolean = false) {
@@ -23,8 +25,10 @@ class CFRNode {
         this.opponentActions = [];
         this.children = new Map();
         this.rewards = new Map();
-        this.regretSum = new Map();
-        this.strategySum = new Map();
+        this.playerRegretSum = new Map();
+        this.opponentRegretSum = new Map();
+        this.playerStrategySum = new Map();
+        this.opponentStrategySum = new Map();
         this.reachProb = 0.0;
     }
 }
@@ -181,6 +185,8 @@ export class CFRSolver {
      */
     private getStrategy(node: CFRNode, player: 0 | 1, reachProb: number): Map<string, number> {
         const actions = player === 0 ? node.playerActions : node.opponentActions;
+        const regretSum = player === 0 ? node.playerRegretSum : node.opponentRegretSum;
+        const strategySum = player === 0 ? node.playerStrategySum : node.opponentStrategySum;
         const numActions = actions.length;
 
         if (numActions === 0) {
@@ -192,7 +198,7 @@ export class CFRSolver {
 
         // Calculate positive regrets
         for (const action of actions) {
-            const regret = Math.max(0, node.regretSum.get(action) ?? 0);
+            const regret = Math.max(0, regretSum.get(action) ?? 0);
             strategy.set(action, regret);
             normalizingSum += regret;
         }
@@ -213,8 +219,8 @@ export class CFRSolver {
 
         // Update strategy sum
         for (const action of actions) {
-            const current = node.strategySum.get(action) ?? 0;
-            node.strategySum.set(action, current + (strategy.get(action) ?? 0) * reachProb);
+            const current = strategySum.get(action) ?? 0;
+            strategySum.set(action, current + (strategy.get(action) ?? 0) * reachProb);
         }
 
         return strategy;
@@ -270,12 +276,13 @@ export class CFRSolver {
         }
 
         // Update regrets
+        const regretSum = player === 0 ? node.playerRegretSum : node.opponentRegretSum;
         for (const action of actions) {
             const actionUtil = nodeUtil.get(action) ?? 0;
             const regret = actionUtil - nodeValue;
-            const currentRegret = node.regretSum.get(action) ?? 0;
+            const currentRegret = regretSum.get(action) ?? 0;
             const otherReachProb = player === 0 ? reachProb1 : reachProb0;
-            node.regretSum.set(action, currentRegret + otherReachProb * regret);
+            regretSum.set(action, currentRegret + otherReachProb * regret);
         }
 
         return nodeValue;
@@ -310,7 +317,7 @@ export class CFRSolver {
         let normalizingSum = 0;
 
         for (const action of node.playerActions) {
-            const sum = node.strategySum.get(action) ?? 0;
+            const sum = node.playerStrategySum.get(action) ?? 0;
             strategy.set(action, sum);
             normalizingSum += sum;
         }
@@ -344,7 +351,7 @@ export class CFRSolver {
         let normalizingSum = 0;
 
         for (const action of node.opponentActions) {
-            const sum = node.strategySum.get(action) ?? 0;
+            const sum = node.opponentStrategySum.get(action) ?? 0;
             strategy.set(action, sum);
             normalizingSum += sum;
         }

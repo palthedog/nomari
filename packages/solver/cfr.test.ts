@@ -5,9 +5,9 @@ import { GameTree, Node, PlayerActions, Action, NodeTransition, Reward } from '@
  * Helper function to create a rock-paper-scissors game tree
  */
 function createRockPaperScissorsGame(): GameTree {
-    const rock: Action = { actionId: 'rock', description: 'Rock' };
-    const paper: Action = { actionId: 'paper', description: 'Paper' };
-    const scissors: Action = { actionId: 'scissors', description: 'Scissors' };
+    const rock: Action = { actionId: 'rock', name: 'Rock', description: 'Rock' };
+    const paper: Action = { actionId: 'paper', name: 'Paper', description: 'Paper' };
+    const scissors: Action = { actionId: 'scissors', name: 'Scissors', description: 'Scissors' };
 
     const playerActions: PlayerActions = {
         actions: [rock, paper, scissors]
@@ -103,12 +103,12 @@ function createRockPaperScissorsGame(): GameTree {
  * - Throw wins: 1000 points
  */
 function createBiasedRewardGame(): GameTree {
-    const strike: Action = { actionId: 'strike', description: 'Strike (攻撃)' };
-    const throwAction: Action = { actionId: 'throw', description: 'Throw (投げ)' };
+    const strike: Action = { actionId: 'strike', name: 'Strike', description: 'Strike (攻撃)' };
+    const throwAction: Action = { actionId: 'throw', name: 'Throw', description: 'Throw (投げ)' };
 
-    const guard: Action = { actionId: 'guard', description: 'Guard (ガード)' };
-    const throwEscape: Action = { actionId: 'throw_escape', description: 'Throw Escape (投げ抜け)' };
-    const verticalJump: Action = { actionId: 'vertical_jump', description: 'Vertical Jump (垂直ジャンプ)' };
+    const guard: Action = { actionId: 'guard', name: 'Guard', description: 'Guard (ガード)' };
+    const throwEscape: Action = { actionId: 'throw_escape', name: 'Throw Escape', description: 'Throw Escape (投げ抜け)' };
+    const verticalJump: Action = { actionId: 'vertical_jump', name: 'Vertical Jump', description: 'Vertical Jump (垂直ジャンプ)' };
 
     const playerActions: PlayerActions = {
         actions: [strike, throwAction]
@@ -186,9 +186,9 @@ function createBiasedRewardGame(): GameTree {
  * Loser gets negative of that value.
  */
 function createGurikoJanken(): GameTree {
-    const rock: Action = { actionId: 'rock', description: 'Rock' };
-    const paper: Action = { actionId: 'paper', description: 'Paper' };
-    const scissors: Action = { actionId: 'scissors', description: 'Scissors' };
+    const rock: Action = { actionId: 'rock', name: 'Rock', description: 'Rock' };
+    const paper: Action = { actionId: 'paper', name: 'Paper', description: 'Paper' };
+    const scissors: Action = { actionId: 'scissors', name: 'Scissors', description: 'Scissors' };
 
     const playerActions: PlayerActions = {
         actions: [rock, paper, scissors],
