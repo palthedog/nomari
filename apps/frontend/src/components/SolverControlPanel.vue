@@ -7,14 +7,6 @@
       <button type="button" class="primary-btn" :disabled="!canStart" @click="handleStart">
         {{ isComplete ? '再計算' : '戦略を計算' }}
       </button>
-
-      <button type="button" class="secondary-btn" :disabled="!isRunning" title="将来の機能: 一時停止" @click="handlePause">
-        一時停止
-      </button>
-
-      <button type="button" class="secondary-btn" :disabled="!isPaused" title="将来の機能: 再開" @click="handleResume">
-        再開
-      </button>
     </div>
 
     <!-- Status display -->
@@ -49,9 +41,8 @@ const emit = defineEmits<{
 
 // Computed properties
 const isRunning = computed(() => props.status === 'running');
-const isPaused = computed(() => props.status === 'paused');
 const isComplete = computed(() => props.status === 'complete');
-const canStart = computed(() => props.gameTree !== null && !isRunning.value && !isPaused.value);
+const canStart = computed(() => props.gameTree !== null && !isRunning.value);
 
 const statusText = computed(() => {
   switch (props.status) {
@@ -59,8 +50,6 @@ const statusText = computed(() => {
       return 'アイドル';
     case 'running':
       return '計算中...';
-    case 'paused':
-      return '一時停止';
     case 'complete':
       return '完了';
     default:
@@ -80,14 +69,6 @@ const statusClass = computed(() => {
 // Event handlers
 function handleStart() {
   emit('start');
-}
-
-function handlePause() {
-  emit('pause');
-}
-
-function handleResume() {
-  emit('resume');
 }
 </script>
 

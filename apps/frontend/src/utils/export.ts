@@ -15,13 +15,3 @@ export function exportAsJSON(gameDefinition: GameDefinition, filename: string = 
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
-
-/**
- * Export GameDefinition as Protocol Buffer (future implementation)
- * For now, this is a placeholder
- */
-export function exportAsProto(_gameDefinition: GameDefinition, _filename: string = 'gamedefinition.proto'): void {
-    // TODO: Implement protocol buffer encoding
-    // This would require protobuf-js or similar library
-    console.warn('Protocol Buffer export is not yet implemented');
-}

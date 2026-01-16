@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>Mari Editor</h1>
+      <h1>Mari-chan 計算機</h1>
       <div class="header-content">
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
@@ -14,9 +14,6 @@
         <div class="header-actions">
           <button type="button" @click="exportJSON">
             JSONでエクスポート
-          </button>
-          <button type="button" @click="exportProto">
-            Protoでエクスポート
           </button>
         </div>
       </div>
@@ -87,7 +84,7 @@ import { ref, computed, watch } from 'vue';
 import type { GameDefinition } from '@mari/ts-proto';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 import { buildGameTree } from '@mari/game-tree-builder';
-import { exportAsJSON, exportAsProto } from './utils/export';
+import { exportAsJSON } from './utils/export';
 import { createInitialGameDefinition } from './utils/game-definition-utils';
 import { useSolver } from './composables/use-solver';
 import { calculateExpectedValues, type ExpectedValuesMap } from './utils/expected-value-calculator';
@@ -189,10 +186,6 @@ function updateGameTree() {
 
 function exportJSON() {
   exportAsJSON(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.json`);
-}
-
-function exportProto() {
-  exportAsProto(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.proto`);
 }
 
 // Node selection handler
