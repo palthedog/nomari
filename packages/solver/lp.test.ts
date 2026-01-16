@@ -320,11 +320,6 @@ describe('LPSolver', () => {
 
             // Probabilities should sum to 1
             expect(strikeProb + throwProb).toBeCloseTo(1.0, 5);
-
-            console.log('LP Biased game strategy:', {
-                strike: strikeProb,
-                throw: throwProb
-            });
         });
 
         it('should converge to a mixed strategy', () => {
@@ -364,11 +359,6 @@ describe('LPSolver', () => {
             // Both actions should have significant probability
             expect(strikeProb).toBeGreaterThan(0.1);
             expect(throwProb).toBeGreaterThan(0.1);
-
-            console.log('LP Strategy considering defender counters:', {
-                strike: strikeProb,
-                throw: throwProb
-            });
         });
     });
 
@@ -393,12 +383,6 @@ describe('LPSolver', () => {
             expect(paperProb).toBeCloseTo(3 / 14, 2);
 
             expect(rockProb + paperProb + scissorsProb).toBeCloseTo(1.0, 4);
-
-            console.log('LP Guriko Janken strategy:', {
-                rock: rockProb,
-                paper: paperProb,
-                scissors: scissorsProb
-            });
         });
     });
 

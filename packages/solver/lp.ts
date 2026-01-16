@@ -1,5 +1,33 @@
 import { GameTree, Node } from '@mari/game-tree/game-tree';
+
+// Use require() for javascript-lp-solver as it doesn't have proper ES6 exports
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const solver = require('javascript-lp-solver');
+
+/**
+ * Constant for shifting payoffs to ensure they're positive for LP solver
+ */
+const PAYOFF_SHIFT_OFFSET = 1;
+
+/**
+ * LP model structure for javascript-lp-solver
+ */
+interface LPModel {
+    optimize: string;
+    opType: 'max' | 'min';
+    constraints: Record<string, any>;
+    variables: Record<string, any>;
+}
+
+/**
+ * LP solver result
+ */
+interface LPResult {
+    feasible: boolean;
+    result?: number;
+    v?: number;
+    [key: string]: any;
+}
 
 /**
  * Internal node representation for LP solver computation
@@ -243,10 +271,35 @@ export class LPSolver {
         }
         
         // Shift all payoffs to be positive
-        const shift = minPayoff < 0 ? -minPayoff + 1 : 0;
+        const shift = minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
         
-        // Build LP model in correct format for javascript-lp-solver
-        const model: any = {
+        // Build and solve LP model
+        const model = this.buildPlayerLPModel(node, payoffMatrix, shift);
+        const result = solver.Solve(model) as LPResult;
+
+        if (result.feasible) {
+            // Extract strategy
+            for (const action of node.playerActions) {
+                const prob = result[action] ?? 0;
+                node.playerStrategy.set(action, prob);
+            }
+            // Unshift the value
+            node.playerValue = (result.v ?? 0) - shift;
+        } else {
+            // Fallback to uniform strategy
+            const uniformProb = 1.0 / node.playerActions.length;
+            for (const action of node.playerActions) {
+                node.playerStrategy.set(action, uniformProb);
+            }
+            node.playerValue = this.calculateExpectedValue(node, true);
+        }
+    }
+
+    /**
+     * Build LP model for player's strategy optimization
+     */
+    private buildPlayerLPModel(node: LPNode, payoffMatrix: number[][], shift: number): LPModel {
+        const model: LPModel = {
             optimize: 'v',
             opType: 'max',
             constraints: {},
@@ -276,25 +329,7 @@ export class LPSolver {
             }
         }
 
-        // Solve LP
-        const result = solver.Solve(model);
-
-        if (result.feasible) {
-            // Extract strategy
-            for (const action of node.playerActions) {
-                const prob = result[action] ?? 0;
-                node.playerStrategy.set(action, prob);
-            }
-            // Unshift the value
-            node.playerValue = (result.v ?? 0) - shift;
-        } else {
-            // Fallback to uniform strategy
-            const uniformProb = 1.0 / node.playerActions.length;
-            for (const action of node.playerActions) {
-                node.playerStrategy.set(action, uniformProb);
-            }
-            node.playerValue = this.calculateExpectedValue(node, true);
-        }
+        return model;
     }
 
     /**
@@ -341,10 +376,34 @@ export class LPSolver {
             }
         }
         
-        const shift = minPayoff < 0 ? -minPayoff + 1 : 0;
+        const shift = minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
 
-        // Build LP model for opponent (maximizing opponent's payoff)
-        const model: any = {
+        // Build and solve LP model for opponent
+        const model = this.buildOpponentLPModel(node, payoffMatrix, shift);
+        const result = solver.Solve(model) as LPResult;
+
+        if (result.feasible) {
+            // Extract strategy
+            for (const action of node.opponentActions) {
+                const prob = result[action] ?? 0;
+                node.opponentStrategy.set(action, prob);
+            }
+            node.opponentValue = (result.v ?? 0) - shift;
+        } else {
+            // Fallback to uniform strategy
+            const uniformProb = 1.0 / node.opponentActions.length;
+            for (const action of node.opponentActions) {
+                node.opponentStrategy.set(action, uniformProb);
+            }
+            node.opponentValue = this.calculateExpectedValue(node, false);
+        }
+    }
+
+    /**
+     * Build LP model for opponent's strategy optimization
+     */
+    private buildOpponentLPModel(node: LPNode, payoffMatrix: number[][], shift: number): LPModel {
+        const model: LPModel = {
             optimize: 'v',
             opType: 'max',
             constraints: {},
@@ -374,24 +433,7 @@ export class LPSolver {
             }
         }
 
-        // Solve LP
-        const result = solver.Solve(model);
-
-        if (result.feasible) {
-            // Extract strategy
-            for (const action of node.opponentActions) {
-                const prob = result[action] ?? 0;
-                node.opponentStrategy.set(action, prob);
-            }
-            node.opponentValue = (result.v ?? 0) - shift;
-        } else {
-            // Fallback to uniform strategy
-            const uniformProb = 1.0 / node.opponentActions.length;
-            for (const action of node.opponentActions) {
-                node.opponentStrategy.set(action, uniformProb);
-            }
-            node.opponentValue = this.calculateExpectedValue(node, false);
-        }
+        return model;
     }
 
     /**
