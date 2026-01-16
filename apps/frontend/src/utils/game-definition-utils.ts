@@ -58,11 +58,12 @@ export function createInitialGameDefinition(): GameDefinition {
         ];
 
     const defPlayerActions: Action[] = [
+        generateAction('打撃重ね', ''),
         generateAction('投げ', ''),
         generateAction('シミー', ''),
     ];
     const defOpponentActions: Action[] = [
-        generateAction('グラップ', '遅らせグラップ'),
+        generateAction('遅らせグラップ', '遅らせ投げ抜け'),
         generateAction('ガード', ''),
         generateAction('無敵暴れ', ''),
         generateAction('前ジャンプ', ''),
@@ -97,11 +98,15 @@ export function createInitialGameDefinition(): GameDefinition {
     }
 
     const transitions: Transition[] = [
-        createTransition('投げ', 'グラップ', cornerNeutralSituationId, 0, 0),
+        createTransition('打撃重ね', '遅らせグラップ', cornerNeutralSituationId, 0, 0),
+        createTransition('打撃重ね', 'ガード', cornerNeutralSituationId, 0, 0),
+        createTransition('打撃重ね', '無敵暴れ', cornerNeutralSituationId, 1600, 0),
+        createTransition('打撃重ね', '前ジャンプ', neutralSituationId, 0, 3000),
+        createTransition('投げ', '遅らせグラップ', cornerNeutralSituationId, 0, 0),
         createTransition('投げ', 'ガード', advantageSituationId, 0, 1200),
         createTransition('投げ', '無敵暴れ', cornerNeutralSituationId, 1600, 0),
         createTransition('投げ', '前ジャンプ', neutralSituationId, 0, 0),
-        createTransition('シミー', 'グラップ', advantageSituationId, 0, 2000),
+        createTransition('シミー', '遅らせグラップ', advantageSituationId, 0, 2000),
         createTransition('シミー', 'ガード', cornerNeutralSituationId, 0, 0),
         createTransition('シミー', '無敵暴れ', advantageSituationId, 0, 3000),
         createTransition('シミー', '前ジャンプ', advantageSituationId, 0, 1600),
