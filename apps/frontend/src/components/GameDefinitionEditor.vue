@@ -11,16 +11,16 @@
         </ul>
       </div>
       <div class="header-controls">
-        <div class="form-group">
+        <div class="form-group" v-show="false">
           <label>Game ID:</label>
           <input v-model="gameDefinition.gameId" type="text">
         </div>
         <div class="form-group">
-          <label>Name:</label>
-          <input v-model="gameDefinition.name" type="text">
+          <label>名前:</label>
+          <input v-model="gameDefinition.name" placeholder="例:" type="text">
         </div>
         <div class="form-group">
-          <label>Description:</label>
+          <label>説明:</label>
           <input v-model="gameDefinition.description" type="text">
         </div>
         <div class="form-group">
@@ -423,7 +423,7 @@ function deleteTerminalSituation() {
 }
 
 .section-item.active {
-  background-color: #2196F3;
+  background-color: #f2a655;
   color: white;
 }
 

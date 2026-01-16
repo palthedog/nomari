@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>Mari-chan 計算機</h1>
+      <h1>Mari-chan 起き攻め 計算機</h1>
       <div class="header-content">
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
@@ -236,7 +236,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background-color: #2196F3;
+  background-color: #e87366;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
