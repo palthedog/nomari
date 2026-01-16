@@ -180,7 +180,8 @@ export class LPSolver {
             const node = this.nodes.get(nodeId);
             if (node) {
                 // Visit children first
-                for (const child of node.children.values()) {
+                const children = Array.from(node.children.values());
+                for (const child of children) {
                     visit(child.nodeId);
                 }
             }
