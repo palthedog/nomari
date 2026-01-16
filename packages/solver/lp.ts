@@ -1,8 +1,15 @@
 import { GameTree, Node } from '@mari/game-tree/game-tree';
 
-// Use require() for javascript-lp-solver as it doesn't have proper ES6 exports
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const solver = require('javascript-lp-solver');
+import log from 'loglevel';
+
+if (process.env.NODE_ENV === 'development') {
+    log.setLevel('debug');
+} else {
+    log.setLevel('warn');
+}
+
+// Import javascript-lp-solver (CommonJS module, but bundlers handle this)
+import solver from 'javascript-lp-solver';
 
 /**
  * Constant for shifting payoffs to ensure they're positive for LP solver
@@ -236,8 +243,9 @@ export class LPSolver {
         // Special case: only one action
         if (node.playerActions.length === 1) {
             node.playerStrategy.set(node.playerActions[0], 1.0);
-            // Calculate value
-            node.playerValue = this.calculateExpectedValue(node, true);
+            // Calculate minimax value: minimum payoff over all opponent actions
+            // (opponent will choose action that minimizes player's payoff)
+            node.playerValue = this.calculateMinimaxValueForSinglePlayerAction(node);
             return;
         }
 
@@ -269,10 +277,10 @@ export class LPSolver {
                 minPayoff = Math.min(minPayoff, val);
             }
         }
-        
+
         // Shift all payoffs to be positive
         const shift = minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
-        
+
         // Build and solve LP model
         const model = this.buildPlayerLPModel(node, payoffMatrix, shift);
         const result = solver.Solve(model) as LPResult;
@@ -322,7 +330,7 @@ export class LPSolver {
         for (let i = 0; i < node.playerActions.length; i++) {
             const action = node.playerActions[i];
             model.variables[action] = { prob_sum: 1 };
-            
+
             for (let j = 0; j < node.opponentActions.length; j++) {
                 const payoff = payoffMatrix[i][j] + shift;
                 model.variables[action][`opp_${j}`] = payoff;
@@ -344,7 +352,9 @@ export class LPSolver {
         // Special case: only one action
         if (node.opponentActions.length === 1) {
             node.opponentStrategy.set(node.opponentActions[0], 1.0);
-            node.opponentValue = this.calculateExpectedValue(node, false);
+            // Calculate minimax value: minimum payoff over all player actions
+            // (player will choose action that minimizes opponent's payoff)
+            node.opponentValue = this.calculateMinimaxValueForSingleOpponentAction(node);
             return;
         }
 
@@ -375,7 +385,7 @@ export class LPSolver {
                 minPayoff = Math.min(minPayoff, val);
             }
         }
-        
+
         const shift = minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
 
         // Build and solve LP model for opponent
@@ -426,7 +436,7 @@ export class LPSolver {
         for (let j = 0; j < node.opponentActions.length; j++) {
             const action = node.opponentActions[j];
             model.variables[action] = { prob_sum: 1 };
-            
+
             for (let i = 0; i < node.playerActions.length; i++) {
                 const payoff = payoffMatrix[i][j] + shift;
                 model.variables[action][`player_${i}`] = payoff;
@@ -434,6 +444,58 @@ export class LPSolver {
         }
 
         return model;
+    }
+
+    /**
+     * Calculate minimax value for a node where player has exactly one action.
+     * Returns the minimum payoff over all opponent actions.
+     */
+    private calculateMinimaxValueForSinglePlayerAction(node: LPNode): number {
+        const playerAction = node.playerActions[0];
+        let minPayoff = Infinity;
+
+        for (const oppAction of node.opponentActions) {
+            const key = `${playerAction}-${oppAction}`;
+            const reward = node.rewards.get(key);
+            const child = node.children.get(key);
+
+            let payoff = 0;
+            if (reward) {
+                payoff = reward[0]; // player reward
+            } else if (child) {
+                payoff = child.playerValue;
+            }
+
+            minPayoff = Math.min(minPayoff, payoff);
+        }
+
+        return minPayoff === Infinity ? 0 : minPayoff;
+    }
+
+    /**
+     * Calculate minimax value for a node where opponent has exactly one action.
+     * Returns the minimum payoff over all player actions.
+     */
+    private calculateMinimaxValueForSingleOpponentAction(node: LPNode): number {
+        const oppAction = node.opponentActions[0];
+        let minPayoff = Infinity;
+
+        for (const playerAction of node.playerActions) {
+            const key = `${playerAction}-${oppAction}`;
+            const reward = node.rewards.get(key);
+            const child = node.children.get(key);
+
+            let payoff = 0;
+            if (reward) {
+                payoff = reward[1]; // opponent reward
+            } else if (child) {
+                payoff = child.opponentValue;
+            }
+
+            minPayoff = Math.min(minPayoff, payoff);
+        }
+
+        return minPayoff === Infinity ? 0 : minPayoff;
     }
 
     /**

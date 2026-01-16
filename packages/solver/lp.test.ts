@@ -386,6 +386,244 @@ describe('LPSolver', () => {
         });
     });
 
+    describe('Single action node', () => {
+        /**
+         * Create a game where player has only one action.
+         * Player: only "attack" action
+         * Opponent: "block" (player gets -100) or "dodge" (player gets 100)
+         * 
+         * The minimax value for player should be -100 (opponent chooses block)
+         * NOT the average (0) which would be calculated with uniform opponent strategy.
+         */
+        function createSinglePlayerActionGame(): GameTree {
+            const attack: Action = { actionId: 'attack', name: 'Attack', description: 'Attack' };
+
+            const block: Action = { actionId: 'block', name: 'Block', description: 'Block' };
+            const dodge: Action = { actionId: 'dodge', name: 'Dodge', description: 'Dodge' };
+
+            const playerActions: PlayerActions = {
+                actions: [attack]
+            };
+
+            const opponentActions: PlayerActions = {
+                actions: [block, dodge]
+            };
+
+            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
+                nodeId: id,
+                description: `Terminal: ${id}`,
+                state: { playerHealth: 0, opponentHealth: 0 },
+                transitions: [],
+                playerReward: { value: playerReward },
+                opponentReward: { value: opponentReward },
+            });
+
+            const transitions: NodeTransition[] = [
+                { playerActionId: 'attack', opponentActionId: 'block', nextNodeId: 'attack-block' },
+                { playerActionId: 'attack', opponentActionId: 'dodge', nextNodeId: 'attack-dodge' },
+            ];
+
+            const root: Node = {
+                nodeId: 'root',
+                description: 'Single Player Action Game',
+                state: { playerHealth: 0, opponentHealth: 0 },
+                playerActions,
+                opponentActions,
+                transitions,
+            };
+
+            const nodes: Record<string, Node> = {
+                'root': root,
+                'attack-block': createTerminalNode('attack-block', -100, 100),
+                'attack-dodge': createTerminalNode('attack-dodge', 100, -100),
+            };
+
+            return { id: 'single-action', root: 'root', nodes };
+        }
+
+        /**
+         * Create a game where opponent has only one action.
+         * Player: "strike" (opponent gets -100) or "defend" (opponent gets 100)
+         * Opponent: only "wait" action
+         * 
+         * The minimax value for opponent should be -100 (player chooses strike)
+         * NOT the average (0) which would be calculated with uniform player strategy.
+         */
+        function createSingleOpponentActionGame(): GameTree {
+            const strike: Action = { actionId: 'strike', name: 'Strike', description: 'Strike' };
+            const defend: Action = { actionId: 'defend', name: 'Defend', description: 'Defend' };
+
+            const wait: Action = { actionId: 'wait', name: 'Wait', description: 'Wait' };
+
+            const playerActions: PlayerActions = {
+                actions: [strike, defend]
+            };
+
+            const opponentActions: PlayerActions = {
+                actions: [wait]
+            };
+
+            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
+                nodeId: id,
+                description: `Terminal: ${id}`,
+                state: { playerHealth: 0, opponentHealth: 0 },
+                transitions: [],
+                playerReward: { value: playerReward },
+                opponentReward: { value: opponentReward },
+            });
+
+            const transitions: NodeTransition[] = [
+                { playerActionId: 'strike', opponentActionId: 'wait', nextNodeId: 'strike-wait' },
+                { playerActionId: 'defend', opponentActionId: 'wait', nextNodeId: 'defend-wait' },
+            ];
+
+            const root: Node = {
+                nodeId: 'root',
+                description: 'Single Opponent Action Game',
+                state: { playerHealth: 0, opponentHealth: 0 },
+                playerActions,
+                opponentActions,
+                transitions,
+            };
+
+            const nodes: Record<string, Node> = {
+                'root': root,
+                'strike-wait': createTerminalNode('strike-wait', 100, -100),
+                'defend-wait': createTerminalNode('defend-wait', -100, 100),
+            };
+
+            return { id: 'single-opp-action', root: 'root', nodes };
+        }
+
+        it('should compute correct minimax value when player has one action', () => {
+            const gameTree = createSinglePlayerActionGame();
+            const solver = new LPSolver(gameTree);
+
+            solver.solve();
+
+            const strategy = solver.getRootStrategy();
+            expect(strategy).not.toBeNull();
+
+            // Player's only action should have probability 1
+            const attackProb = strategy!.get('attack') ?? 0;
+            expect(attackProb).toBeCloseTo(1.0, 5);
+
+            // Opponent should choose block (which minimizes player's payoff)
+            const oppStrategy = solver.getAverageOpponentStrategy('root');
+            expect(oppStrategy).not.toBeNull();
+            const blockProb = oppStrategy!.get('block') ?? 0;
+            expect(blockProb).toBeCloseTo(1.0, 5);
+        });
+
+        /**
+         * Create a game with a parent node that has a single-action child node.
+         * This tests that the child's playerValue is correctly computed and propagated.
+         * 
+         * Root node: player chooses "path_a" or "path_b"
+         * - path_a leads to a single-action node (player has only "attack")
+         *   - opponent: "block" (-100) or "dodge" (100)
+         *   - Minimax value should be -100
+         * - path_b leads to a terminal node with reward 0
+         * 
+         * If player value for path_a is correctly computed as -100,
+         * player should choose path_b (with value 0).
+         * If incorrectly computed as 0 (average), player would be indifferent.
+         */
+        function createGameWithSingleActionChild(): GameTree {
+            const pathA: Action = { actionId: 'path_a', name: 'Path A', description: 'Path A' };
+            const pathB: Action = { actionId: 'path_b', name: 'Path B', description: 'Path B' };
+            const attack: Action = { actionId: 'attack', name: 'Attack', description: 'Attack' };
+            const block: Action = { actionId: 'block', name: 'Block', description: 'Block' };
+            const dodge: Action = { actionId: 'dodge', name: 'Dodge', description: 'Dodge' };
+            const pass: Action = { actionId: 'pass', name: 'Pass', description: 'Pass' };
+
+            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
+                nodeId: id,
+                description: `Terminal: ${id}`,
+                state: { playerHealth: 0, opponentHealth: 0 },
+                transitions: [],
+                playerReward: { value: playerReward },
+                opponentReward: { value: opponentReward },
+            });
+
+            // Single-action child node
+            const childNode: Node = {
+                nodeId: 'child_a',
+                description: 'Single Action Child',
+                state: { playerHealth: 0, opponentHealth: 0 },
+                playerActions: { actions: [attack] },
+                opponentActions: { actions: [block, dodge] },
+                transitions: [
+                    { playerActionId: 'attack', opponentActionId: 'block', nextNodeId: 'attack-block' },
+                    { playerActionId: 'attack', opponentActionId: 'dodge', nextNodeId: 'attack-dodge' },
+                ],
+            };
+
+            // Root node
+            const root: Node = {
+                nodeId: 'root',
+                description: 'Root',
+                state: { playerHealth: 0, opponentHealth: 0 },
+                playerActions: { actions: [pathA, pathB] },
+                opponentActions: { actions: [pass] },
+                transitions: [
+                    { playerActionId: 'path_a', opponentActionId: 'pass', nextNodeId: 'child_a' },
+                    { playerActionId: 'path_b', opponentActionId: 'pass', nextNodeId: 'terminal_b' },
+                ],
+            };
+
+            const nodes: Record<string, Node> = {
+                'root': root,
+                'child_a': childNode,
+                'attack-block': createTerminalNode('attack-block', -100, 100),
+                'attack-dodge': createTerminalNode('attack-dodge', 100, -100),
+                'terminal_b': createTerminalNode('terminal_b', 0, 0),
+            };
+
+            return { id: 'single-action-child', root: 'root', nodes };
+        }
+
+        it('should propagate correct minimax value from single-action child to parent', () => {
+            const gameTree = createGameWithSingleActionChild();
+            const solver = new LPSolver(gameTree);
+
+            solver.solve();
+
+            const strategy = solver.getRootStrategy();
+            expect(strategy).not.toBeNull();
+
+            // Path A leads to a single-action node with minimax value -100
+            // Path B leads to terminal with value 0
+            // Player should strongly prefer Path B
+            const pathAProb = strategy!.get('path_a') ?? 0;
+            const pathBProb = strategy!.get('path_b') ?? 0;
+
+            // If bug exists: player value for child_a is 0 (average), so player is indifferent
+            // If fixed: player value for child_a is -100 (minimax), so player chooses path_b
+            expect(pathBProb).toBeCloseTo(1.0, 5);
+            expect(pathAProb).toBeCloseTo(0.0, 5);
+        });
+
+        it('should compute correct minimax value when opponent has one action', () => {
+            const gameTree = createSingleOpponentActionGame();
+            const solver = new LPSolver(gameTree);
+
+            solver.solve();
+
+            // Opponent's only action should have probability 1
+            const oppStrategy = solver.getAverageOpponentStrategy('root');
+            expect(oppStrategy).not.toBeNull();
+            const waitProb = oppStrategy!.get('wait') ?? 0;
+            expect(waitProb).toBeCloseTo(1.0, 5);
+
+            // Player should choose strike (which maximizes player's payoff)
+            const strategy = solver.getRootStrategy();
+            expect(strategy).not.toBeNull();
+            const strikeProb = strategy!.get('strike') ?? 0;
+            expect(strikeProb).toBeCloseTo(1.0, 5);
+        });
+    });
+
     describe('Interface compatibility with CFR', () => {
         it('should have same interface as CFRSolver', () => {
             const gameTree = createRockPaperScissorsGame();
