@@ -24,17 +24,8 @@
           <input v-model="gameDefinition.description" type="text">
         </div>
         <div class="form-group">
-          <label>開始状況:</label>
-          <select v-model="gameDefinition.rootSituationId">
-            <option value="">
-              選択してください
-            </option>
-            <option v-for="situation in gameDefinition.situations" :key="situation.situationId"
-              :value="situation.situationId">
-              <!--{{ situation.situationId }} -->
-              {{ situation.description || '(説明なし)' }}
-            </option>
-          </select>
+          <v-select v-model="gameDefinition.rootSituationId" :items="situationItems" item-title="title"
+            item-value="value" label="開始状況" density="compact" variant="outlined" hide-details />
         </div>
       </div>
     </div>
@@ -127,6 +118,16 @@ const selectedTerminalSituationId = ref<string | null>(null);
 
 const validationErrors = computed<ValidationError[]>(() => {
   return validateGameDefinition(gameDefinition.value);
+});
+
+const situationItems = computed(() => {
+  return [
+    { title: '選択してください', value: '' },
+    ...gameDefinition.value.situations.map((s) => ({
+      title: s.description || '(説明なし)',
+      value: s.situationId,
+    })),
+  ];
 });
 
 const selectedSituation = computed(() => {

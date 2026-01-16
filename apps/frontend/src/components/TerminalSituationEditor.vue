@@ -21,12 +21,16 @@
         <textarea v-model="model.description" rows="3" />
       </div>
       <div class="form-group">
-        <label>画面端の状態:</label>
-        <select v-model="model.cornerState">
-          <option :value="CornerState.NONE">どちらも画面端にいない</option>
-          <option :value="CornerState.PLAYER_IN_CORNER">プレイヤーが画面端にいる</option>
-          <option :value="CornerState.OPPONENT_IN_CORNER">相手が画面端にいる</option>
-        </select>
+        <v-select
+          v-model="model.cornerState"
+          :items="cornerStateItems"
+          item-title="title"
+          item-value="value"
+          label="画面端の状態"
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
       </div>
     </div>
   </div>
@@ -37,6 +41,12 @@ import type { TerminalSituation } from '@mari/ts-proto';
 import { CornerState } from '@mari/ts-proto';
 
 const model = defineModel<TerminalSituation>({ required: true });
+
+const cornerStateItems = [
+  { title: 'どちらも画面端にいない', value: CornerState.NONE },
+  { title: 'プレイヤーが画面端にいる', value: CornerState.PLAYER_IN_CORNER },
+  { title: '相手が画面端にいる', value: CornerState.OPPONENT_IN_CORNER },
+];
 
 const emit = defineEmits<{
   (e: 'delete'): void;

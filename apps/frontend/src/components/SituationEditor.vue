@@ -68,42 +68,21 @@
               </div>
               <div class="transition-inputs">
                 <div class="next-situation-row">
-                  <label>次の状況:</label>
-                  <select :value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || ''"
-                    @change="updateNextSituationId(playerAction.actionId, oppAction.actionId, ($event.target as HTMLSelectElement).value)">
-                    <option value="">
-                      次の状況を選択してください
-                    </option>
-                    <optgroup label="Situations">
-                      <option v-for="situation in availableSituations" :key="situation.situationId"
-                        :value="situation.situationId">
-                        <!-- {{ situation.situationId }} -->
-                        {{ situation.description || '(説明なし)' }}
-                      </option>
-                    </optgroup>
-                    <optgroup label="Terminal Situations">
-                      <option v-for="terminal in availableTerminalSituations" :key="terminal.situationId"
-                        :value="terminal.situationId">
-                        <!-- {{ terminal.situationId }} -->
-                        {{ terminal.name || '(名前なし)' }}
-                      </option>
-                    </optgroup>
-                  </select>
+                  <v-select
+                    :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || ''"
+                    @update:model-value="(value: string) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
+                    :items="nextSituationItems" item-title="title" item-value="value" label="次の状況" density="compact"
+                    variant="outlined" hide-details />
                 </div>
                 <div class="resource-consumptions">
                   <!--label>Resource Consumptions:</label-->
                   <div
                     v-for="(consumption, idx) in getTransition(playerAction.actionId, oppAction.actionId)?.resourceConsumptions || []"
                     :key="idx" class="consumption-row">
-                    <select :value="consumption.resourceType"
-                      @change="updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'type', parseInt(($event.target as HTMLSelectElement).value, 10))">
-                      <option :value="ResourceType.PLAYER_HEALTH">
-                        プレイヤーのダメージ
-                      </option>
-                      <option :value="ResourceType.OPPONENT_HEALTH">
-                        相手のダメージ
-                      </option>
-                    </select>
+                    <v-select :model-value="consumption.resourceType"
+                      @update:model-value="(value: number) => updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'type', value)"
+                      :items="resourceTypeItems" item-title="title" item-value="value" density="compact"
+                      variant="outlined" hide-details />
                     <input type="number" :value="consumption.value" placeholder="Value"
                       @input="updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)">
                     <button type="button"
@@ -125,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import type {
   Situation,
   Transition,
@@ -135,7 +115,7 @@ import { generateId } from '../utils/game-definition-utils';
 
 const model = defineModel<Situation>({ required: true });
 
-defineProps<{
+const props = defineProps<{
   availableSituations: Situation[];
   availableTerminalSituations: TerminalSituation[];
 }>();
@@ -143,6 +123,33 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'delete'): void;
 }>();
+
+const nextSituationItems = computed(() => {
+  const items: Array<{ title: string; value: string }> = [
+    { title: '次の状況を選択してください', value: '' },
+  ];
+
+  if (props.availableSituations.length > 0) {
+    items.push(...props.availableSituations.map((s) => ({
+      title: `${s.description || '(説明なし)'}`,
+      value: s.situationId,
+    })));
+  }
+
+  if (props.availableTerminalSituations.length > 0) {
+    items.push(...props.availableTerminalSituations.map((t) => ({
+      title: `${t.name || '(名前なし)'}`,
+      value: t.situationId,
+    })));
+  }
+
+  return items;
+});
+
+const resourceTypeItems = computed(() => [
+  { title: 'プレイヤーのダメージ', value: ResourceType.PLAYER_HEALTH },
+  { title: '相手のダメージ', value: ResourceType.OPPONENT_HEALTH },
+]);
 
 function addPlayerAction() {
   if (!model.value.playerActions) return;

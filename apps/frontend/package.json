@@ -17,7 +17,8 @@
         "@mari/ts-proto": "*",
         "loglevel": "^1.9.2",
         "vue": "^3.5.26",
-        "vuetify": "^3.7.1"
+        "vuetify": "^3.7.1",
+        "@mdi/font": "^7.4.47"
     },
     "devDependencies": {
         "@mari/eslint-config": "*",
