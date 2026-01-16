@@ -77,18 +77,11 @@ function getAllStrategies(): Record<string, StrategyData> {
 
 /**
  * Run LP solver
- * LP solves instantly (no iterations needed), but we keep the interface compatible
+ * LP solves instantly (no iterations needed)
  */
-async function runSolver(tree: GameTree, _totalIterations: number): Promise<void> {
+async function runSolver(tree: GameTree): Promise<void> {
     gameTree = tree;
     solver = new LPSolver(tree);
-
-    // Report starting
-    postResult({
-        type: 'progress',
-        iteration: 0,
-        totalIterations: 1,
-    });
 
     // Solve the game using LP (instant)
     solver.solve();
@@ -110,7 +103,7 @@ self.onmessage = async (event: MessageEvent<SolverCommand>) => {
     switch (command.type) {
         case 'start':
             try {
-                await runSolver(command.gameTree, command.iterations);
+                await runSolver(command.gameTree);
             } catch (error) {
                 postResult({
                     type: 'error',

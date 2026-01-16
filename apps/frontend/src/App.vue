@@ -43,10 +43,8 @@
             <strong>エラー:</strong> {{ buildError }}
           </div>
 
-          <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :progress="solverProgress"
-            :total-iterations="solverTotalIterations" :error="solverError"
-            :exploitability-history="exploitabilityHistory" @start="handleSolverStart" @pause="handleSolverPause"
-            @resume="handleSolverResume" />
+          <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :error="solverError"
+            @start="handleSolverStart" @pause="handleSolverPause" @resume="handleSolverResume" />
 
           <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" :selected-node-id="selectedNodeId"
             @node-select="handleNodeSelect" />
@@ -64,10 +62,8 @@
             <strong>エラー:</strong> {{ buildError }}
           </div>
 
-          <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :progress="solverProgress"
-            :total-iterations="solverTotalIterations" :error="solverError"
-            :exploitability-history="exploitabilityHistory" @start="handleSolverStart" @pause="handleSolverPause"
-            @resume="handleSolverResume" />
+          <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :error="solverError"
+            @start="handleSolverStart" @pause="handleSolverPause" @resume="handleSolverResume" />
 
           <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" :selected-node-id="selectedNodeId"
             @node-select="handleNodeSelect" />
@@ -130,11 +126,8 @@ const selectedNodeId = ref<string | null>(null);
 // Solver composable
 const {
   status: solverStatus,
-  progress: solverProgress,
-  totalIterations: solverTotalIterations,
   strategies: solverStrategies,
   error: solverError,
-  exploitabilityHistory,
   startSolving,
   pause: pauseSolver,
   resume: resumeSolver,
@@ -208,13 +201,13 @@ function handleNodeSelect(nodeId: string) {
 }
 
 // Solver handlers
-function handleSolverStart(iterations: number) {
+function handleSolverStart() {
   // Rebuild game tree before starting strategy computation
   updateGameTree();
 
   // Start solving with the newly built tree
   if (gameTree.value) {
-    startSolving(gameTree.value, iterations);
+    startSolving(gameTree.value);
   }
 }
 

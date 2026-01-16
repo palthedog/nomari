@@ -1,4 +1,4 @@
-// Type definitions for CFR Solver Web Worker communication
+// Type definitions for LP Solver Web Worker communication
 
 import type { GameTree } from '@mari/game-tree/game-tree';
 
@@ -15,7 +15,7 @@ export interface StrategyData {
  * Commands sent to the worker
  */
 export type SolverCommand =
-  | { type: 'start'; gameTree: GameTree; iterations: number }
+  | { type: 'start'; gameTree: GameTree }
   | { type: 'pause' }
   | { type: 'resume' }
   | { type: 'getStrategy'; nodeId: string }
@@ -25,7 +25,6 @@ export type SolverCommand =
  * Results returned from the worker
  */
 export type SolverResult =
-  | { type: 'progress'; iteration: number; totalIterations: number; exploitability?: number }
   | { type: 'complete'; strategies: Record<string, StrategyData> }
   | { type: 'strategy'; nodeId: string; data: StrategyData | null }
   | { type: 'allStrategies'; strategies: Record<string, StrategyData> }

@@ -1,30 +1,27 @@
-// Composable for using the CFR Solver Web Worker
+// Composable for using the LP Solver Web Worker
 
 import { ref, shallowRef, onUnmounted } from 'vue';
 import type { GameTree } from '@mari/game-tree/game-tree';
 import type { SolverCommand, SolverResult, SolverStatus, StrategyData } from '../workers/solver-types';
 
 // Import worker using Vite's worker import syntax
-import CfrWorker from '../workers/cfr-worker?worker';
+import LpWorker from '../workers/lp-worker?worker';
 
 /**
- * Composable for managing the CFR Solver
+ * Composable for managing the LP Solver
  */
 export function useSolver() {
   const worker = shallowRef<Worker | null>(null);
   const status = ref<SolverStatus>('idle');
-  const progress = ref(0);
-  const totalIterations = ref(0);
   const strategies = shallowRef<Record<string, StrategyData>>({});
   const error = ref<string | null>(null);
-  const exploitabilityHistory = ref<Array<{ iteration: number; value: number }>>([]);
 
   /**
    * Initialize the worker if not already done
    */
   function initWorker(): Worker {
     if (!worker.value) {
-      worker.value = new CfrWorker();
+      worker.value = new LpWorker();
       worker.value.onmessage = handleMessage;
       worker.value.onerror = (e) => {
         error.value = e.message;
@@ -41,17 +38,6 @@ export function useSolver() {
     const result = event.data;
 
     switch (result.type) {
-      case 'progress':
-        progress.value = result.iteration;
-        totalIterations.value = result.totalIterations;
-        if (result.exploitability !== undefined) {
-          exploitabilityHistory.value.push({
-            iteration: result.iteration,
-            value: result.exploitability,
-          });
-        }
-        break;
-
       case 'complete':
         strategies.value = result.strategies;
         status.value = 'complete';
@@ -80,13 +66,10 @@ export function useSolver() {
   /**
    * Start solving the game tree
    */
-  function startSolving(gameTree: GameTree, iterations: number = 1000): void {
+  function startSolving(gameTree: GameTree): void {
     const w = initWorker();
     status.value = 'running';
-    progress.value = 0;
-    totalIterations.value = iterations;
     error.value = null;
-    exploitabilityHistory.value = [];
     strategies.value = {};
 
     // Serialize GameTree to plain object for postMessage
@@ -96,7 +79,6 @@ export function useSolver() {
     const command: SolverCommand = {
       type: 'start',
       gameTree: serializedGameTree,
-      iterations,
     };
     w.postMessage(command);
   }
@@ -148,11 +130,8 @@ export function useSolver() {
 
   return {
     status,
-    progress,
-    totalIterations,
     strategies,
     error,
-    exploitabilityHistory,
     startSolving,
     pause,
     resume,

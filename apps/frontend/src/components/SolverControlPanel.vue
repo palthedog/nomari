@@ -2,13 +2,6 @@
   <div class="solver-control-panel">
     <h3>戦略計算</h3>
 
-    <!-- Iteration settings -->
-    <div class="control-group">
-      <label for="iterations">イテレーション数</label>
-      <input id="iterations" v-model.number="iterations" type="number" min="100" max="100000" step="100"
-        :disabled="isRunning" />
-    </div>
-
     <!-- Control buttons -->
     <div class="button-group">
       <button type="button" class="primary-btn" :disabled="!canStart" @click="handleStart">
@@ -22,17 +15,6 @@
       <button type="button" class="secondary-btn" :disabled="!isPaused" title="将来の機能: 再開" @click="handleResume">
         再開
       </button>
-    </div>
-
-    <!-- Progress display -->
-    <div v-if="isRunning || isComplete" class="progress-section">
-      <div class="progress-label">
-        <span>進捗</span>
-        <span>{{ progress }} / {{ totalIterations }}</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
-      </div>
     </div>
 
     <!-- Status display -->
@@ -49,38 +31,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import type { GameTree } from '@mari/game-tree/game-tree';
 import type { SolverStatus } from '../workers/solver-types';
 
 const props = defineProps<{
   gameTree: GameTree | null;
   status: SolverStatus;
-  progress: number;
-  totalIterations: number;
   error: string | null;
-  exploitabilityHistory: Array<{ iteration: number; value: number }>;
 }>();
 
 const emit = defineEmits<{
-  start: [iterations: number];
+  start: [];
   pause: [];
   resume: [];
 }>();
-
-// Local state
-const iterations = ref(10000);
 
 // Computed properties
 const isRunning = computed(() => props.status === 'running');
 const isPaused = computed(() => props.status === 'paused');
 const isComplete = computed(() => props.status === 'complete');
 const canStart = computed(() => props.gameTree !== null && !isRunning.value && !isPaused.value);
-
-const progressPercent = computed(() => {
-  if (props.totalIterations === 0) return 0;
-  return Math.round((props.progress / props.totalIterations) * 100);
-});
 
 const statusText = computed(() => {
   switch (props.status) {
@@ -108,7 +79,7 @@ const statusClass = computed(() => {
 
 // Event handlers
 function handleStart() {
-  emit('start', iterations.value);
+  emit('start');
 }
 
 function handlePause() {
@@ -131,46 +102,6 @@ function handleResume() {
   margin: 0 0 16px 0;
   font-size: 16px;
   color: #333;
-}
-
-.control-group {
-  margin-bottom: 12px;
-}
-
-.control-group label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 13px;
-  color: #666;
-}
-
-.control-group input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.control-group input:disabled {
-  background-color: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.future-feature {
-  position: relative;
-  opacity: 0.6;
-}
-
-.feature-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 2px 6px;
-  background-color: #9e9e9e;
-  color: white;
-  font-size: 10px;
-  border-radius: 3px;
 }
 
 .button-group {
@@ -220,31 +151,6 @@ function handleResume() {
   cursor: not-allowed;
 }
 
-.progress-section {
-  margin-bottom: 12px;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
-  font-size: 12px;
-  color: #666;
-}
-
-.progress-bar {
-  height: 8px;
-  background-color: #e0e0e0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #4CAF50;
-  transition: width 0.3s ease;
-}
-
 .status-section {
   margin-bottom: 12px;
   font-size: 13px;
@@ -282,9 +188,5 @@ function handleResume() {
   border-radius: 4px;
   font-size: 13px;
   margin-bottom: 12px;
-}
-
-.chart-section {
-  margin-top: 16px;
 }
 </style>
