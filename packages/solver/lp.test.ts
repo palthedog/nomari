@@ -1,5 +1,5 @@
-import { CFRSolver } from './cfr';
-import { GameTree, Node, PlayerActions, Action, NodeTransition, Reward } from '@mari/game-tree/game-tree';
+import { LPSolver } from './lp';
+import { GameTree, Node, PlayerActions, Action, NodeTransition } from '@mari/game-tree/game-tree';
 
 /**
  * Helper function to create a rock-paper-scissors game tree
@@ -256,13 +256,13 @@ function createGurikoJanken(): GameTree {
     return { id: 'guriko', root: 'root', nodes };
 }
 
-describe('CFRSolver', () => {
+describe('LPSolver', () => {
     describe('Rock Paper Scissors', () => {
         it('should converge to uniform strategy for RPS', () => {
             const gameTree = createRockPaperScissorsGame();
-            const solver = new CFRSolver(gameTree);
+            const solver = new LPSolver(gameTree);
 
-            solver.solve(10000);
+            solver.solve();
 
             const strategy = solver.getRootStrategy();
             expect(strategy).not.toBeNull();
@@ -272,10 +272,10 @@ describe('CFRSolver', () => {
             const scissorsProb = strategy!.get('scissors') ?? 0;
 
             // In RPS, optimal strategy is uniform (1/3 each)
-            // Allow some tolerance for convergence
-            expect(rockProb).toBeCloseTo(1 / 3, 1);
-            expect(paperProb).toBeCloseTo(1 / 3, 1);
-            expect(scissorsProb).toBeCloseTo(1 / 3, 1);
+            // LP should find exact solution
+            expect(rockProb).toBeCloseTo(1 / 3, 2);
+            expect(paperProb).toBeCloseTo(1 / 3, 2);
+            expect(scissorsProb).toBeCloseTo(1 / 3, 2);
 
             // Probabilities should sum to 1
             expect(rockProb + paperProb + scissorsProb).toBeCloseTo(1.0, 5);
@@ -283,9 +283,9 @@ describe('CFRSolver', () => {
 
         it('should have all probabilities between 0 and 1', () => {
             const gameTree = createRockPaperScissorsGame();
-            const solver = new CFRSolver(gameTree);
+            const solver = new LPSolver(gameTree);
 
-            solver.solve(1000);
+            solver.solve();
 
             const strategy = solver.getRootStrategy();
             expect(strategy).not.toBeNull();
@@ -300,9 +300,9 @@ describe('CFRSolver', () => {
     describe('Biased Reward Game', () => {
         it('should prefer strike over throw due to higher reward', () => {
             const gameTree = createBiasedRewardGame();
-            const solver = new CFRSolver(gameTree);
+            const solver = new LPSolver(gameTree);
 
-            solver.solve(20000);
+            solver.solve();
 
             const strategy = solver.getRootStrategy();
             expect(strategy).not.toBeNull();
@@ -321,7 +321,7 @@ describe('CFRSolver', () => {
             // Probabilities should sum to 1
             expect(strikeProb + throwProb).toBeCloseTo(1.0, 5);
 
-            console.log('Biased game strategy:', {
+            console.log('LP Biased game strategy:', {
                 strike: strikeProb,
                 throw: throwProb
             });
@@ -329,15 +329,14 @@ describe('CFRSolver', () => {
 
         it('should converge to a mixed strategy', () => {
             const gameTree = createBiasedRewardGame();
-            const solver = new CFRSolver(gameTree);
+            const solver = new LPSolver(gameTree);
 
-            solver.solve(20000);
+            solver.solve();
 
             const strategy = solver.getRootStrategy();
             expect(strategy).not.toBeNull();
 
             // Strategy should not be pure (all probability on one action)
-            // in a balanced game
             const probs = Array.from(strategy!.values());
             const maxProb = Math.max(...probs);
 
@@ -352,9 +351,9 @@ describe('CFRSolver', () => {
 
         it('should account for defender counter-strategies', () => {
             const gameTree = createBiasedRewardGame();
-            const solver = new CFRSolver(gameTree);
+            const solver = new LPSolver(gameTree);
 
-            solver.solve(20000);
+            solver.solve();
 
             const strategy = solver.getRootStrategy();
             expect(strategy).not.toBeNull();
@@ -362,17 +361,11 @@ describe('CFRSolver', () => {
             const strikeProb = strategy!.get('strike') ?? 0;
             const throwProb = strategy!.get('throw') ?? 0;
 
-            // Even though strike has higher reward, throw should still have
-            // some probability because:
-            // - Strike can be blocked by guard (0 points)
-            // - Throw can beat guard (1000 points)
-            // - But throw loses to vertical_jump (-1000 points)
-
             // Both actions should have significant probability
             expect(strikeProb).toBeGreaterThan(0.1);
             expect(throwProb).toBeGreaterThan(0.1);
 
-            console.log('Strategy considering defender counters:', {
+            console.log('LP Strategy considering defender counters:', {
                 strike: strikeProb,
                 throw: throwProb
             });
@@ -382,9 +375,9 @@ describe('CFRSolver', () => {
     describe('Guriko Janken (weighted RPS)', () => {
         it('should converge to expected mixed strategy 5/14, 6/14, 3/14', () => {
             const gameTree = createGurikoJanken();
-            const solver = new CFRSolver(gameTree);
+            const solver = new LPSolver(gameTree);
 
-            solver.solve(20000);
+            solver.solve();
 
             const strategy = solver.getRootStrategy();
             expect(strategy).not.toBeNull();
@@ -394,18 +387,49 @@ describe('CFRSolver', () => {
             const scissorsProb = strategy!.get('scissors') ?? 0;
 
             // Expected optimal mix (Rock, Scissors, Paper): 5/14, 6/14, 3/14
+            // LP should find exact solution
             expect(rockProb).toBeCloseTo(5 / 14, 2);
             expect(scissorsProb).toBeCloseTo(6 / 14, 2);
             expect(paperProb).toBeCloseTo(3 / 14, 2);
 
             expect(rockProb + paperProb + scissorsProb).toBeCloseTo(1.0, 4);
 
-            // Expected value near 0 for zero-sum equilibrium
-            const expectedValue =
-                rockProb * (3 * scissorsProb - 6 * paperProb) +
-                paperProb * (6 * rockProb - 5 * scissorsProb) +
-                scissorsProb * (5 * paperProb - 3 * rockProb);
-            expect(Math.abs(expectedValue)).toBeLessThan(0.0001);
+            console.log('LP Guriko Janken strategy:', {
+                rock: rockProb,
+                paper: paperProb,
+                scissors: scissorsProb
+            });
+        });
+    });
+
+    describe('Interface compatibility with CFR', () => {
+        it('should have same interface as CFRSolver', () => {
+            const gameTree = createRockPaperScissorsGame();
+            const solver = new LPSolver(gameTree);
+
+            // Should have solve method
+            expect(typeof solver.solve).toBe('function');
+
+            // Should have getRootStrategy method
+            expect(typeof solver.getRootStrategy).toBe('function');
+
+            // Should have getAverageStrategy method
+            expect(typeof solver.getAverageStrategy).toBe('function');
+
+            // Should have getAverageOpponentStrategy method
+            expect(typeof solver.getAverageOpponentStrategy).toBe('function');
+        });
+
+        it('should work with solve() called without arguments', () => {
+            const gameTree = createRockPaperScissorsGame();
+            const solver = new LPSolver(gameTree);
+
+            // Should work without iterations parameter
+            solver.solve();
+
+            const strategy = solver.getRootStrategy();
+            expect(strategy).not.toBeNull();
+            expect(strategy!.size).toBeGreaterThan(0);
         });
     });
 });

@@ -9,7 +9,8 @@
         "test:watch": "jest --watch"
     },
     "dependencies": {
-        "@mari/game-tree": "*"
+        "@mari/game-tree": "*",
+        "javascript-lp-solver": "^1.0.1"
     },
     "devDependencies": {
         "@mari/eslint-config": "*",
