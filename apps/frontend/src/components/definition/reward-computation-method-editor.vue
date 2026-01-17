@@ -25,11 +25,11 @@
         <!-- Description for Win Probability -->
         <div v-if="selectedMethod === 'winProbability'" class="win-probability-settings">
             <div class="form-group">
-                <label for="corner-penalty">Corner ペナルティ (HP値):</label>
+                <label for="corner-penalty">画面端 ペナルティ:</label>
                 <input id="corner-penalty" type="number" min="0" max="10000" step="100" :value="cornerPenalty"
                     @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))">
                 <div class="help-text">
-                    画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します（最大HP10000の場合、20%相当）。
+                    画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します。
                 </div>
             </div>
         </div>

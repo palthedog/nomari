@@ -2,7 +2,7 @@
   <div class="terminal-situation-editor">
     <div class="header-actions">
       <button type="button" class="delete-btn" @click="handleDelete">
-        Terminal Situationを削除
+        この終了条件を削除
       </button>
     </div>
 

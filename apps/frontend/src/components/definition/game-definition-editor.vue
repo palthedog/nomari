@@ -98,7 +98,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import type {
-  GameDefinition,
   Situation,
   TerminalSituation,
 } from '@mari/ts-proto';
@@ -109,8 +108,11 @@ import {
 import { validateGameDefinition, type ValidationError } from '@/utils/validation';
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
+import { useDefinitionStore } from '@/stores/definition-store';
 
-const gameDefinition = defineModel<GameDefinition>({ required: true });
+const definitionStore = useDefinitionStore();
+
+const gameDefinition = computed(() => definitionStore.gameDefinition);
 
 const selectedItemType = ref<'situation' | 'terminal-situation' | null>(null);
 const selectedSituationId = ref<string | null>(null);

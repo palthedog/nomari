@@ -1,18 +1,10 @@
 <template>
   <div class="solver-control-panel">
-    <h3>戦略計算</h3>
-
     <!-- Control buttons -->
     <div class="button-group">
       <button type="button" class="primary-btn" :disabled="!canStart" @click="handleStart">
-        {{ isComplete ? '再計算' : '戦略を計算' }}
+        {{ '最適戦略を計算' }}
       </button>
-    </div>
-
-    <!-- Status display -->
-    <div class="status-section">
-      <span class="status-label">状態:</span>
-      <span :class="['status-value', statusClass]">{{ statusText }}</span>
     </div>
 
     <!-- Error display -->
@@ -35,36 +27,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   start: [];
-  pause: [];
-  resume: [];
 }>();
 
 // Computed properties
 const isRunning = computed(() => props.status === 'running');
-const isComplete = computed(() => props.status === 'complete');
 const canStart = computed(() => props.gameTree !== null && !isRunning.value);
-
-const statusText = computed(() => {
-  switch (props.status) {
-    case 'idle':
-      return 'アイドル';
-    case 'running':
-      return '計算中...';
-    case 'complete':
-      return '完了';
-    default:
-      return '不明';
-  }
-});
-
-const statusClass = computed(() => {
-  return {
-    idle: 'status-idle',
-    running: 'status-running',
-    paused: 'status-paused',
-    complete: 'status-complete',
-  }[props.status];
-});
 
 // Event handlers
 function handleStart() {
@@ -148,14 +115,6 @@ function handleStart() {
 
 .status-idle {
   color: var(--text-disabled);
-}
-
-.status-running {
-  color: var(--color-accent-blue);
-}
-
-.status-paused {
-  color: var(--color-warning);
 }
 
 .status-complete {

@@ -128,74 +128,58 @@ function getActionCalculation(actionId: string): CalculationRow[] {
     const rows: CalculationRow[] = [];
     const node = props.selectedNode;
 
-    if (props.playerType === 'player') {
-        const opponentStrategy = props.strategyData.opponentStrategy;
+    // Share logic between player and opponent branches as much as possible
+    const isPlayer = props.playerType === 'player';
+    const strategy = isPlayer
+        ? props.strategyData.opponentStrategy
+        : props.strategyData.playerStrategy;
 
-        for (const transition of node.transitions) {
-            if (transition.playerActionId !== actionId) {
-                continue;
-            }
-
-            const opponentAction = opponentStrategy.find(
-                (a) => a.actionId === transition.opponentActionId
-            );
-            const probability = opponentAction?.probability ?? 0;
-
-            if (probability === 0) {
-                continue;
-            }
-
-            const nextNodeValues = props.expectedValues[transition.nextNodeId];
-            if (!nextNodeValues) {
-                continue;
-            }
-
-            const nextNodeValue = nextNodeValues.nodeExpectedValue;
-            const product = probability * nextNodeValue;
-            const opponentActionName = getActionNameForType(transition.opponentActionId, 'opponent');
-
-            rows.push({
-                actionName: opponentActionName,
-                probability,
-                nextNodeValue,
-                product,
-                nextNodeId: transition.nextNodeId,
-            });
+    for (const transition of node.transitions) {
+        // Identify actionId type depending on playerType
+        const matchesAction = isPlayer
+            ? transition.playerActionId === actionId
+            : transition.opponentActionId === actionId;
+        if (!matchesAction) {
+            continue;
         }
-    } else {
-        const playerStrategy = props.strategyData.playerStrategy;
 
-        for (const transition of node.transitions) {
-            if (transition.opponentActionId !== actionId) {
-                continue;
-            }
+        // Get strategyActionId and type for lookup
+        const strategyActionId = isPlayer
+            ? transition.opponentActionId
+            : transition.playerActionId;
+        const actionType: 'player' | 'opponent' = isPlayer ? 'opponent' : 'player';
 
-            const playerAction = playerStrategy.find(
-                (a) => a.actionId === transition.playerActionId
-            );
-            const probability = playerAction?.probability ?? 0;
+        const strategyAction = strategy.find(
+            (a) => a.actionId === strategyActionId
+        );
+        const probability = strategyAction?.probability ?? 0;
 
-            if (probability === 0) {
-                continue;
-            }
-
-            const nextNodeValues = props.expectedValues[transition.nextNodeId];
-            if (!nextNodeValues || nextNodeValues.opponentNodeExpectedValue === undefined) {
-                continue;
-            }
-
-            const nextNodeValue = nextNodeValues.opponentNodeExpectedValue;
-            const product = probability * nextNodeValue;
-            const playerActionName = getActionNameForType(transition.playerActionId, 'player');
-
-            rows.push({
-                actionName: playerActionName,
-                probability,
-                nextNodeValue,
-                product,
-                nextNodeId: transition.nextNodeId,
-            });
+        const nextNodeValues = props.expectedValues[transition.nextNodeId];
+        if (!nextNodeValues) {
+            continue;
         }
+
+        // Figure out the correct expected value and skip if it's undefined only for opponent branch
+        let nextNodeValue: number | undefined;
+        if (isPlayer) {
+            nextNodeValue = nextNodeValues.nodeExpectedValue;
+        } else {
+            nextNodeValue = nextNodeValues.opponentNodeExpectedValue;
+            if (nextNodeValue === undefined) {
+                continue;
+            }
+        }
+
+        const product = probability * nextNodeValue;
+        const actionName = getActionNameForType(strategyActionId, actionType);
+
+        rows.push({
+            actionName,
+            probability,
+            nextNodeValue,
+            product,
+            nextNodeId: transition.nextNodeId,
+        });
     }
 
     return rows;

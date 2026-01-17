@@ -26,48 +26,21 @@
           <GameDefinitionEditor v-model="gameDefinition" />
         </div>
         <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
+          <GameTreeBuildPanel v-model="gameDefinition" @update="gameTreeStore.updateGameTree()" />
         </div>
       </template>
 
       <!-- Game Tree Mode: GameTreeBuildPanel | GameTreeVisualization -->
       <template v-else-if="viewMode === 'game-tree'">
         <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
-        </div>
-        <div class="visualization-section">
-          <div v-if="buildError" class="build-error">
-            <strong>エラー:</strong> {{ buildError }}
-          </div>
-
-          <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :error="solverError"
-            @start="handleSolverStart" @pause="handleSolverPause" @resume="handleSolverResume" />
-
-          <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
-
-          <div v-else-if="!buildError" class="no-tree-message">
-            「ゲーム木を更新」ボタンを押してゲーム木を生成してください
-          </div>
+          <GameTreeBuildPanel v-model="gameDefinition" @update="gameTreeStore.updateGameTree()" />
         </div>
       </template>
 
       <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
       <template v-else-if="viewMode === 'strategy'">
-        <div class="visualization-section">
-          <div v-if="buildError" class="build-error">
-            <strong>エラー:</strong> {{ buildError }}
-          </div>
 
-          <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :error="solverError"
-            @start="handleSolverStart" @pause="handleSolverPause" @resume="handleSolverResume" />
-
-          <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
-
-          <div v-else-if="!buildError" class="no-tree-message">
-            「ゲーム木を更新」ボタンを押してゲーム木を生成してください
-          </div>
-        </div>
-
+        <GameTreePanel v-if="gameTree" :game-tree="gameTree" />
         <div class="strategy-section">
           <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
             :expected-values="expectedValues" />
@@ -81,17 +54,15 @@
 import { ref, computed, watch } from 'vue';
 import type { GameDefinition } from '@mari/ts-proto';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
-import { buildGameTree } from '@mari/game-tree-builder';
 import { exportAsJSON } from '@/utils/export';
 import { createInitialGameDefinition } from '@/utils/game-definition-utils';
 import { useSolver } from '@/composables/use-solver';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
-import GameTreeVisualization from '@/components/game-tree/game-tree-visualization.vue';
-import SolverControlPanel from '@/components/solver/solver-control-panel.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
+import { useDefinitionStore } from './stores/definition-store';
 
 // View mode type definition
 type ViewMode = 'edit' | 'game-tree' | 'strategy';
@@ -112,7 +83,10 @@ const viewModes: ViewModeConfig[] = [
 const viewMode = ref<ViewMode>('edit');
 
 // Game definition and tree state
-const gameDefinition = ref<GameDefinition>(createInitialGameDefinition());
+//const gameDefinition = ref<GameDefinition>(createInitialGameDefinition());
+const definitionStore = useDefinitionStore();
+const gameDefinition = computed(() => definitionStore.gameDefinition);
+
 const gameTree = ref<GameTree | null>(null);
 const buildError = ref<string | null>(null);
 
@@ -168,43 +142,10 @@ watch(
   { deep: true }
 );
 
-// Game tree functions
-function updateGameTree() {
-  buildError.value = null;
-  gameTreeStore.clearSelection();
-  const result = buildGameTree(gameDefinition.value);
-  if (result.success) {
-    gameTree.value = result.gameTree;
-    // Auto-switch to game-tree mode after successful build
-    viewMode.value = 'game-tree';
-  } else {
-    gameTree.value = null;
-    buildError.value = result.error.message;
-  }
-}
-
 function exportJSON() {
-  exportAsJSON(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.json`);
+  exportAsJSON(definitionStore.gameDefinition, `gamedefinition_${definitionStore.gameDefinition.gameId}.json`);
 }
 
-// Solver handlers
-function handleSolverStart() {
-  // Rebuild game tree before starting strategy computation
-  updateGameTree();
-
-  // Start solving with the newly built tree
-  if (gameTree.value) {
-    startSolving(gameTree.value);
-  }
-}
-
-function handleSolverPause() {
-  pauseSolver();
-}
-
-function handleSolverResume() {
-  resumeSolver();
-}
 </script>
 
 <style>

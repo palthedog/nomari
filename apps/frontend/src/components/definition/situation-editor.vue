@@ -2,7 +2,7 @@
   <div class="situation-editor">
     <div class="header-actions">
       <button type="button" class="delete-btn" @click="handleDelete">
-        削除
+        この状況を削除
       </button>
     </div>
 
