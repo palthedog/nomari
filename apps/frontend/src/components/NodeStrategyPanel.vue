@@ -44,7 +44,7 @@
                     <div class="expected-value-row">
                         <div class="expected-value-label">プレイヤー期待値:</div>
                         <div class="expected-value-number">{{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
-                        }}</div>
+                            }}</div>
                     </div>
                     <div class="expected-value-row" v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined">
                         <div class="expected-value-label">相手期待値:</div>
@@ -57,22 +57,46 @@
                 <div v-if="playerStrategy.length > 0" class="strategy-group">
                     <h4>プレイヤー戦略</h4>
                     <div class="action-list">
-                        <div v-for="action in playerStrategy" :key="action.actionId" class="action-row">
-                            <div class="action-info">
-                                <div class="action-name-row">
-                                    <span class="action-name">{{ getActionName(action.actionId, 'player') }}</span>
-                                    <span class="action-expected-value"
-                                        v-if="getActionExpectedValue(action.actionId) !== null">
-                                        期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
-                                    </span>
+                        <v-tooltip v-for="action in playerStrategy" :key="action.actionId" location="right"
+                            :open-delay="50" :transition="false"
+                            :disabled="getPlayerActionCalculation(action.actionId).length === 0"
+                            content-class="calculation-tooltip">
+                            <template #activator="{ props: tooltipProps }">
+                                <div v-bind="tooltipProps" class="action-row">
+                                    <div class="action-info">
+                                        <div class="action-name-row">
+                                            <span class="action-name">{{ getActionName(action.actionId, 'player')
+                                                }}</span>
+                                            <span class="action-expected-value"
+                                                v-if="getActionExpectedValue(action.actionId) !== null">
+                                                期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
+                                            </span>
+                                        </div>
+                                        <span class="action-prob">{{ formatPercent(action.probability) }}</span>
+                                    </div>
+                                    <div class="prob-bar">
+                                        <div class="prob-fill player-fill"
+                                            :style="{ width: action.probability * 100 + '%' }">
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="action-prob">{{ formatPercent(action.probability) }}</span>
-                            </div>
-                            <div class="prob-bar">
-                                <div class="prob-fill player-fill" :style="{ width: action.probability * 100 + '%' }">
-                                </div>
-                            </div>
-                        </div>
+                            </template>
+                            <template #default>
+                                <table class="calculation-table">
+                                    <tbody>
+                                        <tr v-for="row in getPlayerActionCalculation(action.actionId)"
+                                            :key="row.actionName">
+                                            <td class="calc-action-name">{{ row.actionName }}</td>
+                                            <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
+                                            <td class="calc-operator">*</td>
+                                            <td class="calc-prob">{{ row.probability.toFixed(2) }}</td>
+                                            <td class="calc-operator">=</td>
+                                            <td class="calc-product">{{ Math.round(row.product) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </v-tooltip>
                     </div>
                 </div>
 
@@ -80,22 +104,47 @@
                 <div v-if="opponentStrategy.length > 0" class="strategy-group">
                     <h4>相手戦略</h4>
                     <div class="action-list">
-                        <div v-for="action in opponentStrategy" :key="action.actionId" class="action-row">
-                            <div class="action-info">
-                                <div class="action-name-row">
-                                    <span class="action-name">{{ getActionName(action.actionId, 'opponent') }}</span>
-                                    <span class="action-expected-value"
-                                        v-if="getOpponentActionExpectedValue(action.actionId) !== null">
-                                        期待値: {{ formatExpectedValue(getOpponentActionExpectedValue(action.actionId)) }}
-                                    </span>
+                        <v-tooltip v-for="action in opponentStrategy" :key="action.actionId" location="right"
+                            :open-delay="50" :transition="false"
+                            :disabled="getOpponentActionCalculation(action.actionId).length === 0"
+                            content-class="calculation-tooltip">
+                            <template #activator="{ props: tooltipProps }">
+                                <div v-bind="tooltipProps" class="action-row">
+                                    <div class="action-info">
+                                        <div class="action-name-row">
+                                            <span class="action-name">{{ getActionName(action.actionId, 'opponent')
+                                                }}</span>
+                                            <span class="action-expected-value"
+                                                v-if="getOpponentActionExpectedValue(action.actionId) !== null">
+                                                期待値: {{
+                                                    formatExpectedValue(getOpponentActionExpectedValue(action.actionId)) }}
+                                            </span>
+                                        </div>
+                                        <span class="action-prob">{{ formatPercent(action.probability) }}</span>
+                                    </div>
+                                    <div class="prob-bar">
+                                        <div class="prob-fill opponent-fill"
+                                            :style="{ width: action.probability * 100 + '%' }">
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="action-prob">{{ formatPercent(action.probability) }}</span>
-                            </div>
-                            <div class="prob-bar">
-                                <div class="prob-fill opponent-fill" :style="{ width: action.probability * 100 + '%' }">
-                                </div>
-                            </div>
-                        </div>
+                            </template>
+                            <template #default>
+                                <table class="calculation-table">
+                                    <tbody>
+                                        <tr v-for="row in getOpponentActionCalculation(action.actionId)"
+                                            :key="row.actionName">
+                                            <td class="calc-action-name">{{ row.actionName }}</td>
+                                            <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
+                                            <td class="calc-operator">*</td>
+                                            <td class="calc-prob">{{ row.probability.toFixed(2) }}</td>
+                                            <td class="calc-operator">=</td>
+                                            <td class="calc-product">{{ Math.round(row.product) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </template>
+                        </v-tooltip>
                     </div>
                 </div>
             </div>
@@ -146,6 +195,14 @@ const props = defineProps<{
     expectedValues: ExpectedValuesMap | null;
 }>();
 
+// Calculation row type for tooltip
+interface CalculationRow {
+    actionName: string;
+    probability: number;
+    nextNodeValue: number;
+    product: number;
+}
+
 // Computed properties
 const isTerminal = computed(() => {
     if (!props.selectedNode) return false;
@@ -195,6 +252,106 @@ function getOpponentActionExpectedValue(actionId: string): number | null {
         (a) => a.actionId === actionId
     );
     return actionValue?.expectedValue ?? null;
+}
+
+// Get calculation breakdown for a player action
+function getPlayerActionCalculation(actionId: string): CalculationRow[] {
+    if (!props.selectedNode || !props.strategyData || !props.expectedValues) {
+        return [];
+    }
+
+    const rows: CalculationRow[] = [];
+    const node = props.selectedNode;
+    const opponentStrategy = props.strategyData.opponentStrategy;
+
+    // Find all transitions for this player action
+    for (const transition of node.transitions) {
+        if (transition.playerActionId !== actionId) {
+            continue;
+        }
+
+        // Get opponent action probability
+        const opponentAction = opponentStrategy.find(
+            (a) => a.actionId === transition.opponentActionId
+        );
+        const probability = opponentAction?.probability ?? 0;
+
+        // Skip if probability is 0
+        if (probability === 0) {
+            continue;
+        }
+
+        // Get next node expected value
+        const nextNodeValues = props.expectedValues[transition.nextNodeId];
+        if (!nextNodeValues) {
+            continue;
+        }
+
+        const nextNodeValue = nextNodeValues.nodeExpectedValue;
+        const product = probability * nextNodeValue;
+
+        // Get opponent action name
+        const opponentActionName = getActionName(transition.opponentActionId, 'opponent');
+
+        rows.push({
+            actionName: opponentActionName,
+            probability,
+            nextNodeValue,
+            product,
+        });
+    }
+
+    return rows;
+}
+
+// Get calculation breakdown for an opponent action
+function getOpponentActionCalculation(actionId: string): CalculationRow[] {
+    if (!props.selectedNode || !props.strategyData || !props.expectedValues) {
+        return [];
+    }
+
+    const rows: CalculationRow[] = [];
+    const node = props.selectedNode;
+    const playerStrategy = props.strategyData.playerStrategy;
+
+    // Find all transitions for this opponent action
+    for (const transition of node.transitions) {
+        if (transition.opponentActionId !== actionId) {
+            continue;
+        }
+
+        // Get player action probability
+        const playerAction = playerStrategy.find(
+            (a) => a.actionId === transition.playerActionId
+        );
+        const probability = playerAction?.probability ?? 0;
+
+        // Skip if probability is 0
+        if (probability === 0) {
+            continue;
+        }
+
+        // Get next node expected value (opponent value)
+        const nextNodeValues = props.expectedValues[transition.nextNodeId];
+        if (!nextNodeValues || nextNodeValues.opponentNodeExpectedValue === undefined) {
+            continue;
+        }
+
+        const nextNodeValue = nextNodeValues.opponentNodeExpectedValue;
+        const product = probability * nextNodeValue;
+
+        // Get player action name
+        const playerActionName = getActionName(transition.playerActionId, 'player');
+
+        rows.push({
+            actionName: playerActionName,
+            probability,
+            nextNodeValue,
+            product,
+        });
+    }
+
+    return rows;
 }
 
 // Helper functions
@@ -498,5 +655,53 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
     font-size: 12px;
     color: var(--text-primary);
     margin-bottom: 4px;
+}
+
+/* Tooltip styles */
+:deep(.calculation-tooltip) {
+    font-size: 12px;
+    max-width: none;
+    padding: 8px;
+}
+
+.calculation-table {
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.calculation-table td {
+    padding: 2px 4px;
+    white-space: nowrap;
+}
+
+.calc-action-name {
+    text-align: left;
+    padding-right: 8px;
+}
+
+.calc-value {
+    text-align: right;
+    padding-right: 4px;
+    min-width: 60px;
+}
+
+.calc-operator {
+    text-align: center;
+    padding: 0 4px;
+}
+
+.calc-prob {
+    text-align: left;
+    padding-left: 4px;
+    padding-right: 4px;
+    min-width: 40px;
+}
+
+.calc-product {
+    text-align: right;
+    padding-left: 8px;
+    min-width: 60px;
 }
 </style>
