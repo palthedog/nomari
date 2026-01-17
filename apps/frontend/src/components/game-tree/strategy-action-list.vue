@@ -10,7 +10,8 @@
                         <div class="action-info">
                             <div class="action-name-row">
                                 <span class="action-name">{{ getActionName(action.actionId) }}</span>
-                                <span class="action-expected-value" v-if="getActionExpectedValue(action.actionId) !== null">
+                                <span class="action-expected-value"
+                                    v-if="getActionExpectedValue(action.actionId) !== null">
                                     期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
                                 </span>
                             </div>
@@ -32,7 +33,7 @@
                                 <td class="calc-action-name">{{ row.actionName }}</td>
                                 <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
                                 <td class="calc-operator">*</td>
-                                <td class="calc-prob">{{ row.probability.toFixed(2) }}</td>
+                                <td class="calc-prob">{{ (row.probability * 100).toFixed(1) }}%</td>
                                 <td class="calc-operator">=</td>
                                 <td class="calc-product">{{ Math.round(row.product) }}</td>
                             </tr>
