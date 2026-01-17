@@ -9,39 +9,19 @@
     <!-- 基本情報 -->
     <div class="section">
       <div class="form-group" hidden>
-        <v-text-field
-          v-model="model.situationId"
-          label="Situation ID"
-          readonly
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
+        <v-text-field v-model="model.situationId" label="Situation ID" readonly density="compact" variant="outlined"
+          hide-details />
       </div>
       <div class="form-group">
-        <v-text-field
-          v-model="model.name"
-          label="Name"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
+        <v-text-field v-model="model.name" label="Name" density="compact" variant="outlined" hide-details />
       </div>
       <div class="form-group">
         <label>Description:</label>
         <textarea v-model="model.description" rows="3" />
       </div>
       <div class="form-group">
-        <v-select
-          v-model="model.cornerState"
-          :items="cornerStateItems"
-          item-title="title"
-          item-value="value"
-          label="画面端の状態"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
+        <v-select v-model="model.cornerState" :items="cornerStateItems" item-title="title" item-value="value"
+          label="画面端の状態" density="compact" variant="outlined" hide-details />
       </div>
     </div>
   </div>
