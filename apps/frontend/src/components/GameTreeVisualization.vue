@@ -55,10 +55,13 @@
 import { ref, computed, watch } from 'vue';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   gameTree: GameTree;
   selectedNodeId: string | null;
-}>();
+  highlightedNodeId?: string | null;
+}>(), {
+  highlightedNodeId: null,
+});
 
 const emit = defineEmits<{
   'node-select': [nodeId: string];
@@ -150,10 +153,22 @@ function isOtherTerminalNode(node: Node): boolean {
 }
 
 /**
+ * Check if a node is highlighted.
+ */
+function isHighlightedNode(nodeId: string): boolean {
+  return props.highlightedNodeId !== null && props.highlightedNodeId !== undefined && props.highlightedNodeId === nodeId;
+}
+
+/**
  * Get the fill color for a node based on its type.
  */
 function getNodeColor(nodeData: NodePosition): string {
   const node = nodeData.node;
+
+  // Highlighted node (override other colors)
+  if (isHighlightedNode(node.nodeId)) {
+    return '#FFC107'; // Amber/Yellow for highlight
+  }
 
   // Root node
   if (node.nodeId === rootNodeId.value) {

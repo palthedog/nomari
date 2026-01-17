@@ -44,7 +44,7 @@
                     <div class="expected-value-row">
                         <div class="expected-value-label">プレイヤー期待値:</div>
                         <div class="expected-value-number">{{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
-                            }}</div>
+                        }}</div>
                     </div>
                     <div class="expected-value-row" v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined">
                         <div class="expected-value-label">相手期待値:</div>
@@ -58,7 +58,7 @@
                     <h4>プレイヤー戦略</h4>
                     <div class="action-list">
                         <v-tooltip v-for="action in playerStrategy" :key="action.actionId" location="right"
-                            :open-delay="50" :transition="false"
+                            :open-delay="50" :close-delay="0" :transition="false" :interactive="true"
                             :disabled="getPlayerActionCalculation(action.actionId).length === 0"
                             content-class="calculation-tooltip">
                             <template #activator="{ props: tooltipProps }">
@@ -66,7 +66,7 @@
                                     <div class="action-info">
                                         <div class="action-name-row">
                                             <span class="action-name">{{ getActionName(action.actionId, 'player')
-                                                }}</span>
+                                            }}</span>
                                             <span class="action-expected-value"
                                                 v-if="getActionExpectedValue(action.actionId) !== null">
                                                 期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
@@ -85,7 +85,8 @@
                                 <table class="calculation-table">
                                     <tbody>
                                         <tr v-for="row in getPlayerActionCalculation(action.actionId)"
-                                            :key="row.actionName">
+                                            :key="row.actionName" @mouseenter="emit('highlight-node', row.nextNodeId)"
+                                            @mouseleave="emit('highlight-node', null)" class="calc-row">
                                             <td class="calc-action-name">{{ row.actionName }}</td>
                                             <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
                                             <td class="calc-operator">*</td>
@@ -105,7 +106,7 @@
                     <h4>相手戦略</h4>
                     <div class="action-list">
                         <v-tooltip v-for="action in opponentStrategy" :key="action.actionId" location="right"
-                            :open-delay="50" :transition="false"
+                            :open-delay="50" :transition="false" :interactive="true"
                             :disabled="getOpponentActionCalculation(action.actionId).length === 0"
                             content-class="calculation-tooltip">
                             <template #activator="{ props: tooltipProps }">
@@ -113,7 +114,7 @@
                                     <div class="action-info">
                                         <div class="action-name-row">
                                             <span class="action-name">{{ getActionName(action.actionId, 'opponent')
-                                                }}</span>
+                                            }}</span>
                                             <span class="action-expected-value"
                                                 v-if="getOpponentActionExpectedValue(action.actionId) !== null">
                                                 期待値: {{
@@ -133,7 +134,8 @@
                                 <table class="calculation-table">
                                     <tbody>
                                         <tr v-for="row in getOpponentActionCalculation(action.actionId)"
-                                            :key="row.actionName">
+                                            :key="row.actionName" @mouseenter="emit('highlight-node', row.nextNodeId)"
+                                            @mouseleave="emit('highlight-node', null)" class="calc-row">
                                             <td class="calc-action-name">{{ row.actionName }}</td>
                                             <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
                                             <td class="calc-operator">*</td>
@@ -195,12 +197,17 @@ const props = defineProps<{
     expectedValues: ExpectedValuesMap | null;
 }>();
 
+const emit = defineEmits<{
+    'highlight-node': [nodeId: string | null];
+}>();
+
 // Calculation row type for tooltip
 interface CalculationRow {
     actionName: string;
     probability: number;
     nextNodeValue: number;
     product: number;
+    nextNodeId: string;
 }
 
 // Computed properties
@@ -298,6 +305,7 @@ function getPlayerActionCalculation(actionId: string): CalculationRow[] {
             probability,
             nextNodeValue,
             product,
+            nextNodeId: transition.nextNodeId,
         });
     }
 
@@ -348,6 +356,7 @@ function getOpponentActionCalculation(actionId: string): CalculationRow[] {
             probability,
             nextNodeValue,
             product,
+            nextNodeId: transition.nextNodeId,
         });
     }
 
@@ -662,6 +671,8 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
     font-size: 12px;
     max-width: none;
     padding: 8px;
+    background-color: var(--tooltip-bg) !important;
+    color: var(--tooltip-text) !important;
 }
 
 .calculation-table {
@@ -674,6 +685,15 @@ function getActionName(actionId: string, player: 'player' | 'opponent'): string 
 .calculation-table td {
     padding: 2px 4px;
     white-space: nowrap;
+}
+
+.calc-row {
+    cursor: pointer;
+}
+
+.calc-row:hover {
+    color: var(--color-accent-blue) !important;
+    background-color: var(--bg-hover);
 }
 
 .calc-action-name {

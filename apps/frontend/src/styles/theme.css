@@ -37,4 +37,8 @@
     /* Other colors */
     --color-disabled: #c8e6c9;
     --bg-disabled: #f5f5f5;
+
+    /* Tooltip colors */
+    --tooltip-text: white;
+    --tooltip-bg: rgba(128, 128, 128, 0.9);
 }
