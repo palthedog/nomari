@@ -43,8 +43,7 @@
           <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :error="solverError"
             @start="handleSolverStart" @pause="handleSolverPause" @resume="handleSolverResume" />
 
-          <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" :selected-node-id="selectedNodeId"
-            :highlighted-node-id="highlightedNodeId" @node-select="handleNodeSelect" />
+          <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
 
           <div v-else-if="!buildError" class="no-tree-message">
             「ゲーム木を更新」ボタンを押してゲーム木を生成してください
@@ -62,8 +61,7 @@
           <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStatus" :error="solverError"
             @start="handleSolverStart" @pause="handleSolverPause" @resume="handleSolverResume" />
 
-          <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" :selected-node-id="selectedNodeId"
-            :highlighted-node-id="highlightedNodeId" @node-select="handleNodeSelect" />
+          <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
 
           <div v-else-if="!buildError" class="no-tree-message">
             「ゲーム木を更新」ボタンを押してゲーム木を生成してください
@@ -72,7 +70,7 @@
 
         <div class="strategy-section">
           <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
-            :expected-values="expectedValues" @highlight-node="handleHighlightNode" />
+            :expected-values="expectedValues" />
         </div>
       </template>
     </div>
@@ -88,6 +86,7 @@ import { exportAsJSON } from '@/utils/export';
 import { createInitialGameDefinition } from '@/utils/game-definition-utils';
 import { useSolver } from '@/composables/use-solver';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
+import { useGameTreeStore } from '@/stores/game-tree-store';
 import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
 import GameTreeVisualization from '@/components/game-tree/game-tree-visualization.vue';
 import SolverControlPanel from '@/components/solver/solver-control-panel.vue';
@@ -117,9 +116,8 @@ const gameDefinition = ref<GameDefinition>(createInitialGameDefinition());
 const gameTree = ref<GameTree | null>(null);
 const buildError = ref<string | null>(null);
 
-// Node selection state
-const selectedNodeId = ref<string | null>(null);
-const highlightedNodeId = ref<string | null>(null);
+// Game tree store
+const gameTreeStore = useGameTreeStore();
 
 // Solver composable
 const {
@@ -133,17 +131,17 @@ const {
 
 // Computed properties
 const selectedNode = computed<Node | null>(() => {
-  if (!gameTree.value || !selectedNodeId.value) {
+  if (!gameTree.value || !gameTreeStore.selectedNodeId) {
     return null;
   }
-  return gameTree.value.nodes[selectedNodeId.value] ?? null;
+  return gameTree.value.nodes[gameTreeStore.selectedNodeId] ?? null;
 });
 
 const selectedNodeStrategy = computed(() => {
-  if (!selectedNodeId.value) {
+  if (!gameTreeStore.selectedNodeId) {
     return null;
   }
-  return solverStrategies.value[selectedNodeId.value] ?? null;
+  return solverStrategies.value[gameTreeStore.selectedNodeId] ?? null;
 });
 
 // Calculate expected values for all nodes
@@ -173,7 +171,7 @@ watch(
 // Game tree functions
 function updateGameTree() {
   buildError.value = null;
-  selectedNodeId.value = null;
+  gameTreeStore.clearSelection();
   const result = buildGameTree(gameDefinition.value);
   if (result.success) {
     gameTree.value = result.gameTree;
@@ -187,16 +185,6 @@ function updateGameTree() {
 
 function exportJSON() {
   exportAsJSON(gameDefinition.value, `gamedefinition_${gameDefinition.value.gameId}.json`);
-}
-
-// Node selection handler
-function handleNodeSelect(nodeId: string) {
-  selectedNodeId.value = nodeId;
-}
-
-// Node highlight handler
-function handleHighlightNode(nodeId: string | null) {
-  highlightedNodeId.value = nodeId;
 }
 
 // Solver handlers

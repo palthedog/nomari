@@ -23,7 +23,8 @@
 
         <!-- Nodes -->
         <g v-for="nodeData in nodePositions" :key="nodeData.node.nodeId" class="node-group"
-          :class="{ selected: isSelectedNode(nodeData.node.nodeId) }" @click="selectNode(nodeData.node.nodeId)">
+          :class="{ selected: isSelectedNode(nodeData.node.nodeId) }"
+          @click="gameTreeStore.selectNode(nodeData.node.nodeId)">
           <rect :x="nodeData.x - nodeWidth / 2" :y="nodeData.y - nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
             :fill="getNodeColor(nodeData)" :stroke="getNodeStroke(nodeData.node.nodeId)"
             :stroke-width="getNodeStrokeWidth(nodeData.node.nodeId)" rx="5" class="node-rect" />
@@ -54,18 +55,13 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
+import { useGameTreeStore } from '@/stores/game-tree-store';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   gameTree: GameTree;
-  selectedNodeId: string | null;
-  highlightedNodeId?: string | null;
-}>(), {
-  highlightedNodeId: null,
-});
-
-const emit = defineEmits<{
-  'node-select': [nodeId: string];
 }>();
+
+const gameTreeStore = useGameTreeStore();
 
 const nodeWidth = 140;
 const nodeHeight = 70;
@@ -156,7 +152,7 @@ function isOtherTerminalNode(node: Node): boolean {
  * Check if a node is highlighted.
  */
 function isHighlightedNode(nodeId: string): boolean {
-  return props.highlightedNodeId !== null && props.highlightedNodeId !== undefined && props.highlightedNodeId === nodeId;
+  return gameTreeStore.highlightedNodeId !== null && gameTreeStore.highlightedNodeId !== undefined && gameTreeStore.highlightedNodeId === nodeId;
 }
 
 /**
@@ -358,15 +354,11 @@ function calculateLayout() {
   }
 }
 
-function selectNode(nodeId: string) {
-  emit('node-select', nodeId);
-}
-
 /**
  * Check if a node is currently selected.
  */
 function isSelectedNode(nodeId: string): boolean {
-  return props.selectedNodeId === nodeId;
+  return gameTreeStore.selectedNodeId === nodeId;
 }
 
 /**

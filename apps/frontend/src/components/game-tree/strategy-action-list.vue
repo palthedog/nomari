@@ -28,8 +28,9 @@
                     <table class="calculation-table">
                         <tbody>
                             <tr v-for="row in getActionCalculation(action.actionId)" :key="row.actionName"
-                                @mouseenter="emit('highlight-node', row.nextNodeId)"
-                                @mouseleave="emit('highlight-node', null)" class="calc-row">
+                                @mouseenter="gameTreeStore.highlightNode(row.nextNodeId)"
+                                @mouseleave="gameTreeStore.highlightNode(null)"
+                                @click="gameTreeStore.selectNode(row.nextNodeId)" class="calc-row">
                                 <td class="calc-action-name">{{ row.actionName }}</td>
                                 <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
                                 <td class="calc-operator">*</td>
@@ -50,6 +51,7 @@ import { computed } from 'vue';
 import type { Node } from '@mari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
 import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
+import { useGameTreeStore } from '@/stores/game-tree-store';
 
 interface CalculationRow {
     actionName: string;
@@ -67,9 +69,7 @@ const props = defineProps<{
     strategyData: StrategyData | null;
 }>();
 
-const emit = defineEmits<{
-    'highlight-node': [nodeId: string | null];
-}>();
+const gameTreeStore = useGameTreeStore();
 
 const nodeExpectedValues = computed(() => {
     if (!props.selectedNode || !props.expectedValues) {

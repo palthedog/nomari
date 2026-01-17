@@ -44,7 +44,7 @@
                     <div class="expected-value-row">
                         <div class="expected-value-label">プレイヤー期待値:</div>
                         <div class="expected-value-number">{{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
-                            }}</div>
+                        }}</div>
                     </div>
                     <div class="expected-value-row" v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined">
                         <div class="expected-value-label">相手期待値:</div>
@@ -55,13 +55,12 @@
 
                 <!-- Player strategy -->
                 <StrategyActionList v-if="playerStrategy.length > 0" :strategy="playerStrategy" player-type="player"
-                    :selected-node="selectedNode" :expected-values="expectedValues" :strategy-data="strategyData"
-                    @highlight-node="emit('highlight-node', $event)" />
+                    :selected-node="selectedNode" :expected-values="expectedValues" :strategy-data="strategyData" />
 
                 <!-- Opponent strategy -->
                 <StrategyActionList v-if="opponentStrategy.length > 0" :strategy="opponentStrategy"
                     player-type="opponent" :selected-node="selectedNode" :expected-values="expectedValues"
-                    :strategy-data="strategyData" @highlight-node="emit('highlight-node', $event)" />
+                    :strategy-data="strategyData" />
             </div>
 
             <!-- No strategy computed yet -->
@@ -84,10 +83,6 @@ const props = defineProps<{
     selectedNode: Node | null;
     strategyData: StrategyData | null;
     expectedValues: ExpectedValuesMap | null;
-}>();
-
-const emit = defineEmits<{
-    'highlight-node': [nodeId: string | null];
 }>();
 
 // Computed properties
