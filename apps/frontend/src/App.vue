@@ -84,15 +84,15 @@ import { ref, computed, watch } from 'vue';
 import type { GameDefinition } from '@mari/ts-proto';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 import { buildGameTree } from '@mari/game-tree-builder';
-import { exportAsJSON } from './utils/export';
-import { createInitialGameDefinition } from './utils/game-definition-utils';
-import { useSolver } from './composables/use-solver';
-import { calculateExpectedValues, type ExpectedValuesMap } from './utils/expected-value-calculator';
-import GameDefinitionEditor from './components/GameDefinitionEditor.vue';
-import GameTreeVisualization from './components/GameTreeVisualization.vue';
-import SolverControlPanel from './components/SolverControlPanel.vue';
-import NodeStrategyPanel from './components/NodeStrategyPanel.vue';
-import GameTreeBuildPanel from './components/GameTreeBuildPanel.vue';
+import { exportAsJSON } from '@/utils/export';
+import { createInitialGameDefinition } from '@/utils/game-definition-utils';
+import { useSolver } from '@/composables/use-solver';
+import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
+import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
+import GameTreeVisualization from '@/components/game-tree/game-tree-visualization.vue';
+import SolverControlPanel from '@/components/solver/solver-control-panel.vue';
+import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
+import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
 
 // View mode type definition
 type ViewMode = 'edit' | 'game-tree' | 'strategy';

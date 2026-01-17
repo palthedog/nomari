@@ -20,8 +20,8 @@
 
 <script setup lang="ts">
 import type { GameDefinition } from '@mari/ts-proto';
-import InitialDynamicStateEditor from './InitialDynamicStateEditor.vue';
-import RewardComputationMethodEditor from './RewardComputationMethodEditor.vue';
+import InitialDynamicStateEditor from '../definition/initial-dynamic-state-editor.vue';
+import RewardComputationMethodEditor from '../definition/reward-computation-method-editor.vue';
 
 const gameDefinition = defineModel<GameDefinition>({ required: true });
 

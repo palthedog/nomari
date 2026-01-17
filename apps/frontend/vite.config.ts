@@ -10,6 +10,7 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
+            '@': path.resolve(__dirname, './src'),
             '@mari/ts-proto': path.resolve(__dirname, '../../packages/ts-proto'),
             '@mari/game-tree/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),
             '@mari/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),

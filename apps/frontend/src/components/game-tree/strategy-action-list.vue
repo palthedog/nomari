@@ -1,0 +1,350 @@
+<template>
+    <div v-if="strategy.length > 0" class="strategy-group">
+        <h4>{{ playerType === 'player' ? 'プレイヤー戦略' : '相手戦略' }}</h4>
+        <div class="action-list">
+            <v-tooltip v-for="action in strategy" :key="action.actionId" location="right" :open-delay="50"
+                :close-delay="playerType === 'player' ? 0 : undefined" :transition="false" :interactive="true"
+                :disabled="getActionCalculation(action.actionId).length === 0" content-class="calculation-tooltip">
+                <template #activator="{ props: tooltipProps }">
+                    <div v-bind="tooltipProps" class="action-row">
+                        <div class="action-info">
+                            <div class="action-name-row">
+                                <span class="action-name">{{ getActionName(action.actionId) }}</span>
+                                <span class="action-expected-value" v-if="getActionExpectedValue(action.actionId) !== null">
+                                    期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
+                                </span>
+                            </div>
+                            <span class="action-prob">{{ formatPercent(action.probability) }}</span>
+                        </div>
+                        <div class="prob-bar">
+                            <div class="prob-fill" :class="playerType === 'player' ? 'player-fill' : 'opponent-fill'"
+                                :style="{ width: action.probability * 100 + '%' }">
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <template #default>
+                    <table class="calculation-table">
+                        <tbody>
+                            <tr v-for="row in getActionCalculation(action.actionId)" :key="row.actionName"
+                                @mouseenter="emit('highlight-node', row.nextNodeId)"
+                                @mouseleave="emit('highlight-node', null)" class="calc-row">
+                                <td class="calc-action-name">{{ row.actionName }}</td>
+                                <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
+                                <td class="calc-operator">*</td>
+                                <td class="calc-prob">{{ row.probability.toFixed(2) }}</td>
+                                <td class="calc-operator">=</td>
+                                <td class="calc-product">{{ Math.round(row.product) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </template>
+            </v-tooltip>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { Node } from '@mari/game-tree/game-tree';
+import type { StrategyData } from '@/workers/solver-types';
+import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
+
+interface CalculationRow {
+    actionName: string;
+    probability: number;
+    nextNodeValue: number;
+    product: number;
+    nextNodeId: string;
+}
+
+const props = defineProps<{
+    strategy: Array<{ actionId: string; probability: number }>;
+    playerType: 'player' | 'opponent';
+    selectedNode: Node | null;
+    expectedValues: ExpectedValuesMap | null;
+    strategyData: StrategyData | null;
+}>();
+
+const emit = defineEmits<{
+    'highlight-node': [nodeId: string | null];
+}>();
+
+const nodeExpectedValues = computed(() => {
+    if (!props.selectedNode || !props.expectedValues) {
+        return null;
+    }
+    return props.expectedValues[props.selectedNode.nodeId] ?? null;
+});
+
+function formatPercent(value: number): string {
+    return (value * 100).toFixed(1) + '%';
+}
+
+function formatExpectedValue(value: number | null): string {
+    if (value === null) return '-';
+    return Math.round(value).toLocaleString();
+}
+
+function getActionName(actionId: string): string {
+    if (!props.selectedNode) return actionId;
+
+    const actions =
+        props.playerType === 'player'
+            ? props.selectedNode.playerActions?.actions
+            : props.selectedNode.opponentActions?.actions;
+
+    const action = actions?.find((a) => a.actionId === actionId);
+    return action?.name || actionId;
+}
+
+function getActionExpectedValue(actionId: string): number | null {
+    if (!nodeExpectedValues.value) {
+        return null;
+    }
+
+    if (props.playerType === 'player') {
+        const actionValue = nodeExpectedValues.value.actionExpectedValues.find(
+            (a) => a.actionId === actionId
+        );
+        return actionValue?.expectedValue ?? null;
+    } else {
+        if (!nodeExpectedValues.value.opponentActionExpectedValues) {
+            return null;
+        }
+        const actionValue = nodeExpectedValues.value.opponentActionExpectedValues.find(
+            (a) => a.actionId === actionId
+        );
+        return actionValue?.expectedValue ?? null;
+    }
+}
+
+function getActionCalculation(actionId: string): CalculationRow[] {
+    if (!props.selectedNode || !props.strategyData || !props.expectedValues) {
+        return [];
+    }
+
+    const rows: CalculationRow[] = [];
+    const node = props.selectedNode;
+
+    if (props.playerType === 'player') {
+        const opponentStrategy = props.strategyData.opponentStrategy;
+
+        for (const transition of node.transitions) {
+            if (transition.playerActionId !== actionId) {
+                continue;
+            }
+
+            const opponentAction = opponentStrategy.find(
+                (a) => a.actionId === transition.opponentActionId
+            );
+            const probability = opponentAction?.probability ?? 0;
+
+            if (probability === 0) {
+                continue;
+            }
+
+            const nextNodeValues = props.expectedValues[transition.nextNodeId];
+            if (!nextNodeValues) {
+                continue;
+            }
+
+            const nextNodeValue = nextNodeValues.nodeExpectedValue;
+            const product = probability * nextNodeValue;
+            const opponentActionName = getActionNameForType(transition.opponentActionId, 'opponent');
+
+            rows.push({
+                actionName: opponentActionName,
+                probability,
+                nextNodeValue,
+                product,
+                nextNodeId: transition.nextNodeId,
+            });
+        }
+    } else {
+        const playerStrategy = props.strategyData.playerStrategy;
+
+        for (const transition of node.transitions) {
+            if (transition.opponentActionId !== actionId) {
+                continue;
+            }
+
+            const playerAction = playerStrategy.find(
+                (a) => a.actionId === transition.playerActionId
+            );
+            const probability = playerAction?.probability ?? 0;
+
+            if (probability === 0) {
+                continue;
+            }
+
+            const nextNodeValues = props.expectedValues[transition.nextNodeId];
+            if (!nextNodeValues || nextNodeValues.opponentNodeExpectedValue === undefined) {
+                continue;
+            }
+
+            const nextNodeValue = nextNodeValues.opponentNodeExpectedValue;
+            const product = probability * nextNodeValue;
+            const playerActionName = getActionNameForType(transition.playerActionId, 'player');
+
+            rows.push({
+                actionName: playerActionName,
+                probability,
+                nextNodeValue,
+                product,
+                nextNodeId: transition.nextNodeId,
+            });
+        }
+    }
+
+    return rows;
+}
+
+function getActionNameForType(actionId: string, type: 'player' | 'opponent'): string {
+    if (!props.selectedNode) return actionId;
+
+    const actions =
+        type === 'player'
+            ? props.selectedNode.playerActions?.actions
+            : props.selectedNode.opponentActions?.actions;
+
+    const action = actions?.find((a) => a.actionId === actionId);
+    return action?.name || actionId;
+}
+</script>
+
+<style scoped>
+.strategy-group {
+    margin-bottom: 16px;
+}
+
+.strategy-group:last-child {
+    margin-bottom: 0;
+}
+
+.strategy-group h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-row {
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.action-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.action-name-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.action-name {
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.action-expected-value {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.action-prob {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.prob-bar {
+    height: 8px;
+    background-color: var(--border-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.prob-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.player-fill {
+    background-color: var(--color-primary);
+}
+
+.opponent-fill {
+    background-color: var(--color-error);
+}
+
+/* Tooltip styles */
+:deep(.calculation-tooltip) {
+    font-size: 12px;
+    max-width: none;
+    padding: 8px;
+    background-color: var(--tooltip-bg) !important;
+    color: var(--tooltip-text) !important;
+}
+
+.calculation-table {
+    border-collapse: collapse;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.calculation-table td {
+    padding: 2px 4px;
+    white-space: nowrap;
+}
+
+.calc-row {
+    cursor: pointer;
+}
+
+.calc-row:hover {
+    color: var(--color-accent-blue) !important;
+    background-color: var(--bg-hover);
+}
+
+.calc-action-name {
+    text-align: left;
+    padding-right: 8px;
+}
+
+.calc-value {
+    text-align: right;
+    padding-right: 4px;
+    min-width: 60px;
+}
+
+.calc-operator {
+    text-align: center;
+    padding: 0 4px;
+}
+
+.calc-prob {
+    text-align: left;
+    padding-left: 4px;
+    padding-right: 4px;
+    min-width: 40px;
+}
+
+.calc-product {
+    text-align: right;
+    padding-left: 8px;
+    min-width: 60px;
+}
+</style>

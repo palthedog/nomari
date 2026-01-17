@@ -105,10 +105,10 @@ import type {
 import {
   createEmptySituation,
   createEmptyTerminalSituation,
-} from '../utils/game-definition-utils';
-import { validateGameDefinition, type ValidationError } from '../utils/validation';
-import SituationEditor from './SituationEditor.vue';
-import TerminalSituationEditor from './TerminalSituationEditor.vue';
+} from '@/utils/game-definition-utils';
+import { validateGameDefinition, type ValidationError } from '@/utils/validation';
+import SituationEditor from './situation-editor.vue';
+import TerminalSituationEditor from './terminal-situation-editor.vue';
 
 const gameDefinition = defineModel<GameDefinition>({ required: true });
 

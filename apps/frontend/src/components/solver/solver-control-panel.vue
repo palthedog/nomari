@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { GameTree } from '@mari/game-tree/game-tree';
-import type { SolverStatus } from '../workers/solver-types';
+import type { SolverStatus } from '@/workers/solver-types';
 
 const props = defineProps<{
   gameTree: GameTree | null;
