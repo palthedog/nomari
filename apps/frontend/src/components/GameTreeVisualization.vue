@@ -381,9 +381,11 @@ watch(
 <style scoped>
 .game-tree-visualization {
   padding: 20px;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .game-tree-visualization h3 {

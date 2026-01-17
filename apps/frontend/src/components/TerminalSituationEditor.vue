@@ -9,12 +9,23 @@
     <!-- 基本情報 -->
     <div class="section">
       <div class="form-group" hidden>
-        <label>Situation ID:</label>
-        <input v-model="model.situationId" type="text" readonly>
+        <v-text-field
+          v-model="model.situationId"
+          label="Situation ID"
+          readonly
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
       </div>
       <div class="form-group">
-        <label>Name:</label>
-        <input v-model="model.name" type="text">
+        <v-text-field
+          v-model="model.name"
+          label="Name"
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
       </div>
       <div class="form-group">
         <label>Description:</label>

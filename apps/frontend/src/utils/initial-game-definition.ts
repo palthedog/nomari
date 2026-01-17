@@ -143,7 +143,7 @@ export function createJudoGameDefinition(): GameDefinition {
 export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
     return {
         "gameId": "game_1768562188643_vykwo3r0f",
-        "name": "画面端柔道",
+        "name": "強ディマ>溜強P",
         "description": "",
         "rootSituationId": "situation_1768562188643_aim9qkpt0",
         "situations": [
@@ -719,7 +719,7 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
                 },
                 {
                     "resourceType": 2,
-                    "value": 10000
+                    "value": 7000
                 }
             ]
         },

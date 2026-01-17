@@ -9,8 +9,8 @@
     <!-- 基本情報 -->
     <div class="section">
       <div class="form-group" hidden>
-        <label>Situation ID:</label>
-        <input v-model="model.situationId" type="text" readonly>
+        <v-text-field v-model="model.situationId" label="Situation ID" readonly density="compact" variant="outlined"
+          hide-details />
       </div>
       <div class="form-group">
         <label>名前:</label>
@@ -23,8 +23,10 @@
       <h4>プレイヤー選択肢</h4>
       <div v-for="(action, index) in model.playerActions?.actions || []" :key="index" class="form-row">
         <input v-model="action.actionId" type="hidden">
-        <input class="form-name" v-model="action.name" placeholder="行動">
-        <input class="form-description" v-model="action.description" placeholder="説明">
+        <v-text-field v-model="action.name" class="form-name" placeholder="行動" density="compact" variant="outlined"
+          hide-details />
+        <v-text-field v-model="action.description" class="form-description" placeholder="説明" density="compact"
+          variant="outlined" hide-details />
         <button type="button" @click="removePlayerAction(index)">
           削除
         </button>
@@ -39,8 +41,10 @@
       <h4>相手選択肢</h4>
       <div v-for="(action, index) in model.opponentActions?.actions || []" :key="index" class="form-row">
         <input v-model="action.actionId" type="hidden">
-        <input class="form-name" v-model="action.name" placeholder="行動">
-        <input class="form-description" v-model="action.description" placeholder="説明">
+        <v-text-field v-model="action.name" class="form-name" placeholder="行動" density="compact" variant="outlined"
+          hide-details />
+        <v-text-field v-model="action.description" class="form-description" placeholder="説明" density="compact"
+          variant="outlined" hide-details />
         <button type="button" @click="removeOpponentAction(index)">
           削除
         </button>
@@ -372,6 +376,14 @@ function handleDelete() {
 }
 
 .form-row .form-description {
+  flex: 3;
+}
+
+.form-row .v-text-field {
+  flex: 1;
+}
+
+.form-row .v-text-field.form-description {
   flex: 3;
 }
 

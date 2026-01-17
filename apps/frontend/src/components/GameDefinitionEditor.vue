@@ -1,7 +1,6 @@
 <template>
   <div class="game-definition-editor">
     <div class="header">
-      <h2>GameDefinition エディタ</h2>
       <div v-if="validationErrors.length > 0" class="validation-errors">
         <h4>バリデーションエラー:</h4>
         <ul>
@@ -11,30 +10,34 @@
         </ul>
       </div>
       <div class="header-controls">
+        <!-- Game ID-->
         <div class="form-group" v-show="false">
-          <label>Game ID:</label>
-          <input v-model="gameDefinition.gameId" type="text">
+          <v-text-field v-model="gameDefinition.gameId" label="Game ID" density="compact" variant="outlined"
+            hide-details />
         </div>
+
+        <!-- Name-->
         <div class="form-group">
-          <label>名前:</label>
-          <input v-model="gameDefinition.name" placeholder="例:" type="text">
+          <v-text-field v-model="gameDefinition.name" label="名前" placeholder="例:" density="compact" variant="outlined"
+            hide-details />
         </div>
-        <div class="form-group">
-          <label>説明:</label>
-          <input v-model="gameDefinition.description" type="text">
-        </div>
+
+        <!-- Root Situation-->
         <div class="form-group">
           <v-select v-model="gameDefinition.rootSituationId" :items="situationItems" item-title="title"
-            item-value="value" label="開始状況" density="compact" variant="outlined" hide-details />
+            item-value="value" label="初期状況" density="compact" variant="outlined" hide-details />
+        </div>
+
+        <!-- Description-->
+        <div class="form-group form-description">
+          <v-text-field v-model="gameDefinition.description" label="説明" density="compact" variant="outlined"
+            hide-details />
         </div>
       </div>
     </div>
 
     <div class="content">
       <div class="left-panel">
-        <div class="panel-header">
-          <h3>編集可能な要素</h3>
-        </div>
         <div class="panel-content">
           <!-- 状況(Situation) -->
           <div class="section-group">
@@ -76,9 +79,6 @@
       </div>
 
       <div class="right-panel">
-        <div class="panel-header">
-          <h3>編集</h3>
-        </div>
         <div class="panel-content">
           <SituationEditor v-if="selectedSituation" :model-value="selectedSituation"
             :available-situations="gameDefinition.situations"
@@ -296,6 +296,26 @@ function deleteTerminalSituation() {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
+}
+
+.header-controls .form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+}
+
+.header-controls .form-group.form-description {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: auto;
+}
+
+.header-controls .form-group .v-text-field,
+.header-controls .form-group .v-select {
+  flex: 1;
+  min-width: 200px;
 }
 
 .form-group {
