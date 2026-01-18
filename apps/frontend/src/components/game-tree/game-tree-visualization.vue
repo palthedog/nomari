@@ -15,26 +15,22 @@
             :fill="getNodeFillColor(nodeId)" :stroke="getNodeStrokeColor(nodeId)"
             :stroke-width="getNodeStrokeWidth(nodeId)" rx="5" class="node-rect" />
 
-          <!-- Node type label -->
-          <text :y="-20" text-anchor="middle" fill="white" font-weight="bold" font-size="11">
-            {{ getNodeTypeLabel(nodeId) }}
+          <!-- Reward info (only for terminal nodes) -->
+          <text v-if="isTerminalNode(nodeId)" :y="-5" text-anchor="middle" :fill="getRewardColor(nodeId)" font-size="10"
+            font-weight="bold">
+            報酬: {{ formatReward(nodeId) }}
           </text>
 
           <!-- Description -->
-          <text :y="0" text-anchor="middle" fill="white" font-size="10">
+          <text v-else :y="-5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">
             {{ truncate(getNodeDisplayText(nodeId), 18) }}
           </text>
 
           <!-- HP info -->
-          <text :y="15" text-anchor="middle" fill="white" font-size="9">
+          <text :y="10" text-anchor="middle" fill="white" font-size="9">
             HP: {{ getHpInfo(nodeId) }}
           </text>
 
-          <!-- Reward info (only for terminal nodes) -->
-          <text v-if="isTerminalNode(nodeId)" :y="28" text-anchor="middle" :fill="getRewardColor(nodeId)" font-size="9"
-            font-weight="bold">
-            報酬: {{ formatReward(nodeId) }}
-          </text>
         </template>
       </v-network-graph>
     </div>
@@ -57,7 +53,7 @@ const gameTreeStore = useGameTreeStore();
 const selectedNodes = ref<string[]>([]);
 
 const nodeWidth = 140;
-const nodeHeight = 70;
+const nodeHeight = 50;
 const levelGap = 200;
 const nodeGap = 100;
 
