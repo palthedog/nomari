@@ -26,7 +26,7 @@
           <GameDefinitionEditor v-model="gameDefinition" />
         </div>
         <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" @update="gameTreeStore.updateGameTree()" />
+          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
         </div>
       </template>
 
@@ -35,12 +35,12 @@
         <div class="build-panel-section">
           <GameTreeBuildPanel v-model="gameDefinition" @update="gameTreeStore.updateGameTree()" />
         </div>
+        <GameTreePanel v-if="gameTree" :game-tree="gameTree" @start="handleSolverStart" />
       </template>
 
       <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
       <template v-else-if="viewMode === 'strategy'">
-
-        <GameTreePanel v-if="gameTree" :game-tree="gameTree" />
+        <GameTreePanel v-if="gameTree" :game-tree="gameTree" @start="handleSolverStart" />
         <div class="strategy-section">
           <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
             :expected-values="expectedValues" />
@@ -52,17 +52,17 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import type { GameDefinition } from '@mari/ts-proto';
-import type { GameTree, Node } from '@mari/game-tree/game-tree';
+import type { Node } from '@mari/game-tree/game-tree';
 import { exportAsJSON } from '@/utils/export';
-import { createInitialGameDefinition } from '@/utils/game-definition-utils';
-import { useSolver } from '@/composables/use-solver';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
+import { useSolverStore } from '@/stores/solver-store';
 import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
 import { useDefinitionStore } from './stores/definition-store';
+import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
+import log from 'loglevel';
 
 // View mode type definition
 type ViewMode = 'edit' | 'game-tree' | 'strategy';
@@ -83,25 +83,17 @@ const viewModes: ViewModeConfig[] = [
 const viewMode = ref<ViewMode>('edit');
 
 // Game definition and tree state
-//const gameDefinition = ref<GameDefinition>(createInitialGameDefinition());
 const definitionStore = useDefinitionStore();
 const gameDefinition = computed(() => definitionStore.gameDefinition);
 
-const gameTree = ref<GameTree | null>(null);
-const buildError = ref<string | null>(null);
+const gameTree = computed(() => gameTreeStore.gameTree);
 
 // Game tree store
 const gameTreeStore = useGameTreeStore();
 
-// Solver composable
-const {
-  status: solverStatus,
-  strategies: solverStrategies,
-  error: solverError,
-  startSolving,
-  pause: pauseSolver,
-  resume: resumeSolver,
-} = useSolver();
+// Solver store
+const solverStore = useSolverStore();
+const solverStrategies = computed(() => solverStore.strategies);
 
 // Computed properties
 const selectedNode = computed<Node | null>(() => {
@@ -112,9 +104,12 @@ const selectedNode = computed<Node | null>(() => {
 });
 
 const selectedNodeStrategy = computed(() => {
+  log.info('selectedNodeId', gameTreeStore.selectedNodeId);
   if (!gameTreeStore.selectedNodeId) {
     return null;
   }
+  log.info('solverStrategies', solverStrategies.value);
+  log.info('solverStrategies[gameTreeStore.selectedNodeId]', solverStrategies.value[gameTreeStore.selectedNodeId]);
   return solverStrategies.value[gameTreeStore.selectedNodeId] ?? null;
 });
 
@@ -144,6 +139,21 @@ watch(
 
 function exportJSON() {
   exportAsJSON(definitionStore.gameDefinition, `gamedefinition_${definitionStore.gameDefinition.gameId}.json`);
+}
+
+function updateGameTree() {
+  gameTreeStore.updateGameTree();
+  viewMode.value = 'game-tree';
+}
+
+function handleSolverStart() {
+  // Rebuild game tree before starting strategy computation
+  gameTreeStore.updateGameTree();
+
+  // Start solving with the newly built tree
+  if (gameTreeStore.gameTree) {
+    solverStore.startSolving(gameTreeStore.gameTree);
+  }
 }
 
 </script>
