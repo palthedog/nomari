@@ -33,7 +33,7 @@
       <!-- Game Tree Mode: GameTreeBuildPanel | GameTreeVisualization -->
       <template v-else-if="viewMode === 'game-tree'">
         <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" @update="gameTreeStore.updateGameTree()" />
+          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTreeOnly" />
         </div>
         <GameTreePanel :game-tree="gameTree" @start="handleSolverStart" />
       </template>
@@ -141,7 +141,19 @@ function exportJSON() {
   exportAsJSON(definitionStore.gameDefinition, `gamedefinition_${definitionStore.gameDefinition.gameId}.json`);
 }
 
+function updateGameTreeOnly() {
+  // Validate first. If there are errors, show them and don't update the tree.
+  if (!definitionStore.validateAndShowErrors()) {
+    return;
+  }
+  gameTreeStore.updateGameTree();
+}
+
 function updateGameTree() {
+  // Validate first. If there are errors, show them and don't update the tree.
+  if (!definitionStore.validateAndShowErrors()) {
+    return;
+  }
   gameTreeStore.updateGameTree();
   viewMode.value = 'game-tree';
 }

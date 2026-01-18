@@ -1,14 +1,6 @@
 <template>
   <div class="game-definition-editor">
     <div class="header">
-      <div v-if="validationErrors.length > 0" class="validation-errors">
-        <h4>バリデーションエラー:</h4>
-        <ul>
-          <li v-for="(error, index) in validationErrors" :key="index">
-            <strong>{{ error.field }}:</strong> {{ error.message }}
-          </li>
-        </ul>
-      </div>
       <div class="header-controls">
         <!-- Game ID-->
         <div class="form-group" v-show="false">
@@ -92,11 +84,36 @@
         </div>
       </div>
     </div>
+
+    <v-bottom-sheet v-model="showValidationErrors">
+      <v-card class="validation-errors-sheet">
+        <v-card-title class="validation-errors-header">
+          <v-icon color="error" class="mr-2">mdi-alert-circle</v-icon>
+          バリデーションエラー
+          <v-spacer />
+          <v-btn icon variant="text" @click="closeValidationErrors">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text class="validation-errors-content">
+          <v-list density="compact">
+            <v-list-item v-for="(error, index) in validationErrors" :key="index" class="validation-error-item">
+              <template #prepend>
+                <v-icon color="error" size="small">mdi-alert</v-icon>
+              </template>
+              <v-list-item-title class="error-field">{{ error.field }}</v-list-item-title>
+              <v-list-item-subtitle class="error-message">{{ error.message }}</v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+      </v-card>
+    </v-bottom-sheet>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import type {
   Situation,
   TerminalSituation,
@@ -105,22 +122,17 @@ import {
   createEmptySituation,
   createEmptyTerminalSituation,
 } from '@/utils/game-definition-utils';
-import { validateGameDefinition, type ValidationError } from '@/utils/validation';
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
 import { useDefinitionStore } from '@/stores/definition-store';
 
 const definitionStore = useDefinitionStore();
-
-const gameDefinition = computed(() => definitionStore.gameDefinition);
+const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
+const { closeValidationErrors } = definitionStore;
 
 const selectedItemType = ref<'situation' | 'terminal-situation' | null>(null);
 const selectedSituationId = ref<string | null>(null);
 const selectedTerminalSituationId = ref<string | null>(null);
-
-const validationErrors = computed<ValidationError[]>(() => {
-  return validateGameDefinition(gameDefinition.value);
-});
 
 const situationItems = computed(() => {
   return [
@@ -525,27 +537,41 @@ function deleteTerminalSituation() {
   color: var(--text-tertiary);
 }
 
-.validation-errors {
-  margin: 15px 0;
-  padding: 15px;
+.validation-errors-sheet {
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.validation-errors-header {
+  display: flex;
+  align-items: center;
   background-color: var(--bg-error);
-  border: 1px solid var(--color-error);
-  border-radius: 4px;
+  color: var(--color-error-dark);
+  padding: 12px 16px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--color-error);
 }
 
-.validation-errors h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
+.validation-errors-content {
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.validation-error-item {
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.validation-error-item:last-child {
+  border-bottom: none;
+}
+
+.error-field {
+  font-weight: 600;
   color: var(--color-error-dark);
 }
 
-.validation-errors ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.validation-errors li {
-  margin-bottom: 5px;
-  color: var(--color-error-dark);
+.error-message {
+  color: var(--text-secondary);
 }
 </style>
