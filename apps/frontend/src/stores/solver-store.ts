@@ -12,6 +12,7 @@ export const useSolverStore = defineStore('solver', () => {
     const status = ref<SolverStatus>('idle');
     const strategies = shallowRef<Record<string, StrategyData>>({});
     const error = ref<string | null>(null);
+    let onCompleteCallback: (() => void) | null = null;
 
     /**
      * Initialize the worker if not already done
@@ -41,6 +42,7 @@ export const useSolverStore = defineStore('solver', () => {
                 log.info('Solver complete', result);
                 strategies.value = result.strategies;
                 status.value = 'complete';
+                onCompleteCallback?.();
                 break;
 
             case 'strategy':
@@ -65,12 +67,15 @@ export const useSolverStore = defineStore('solver', () => {
 
     /**
      * Start solving the game tree
+     * @param gameTree - The game tree to solve
+     * @param onComplete - Optional callback to be called when solving is complete
      */
-    function startSolving(gameTree: GameTree): void {
+    function startSolving(gameTree: GameTree, onComplete?: () => void): void {
         const w = initWorker();
         status.value = 'running';
         error.value = null;
         strategies.value = {};
+        onCompleteCallback = onComplete ?? null;
 
         // Serialize GameTree to plain object for postMessage
         // postMessage uses structured clone which cannot handle class instances

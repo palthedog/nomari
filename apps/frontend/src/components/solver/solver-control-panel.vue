@@ -3,7 +3,7 @@
     <!-- Control buttons -->
     <div class="button-group">
       <button type="button" class="primary-btn" :disabled="!canStart" @click="handleStart">
-        {{ '最適戦略を計算' }}
+        最適戦略を計算
       </button>
     </div>
 
@@ -16,26 +16,30 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { GameTree } from '@mari/game-tree/game-tree';
-import type { SolverStatus } from '@/workers/solver-types';
+import { useGameTreeStore } from '@/stores/game-tree-store';
+import { useSolverStore } from '@/stores/solver-store';
+import { useViewStore } from '@/stores/view-store';
 
-const props = defineProps<{
-  gameTree: GameTree | null;
-  status: SolverStatus;
-  error: string | null;
-}>();
-
-const emit = defineEmits<{
-  start: [];
-}>();
+const gameTreeStore = useGameTreeStore();
+const solverStore = useSolverStore();
+const viewStore = useViewStore();
 
 // Computed properties
-const isRunning = computed(() => props.status === 'running');
-const canStart = computed(() => props.gameTree !== null && !isRunning.value);
+const isRunning = computed(() => solverStore.status === 'running');
+const canStart = computed(() => gameTreeStore.gameTree !== null && !isRunning.value);
+const error = computed(() => solverStore.error);
 
 // Event handlers
 function handleStart() {
-  emit('start');
+  // Rebuild game tree before starting strategy computation
+  gameTreeStore.updateGameTree();
+
+  // Start solving with the newly built tree
+  if (gameTreeStore.gameTree) {
+    solverStore.startSolving(gameTreeStore.gameTree, () => {
+      viewStore.switchToStrategy();
+    });
+  }
 }
 </script>
 

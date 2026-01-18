@@ -6,7 +6,7 @@
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
           <button v-for="mode in viewModes" :key="mode.id" type="button" class="mode-btn"
-            :class="{ active: viewMode === mode.id }" @click="viewMode = mode.id">
+            :class="{ active: viewMode === mode.id }" @click="viewStore.setViewMode(mode.id)">
             {{ mode.label }}
           </button>
         </div>
@@ -35,12 +35,12 @@
         <div class="build-panel-section">
           <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTreeOnly" />
         </div>
-        <GameTreePanel :game-tree="gameTree" @start="handleSolverStart" />
+        <GameTreePanel :game-tree="gameTree" />
       </template>
 
       <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
       <template v-else-if="viewMode === 'strategy'">
-        <GameTreePanel :game-tree="gameTree" @start="handleSolverStart" />
+        <GameTreePanel :game-tree="gameTree" />
         <div class="strategy-section">
           <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
             :expected-values="expectedValues" />
@@ -51,12 +51,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed } from 'vue';
 import type { Node } from '@mari/game-tree/game-tree';
 import { exportAsJSON } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
+import { useViewStore, VIEW_MODES } from '@/stores/view-store';
 import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
@@ -64,23 +65,10 @@ import { useDefinitionStore } from './stores/definition-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
 import log from 'loglevel';
 
-// View mode type definition
-type ViewMode = 'edit' | 'game-tree' | 'strategy';
-
-interface ViewModeConfig {
-  id: ViewMode;
-  label: string;
-}
-
-// View mode configuration (easily extensible)
-const viewModes: ViewModeConfig[] = [
-  { id: 'edit', label: '編集' },
-  { id: 'game-tree', label: 'ゲーム木' },
-  { id: 'strategy', label: '戦略' },
-];
-
-// View mode state
-const viewMode = ref<ViewMode>('edit');
+// View store
+const viewStore = useViewStore();
+const viewMode = computed(() => viewStore.viewMode);
+const viewModes = VIEW_MODES;
 
 // Game definition and tree state
 const definitionStore = useDefinitionStore();
@@ -126,17 +114,6 @@ const expectedValues = computed<ExpectedValuesMap | null>(() => {
   }
 });
 
-// Auto-switch to strategy mode when strategy is computed
-watch(
-  () => solverStrategies.value,
-  (strategies) => {
-    if (Object.keys(strategies).length > 0 && viewMode.value !== 'strategy') {
-      viewMode.value = 'strategy';
-    }
-  },
-  { deep: true }
-);
-
 function exportJSON() {
   exportAsJSON(definitionStore.gameDefinition, `gamedefinition_${definitionStore.gameDefinition.gameId}.json`);
 }
@@ -155,17 +132,7 @@ function updateGameTree() {
     return;
   }
   gameTreeStore.updateGameTree();
-  viewMode.value = 'game-tree';
-}
-
-function handleSolverStart() {
-  // Rebuild game tree before starting strategy computation
-  gameTreeStore.updateGameTree();
-
-  // Start solving with the newly built tree
-  if (gameTreeStore.gameTree) {
-    solverStore.startSolving(gameTreeStore.gameTree);
-  }
+  viewStore.switchToGameTree();
 }
 
 </script>
