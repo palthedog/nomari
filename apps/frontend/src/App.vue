@@ -35,12 +35,12 @@
         <div class="build-panel-section">
           <GameTreeBuildPanel v-model="gameDefinition" @update="gameTreeStore.updateGameTree()" />
         </div>
-        <GameTreePanel v-if="gameTree" :game-tree="gameTree" @start="handleSolverStart" />
+        <GameTreePanel :game-tree="gameTree" @start="handleSolverStart" />
       </template>
 
       <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
       <template v-else-if="viewMode === 'strategy'">
-        <GameTreePanel v-if="gameTree" :game-tree="gameTree" @start="handleSolverStart" />
+        <GameTreePanel :game-tree="gameTree" @start="handleSolverStart" />
         <div class="strategy-section">
           <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
             :expected-values="expectedValues" />

@@ -2,13 +2,10 @@
     <div class="visualization-section">
         <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
 
-        <div v-if="buildError" class="build-error">
-            <strong>エラー:</strong> {{ buildError }}
-        </div>
         <SolverControlPanel v-if="gameTree" :game-tree="gameTree" :status="solverStore.status"
             :error="solverStore.error" @start="$emit('start')" />
 
-        <div v-else-if="!buildError" class="no-tree-message">
+        <div v-if="!gameTree" class="no-tree-message">
             「ゲーム木を更新」ボタンを押してゲーム木を生成してください
         </div>
     </div>
