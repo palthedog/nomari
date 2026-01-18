@@ -18,6 +18,7 @@
         "@mdi/font": "^7.4.47",
         "loglevel": "^1.9.2",
         "pinia": "^3.0.4",
+        "v-network-graph": "^0.9.17",
         "vue": "^3.5.26",
         "vuetify": "^3.11.6"
     },

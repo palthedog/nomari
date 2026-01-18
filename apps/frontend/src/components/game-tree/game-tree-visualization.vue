@@ -6,54 +6,44 @@
         <span>ノード数: {{ nodeCount }}</span>
       </div>
     </div>
-    <div class="svg-container">
-      <svg :width="svgWidth" :height="svgHeight" class="tree-svg">
-        <!-- Defs for markers -->
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="var(--text-secondary)" />
-          </marker>
-        </defs>
+    <div class="graph-container">
+      <v-network-graph :nodes="graphNodes" :edges="graphEdges" :layouts="layouts" :configs="configs"
+        :event-handlers="eventHandlers" v-model:selected-nodes="selectedNodes">
+        <!-- Custom node rendering with HTML -->
+        <template #override-node="{ nodeId, scale, config, ...slotProps }">
+          <rect :x="-nodeWidth / 2" :y="-nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
+            :fill="getNodeFillColor(nodeId)" :stroke="getNodeStrokeColor(nodeId)"
+            :stroke-width="getNodeStrokeWidth(nodeId)" rx="5" class="node-rect" />
 
-        <!-- Edges (draw first so they appear behind nodes) -->
-        <g class="edges">
-          <line v-for="edge in edges" :key="edge.id" :x1="edge.x1" :y1="edge.y1" :x2="edge.x2" :y2="edge.y2"
-            stroke="var(--text-tertiary)" stroke-width="2" marker-end="url(#arrowhead)" />
-        </g>
+          <!-- Node type label -->
+          <text :y="-20" text-anchor="middle" fill="white" font-weight="bold" font-size="11">
+            {{ getNodeTypeLabel(nodeId) }}
+          </text>
 
-        <!-- Nodes -->
-        <g v-for="nodeData in nodePositions" :key="nodeData.node.nodeId" class="node-group"
-          :class="{ selected: isSelectedNode(nodeData.node.nodeId) }"
-          @click="gameTreeStore.selectNode(nodeData.node.nodeId)">
-          <rect :x="nodeData.x - nodeWidth / 2" :y="nodeData.y - nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
-            :fill="getNodeColor(nodeData)" :stroke="getNodeStroke(nodeData.node.nodeId)"
-            :stroke-width="getNodeStrokeWidth(nodeData.node.nodeId)" rx="5" class="node-rect" />
-          <!-- Node type indicator -->
-          <text :x="nodeData.x" :y="nodeData.y - 20" text-anchor="middle" fill="white" font-weight="bold"
-            font-size="11">
-            {{ getNodeTypeLabel(nodeData) }}
+          <!-- Description -->
+          <text :y="0" text-anchor="middle" fill="white" font-size="10">
+            {{ truncate(getNodeDisplayText(nodeId), 18) }}
           </text>
-          <!-- Name or Description -->
-          <text :x="nodeData.x" :y="nodeData.y" text-anchor="middle" fill="white" font-size="10">
-            {{ truncate(getNodeDisplayText(nodeData), 18) }}
-          </text>
+
           <!-- HP info -->
-          <text :x="nodeData.x" :y="nodeData.y + 15" text-anchor="middle" fill="white" font-size="9">
-            HP: {{ nodeData.node.state.playerHealth }} / {{ nodeData.node.state.opponentHealth }}
+          <text :y="15" text-anchor="middle" fill="white" font-size="9">
+            HP: {{ getHpInfo(nodeId) }}
           </text>
+
           <!-- Reward info (only for terminal nodes) -->
-          <text v-if="isTerminalNode(nodeData.node)" :x="nodeData.x" :y="nodeData.y + 28" text-anchor="middle"
-            :fill="getRewardColor(nodeData.node.playerReward?.value)" font-size="9" font-weight="bold">
-            報酬: {{ formatReward(nodeData.node.playerReward?.value) }}
+          <text v-if="isTerminalNode(nodeId)" :y="28" text-anchor="middle" :fill="getRewardColor(nodeId)" font-size="9"
+            font-weight="bold">
+            報酬: {{ formatReward(nodeId) }}
           </text>
-        </g>
-      </svg>
+        </template>
+      </v-network-graph>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, reactive } from 'vue';
+import type { Nodes, Edges, Layouts, UserConfigs, EventHandlers } from 'v-network-graph';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 
@@ -63,37 +53,66 @@ const props = defineProps<{
 
 const gameTreeStore = useGameTreeStore();
 
+// Selected nodes for v-network-graph (array format required)
+const selectedNodes = ref<string[]>([]);
+
 const nodeWidth = 140;
 const nodeHeight = 70;
-const levelGap = 180;
-const nodeGap = 80;
-const startX = 100;
-const startY = 60;
+const levelGap = 200;
+const nodeGap = 100;
 
-const svgWidth = ref(800);
-const svgHeight = ref(600);
-
-interface NodePosition {
-  node: Node;
-  x: number;
-  y: number;
-  level: number;
-}
-
-interface Edge {
-  id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
-const nodePositions = ref<NodePosition[]>([]);
-const edges = ref<Edge[]>([]);
+// Reactive data for v-network-graph
+const graphNodes = reactive<Nodes>({});
+const graphEdges = reactive<Edges>({});
+const layouts = reactive<Layouts>({ nodes: {} });
 
 const nodeCount = computed(() => Object.keys(props.gameTree.nodes).length);
-
 const rootNodeId = computed(() => props.gameTree.root);
+
+// v-network-graph configs
+const configs = computed<UserConfigs>(() => ({
+  view: {
+    scalingObjects: true,
+    panEnabled: true,
+    zoomEnabled: true,
+    minZoomLevel: 0.1,
+    maxZoomLevel: 4,
+  },
+  node: {
+    selectable: true,
+    draggable: false,
+    normal: {
+      type: 'rect',
+      width: nodeWidth,
+      height: nodeHeight,
+      borderRadius: 5,
+      color: '#2196F3',
+    },
+    hover: {
+      color: '#1976D2',
+    },
+    label: {
+      visible: false,
+    },
+  },
+  edge: {
+    selectable: false,
+    normal: {
+      color: '#888888',
+      width: 2,
+    },
+    marker: {
+      target: {
+        type: 'arrow',
+        width: 4,
+        height: 4,
+      },
+    },
+  },
+}));
+
+// Event handlers (empty since selection is handled via v-model:selected-nodes)
+const eventHandlers = computed<EventHandlers>(() => ({}));
 
 /**
  * Truncate a string to a specified length.
@@ -106,24 +125,41 @@ function truncate(str: string, length: number): string {
 /**
  * Format reward value for display.
  */
-function formatReward(value: number | undefined): string {
+function formatReward(nodeId: string): string {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return '-';
+  const value = node.playerReward?.value;
   if (value === undefined) return '-';
   return Math.round(value).toLocaleString();
 }
 
 /**
+ * Get HP info string for a node.
+ */
+function getHpInfo(nodeId: string): string {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return '- / -';
+  return `${node.state.playerHealth} / ${node.state.opponentHealth}`;
+}
+
+/**
  * Get the color for reward text based on value.
  */
-function getRewardColor(value: number | undefined): string {
-  if (value === undefined) return '#FFD700'; // Gold
-  if (value < 0) return '#FF6B6B'; // Red for negative
-  return '#FFD700'; // Gold for positive/zero
+function getRewardColor(nodeId: string): string {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return '#FFD700';
+  const value = node.playerReward?.value;
+  if (value === undefined) return '#FFD700';
+  if (value < 0) return '#FF6B6B';
+  return '#FFD700';
 }
 
 /**
  * Check if a node is a terminal node (has rewards).
  */
-function isTerminalNode(node: Node): boolean {
+function isTerminalNode(nodeId: string): boolean {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return false;
   return node.playerReward !== undefined || node.opponentReward !== undefined;
 }
 
@@ -145,59 +181,77 @@ function isOpponentHealthZero(node: Node): boolean {
  * Check if a node is an "other" terminal node (TerminalSituation, not health-based).
  */
 function isOtherTerminalNode(node: Node): boolean {
-  return isTerminalNode(node) && !isPlayerHealthZero(node) && !isOpponentHealthZero(node);
+  const isTerminal = node.playerReward !== undefined || node.opponentReward !== undefined;
+  return isTerminal && !isPlayerHealthZero(node) && !isOpponentHealthZero(node);
 }
 
 /**
  * Check if a node is highlighted.
  */
 function isHighlightedNode(nodeId: string): boolean {
-  return gameTreeStore.highlightedNodeId !== null && gameTreeStore.highlightedNodeId !== undefined && gameTreeStore.highlightedNodeId === nodeId;
+  return gameTreeStore.highlightedNodeId === nodeId;
+}
+
+/**
+ * Check if a node is selected.
+ */
+function isSelectedNode(nodeId: string): boolean {
+  return gameTreeStore.selectedNodeId === nodeId;
 }
 
 /**
  * Get the fill color for a node based on its type.
  */
-function getNodeColor(nodeData: NodePosition): string {
-  const node = nodeData.node;
+function getNodeFillColor(nodeId: string): string {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return '#2196F3';
 
-  // Highlighted node (override other colors)
-  if (isHighlightedNode(node.nodeId)) {
-    return '#FFC107'; // Amber/Yellow for highlight
+  if (isHighlightedNode(nodeId)) {
+    return '#FFC107';
   }
 
-  // Root node
-  if (node.nodeId === rootNodeId.value) {
-    return '#4CAF50'; // Green
+  if (nodeId === rootNodeId.value) {
+    return '#4CAF50';
   }
 
-  // Health-based terminal states (fill with color)
   if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
-    return '#E53935'; // Red - lose (player health is 0)
+    return '#E53935';
   }
   if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
-    return '#43A047'; // Green - win (opponent health is 0)
+    return '#43A047';
   }
   if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
-    return '#FF9800'; // Orange - draw (both health is 0)
+    return '#FF9800';
   }
 
-  // Other terminal nodes (TerminalSituation) - dark gray
   if (isOtherTerminalNode(node)) {
-    return '#616161'; // Dark gray
+    return '#616161';
   }
 
-  // Regular node
-  return '#2196F3'; // Blue
+  return '#2196F3';
 }
 
 /**
- * Get the display text for a node (name for other terminal nodes, description otherwise).
+ * Get the stroke color for a node.
  */
-function getNodeDisplayText(nodeData: NodePosition): string {
-  const node = nodeData.node;
+function getNodeStrokeColor(nodeId: string): string {
+  return isSelectedNode(nodeId) ? '#FFD700' : '#333';
+}
 
-  // Other terminal nodes show name instead of description
+/**
+ * Get the stroke width for a node.
+ */
+function getNodeStrokeWidth(nodeId: string): number {
+  return isSelectedNode(nodeId) ? 4 : 2;
+}
+
+/**
+ * Get the display text for a node.
+ */
+function getNodeDisplayText(nodeId: string): string {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return '';
+
   if (isOtherTerminalNode(node) && node.name) {
     return node.name;
   }
@@ -208,14 +262,14 @@ function getNodeDisplayText(nodeData: NodePosition): string {
 /**
  * Get the label for a node type.
  */
-function getNodeTypeLabel(nodeData: NodePosition): string {
-  const node = nodeData.node;
+function getNodeTypeLabel(nodeId: string): string {
+  const node = props.gameTree.nodes[nodeId];
+  if (!node) return 'Node';
 
-  if (node.nodeId === rootNodeId.value) {
+  if (nodeId === rootNodeId.value) {
     return 'Root';
   }
 
-  // Health-based terminal states
   if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
     return 'Lose';
   }
@@ -226,8 +280,7 @@ function getNodeTypeLabel(nodeData: NodePosition): string {
     return 'Draw';
   }
 
-  // Other terminal nodes
-  if (isTerminalNode(node)) {
+  if (node.playerReward !== undefined || node.opponentReward !== undefined) {
     return 'Terminal';
   }
 
@@ -235,24 +288,19 @@ function getNodeTypeLabel(nodeData: NodePosition): string {
 }
 
 /**
- * Calculate the layout of all nodes using BFS.
+ * Build graph data from GameTree using BFS for tree layout.
  */
-function calculateLayout() {
-  const positions = new Map<string, NodePosition>();
-  const edgeList: Edge[] = [];
+function buildGraphData() {
+  // Clear existing data
+  Object.keys(graphNodes).forEach((key) => delete graphNodes[key]);
+  Object.keys(graphEdges).forEach((key) => delete graphEdges[key]);
+  Object.keys(layouts.nodes).forEach((key) => delete layouts.nodes[key]);
 
-  // Track which level each node is at and which nodes are at each level
-  const levelNodes: Map<number, string[]> = new Map();
-  const nodeLevel: Map<string, number> = new Map();
-
-  // BFS to determine levels
   const rootNode = props.gameTree.nodes[props.gameTree.root];
-  if (!rootNode) {
-    nodePositions.value = [];
-    edges.value = [];
-    return;
-  }
+  if (!rootNode) return;
 
+  // BFS to build nodes and calculate positions
+  const levelNodes: Map<number, string[]> = new Map();
   const queue: Array<{ nodeId: string; level: number }> = [
     { nodeId: rootNode.nodeId, level: 0 },
   ];
@@ -261,128 +309,90 @@ function calculateLayout() {
   while (queue.length > 0) {
     const { nodeId, level } = queue.shift()!;
 
-    if (visited.has(nodeId)) {
-      continue;
-    }
+    if (visited.has(nodeId)) continue;
     visited.add(nodeId);
 
-    nodeLevel.set(nodeId, level);
+    const node = props.gameTree.nodes[nodeId];
+    if (!node) continue;
 
+    // Add to level map
     if (!levelNodes.has(level)) {
       levelNodes.set(level, []);
     }
     levelNodes.get(level)!.push(nodeId);
 
-    const node = props.gameTree.nodes[nodeId];
-    if (!node) continue;
+    // Add node to graph
+    graphNodes[nodeId] = {
+      name: node.description,
+    };
 
-    // Add children to queue
+    // Add children to queue and create edges
     for (const transition of node.transitions) {
       if (!visited.has(transition.nextNodeId)) {
         queue.push({ nodeId: transition.nextNodeId, level: level + 1 });
       }
+
+      // Create edge
+      const edgeId = `${nodeId}-${transition.nextNodeId}`;
+      graphEdges[edgeId] = {
+        source: nodeId,
+        target: transition.nextNodeId,
+      };
     }
   }
 
-  // Calculate positions for each node
+  // Calculate layout positions
   for (const [level, nodeIds] of levelNodes.entries()) {
-    const x = startX + level * levelGap;
+    const x = level * levelGap;
     const totalHeight = (nodeIds.length - 1) * nodeGap;
-    const startYForLevel = startY + (svgHeight.value - totalHeight) / 2;
+    const startY = -totalHeight / 2;
 
     nodeIds.forEach((nodeId, index) => {
-      const node = props.gameTree.nodes[nodeId];
-      if (!node) return;
-
-      const y = startYForLevel + index * nodeGap;
-
-      positions.set(nodeId, {
-        node,
+      layouts.nodes[nodeId] = {
         x,
-        y,
-        level,
-      });
+        y: startY + index * nodeGap,
+      };
     });
   }
-
-  // Create edges
-  for (const [, nodePos] of positions.entries()) {
-    for (const transition of nodePos.node.transitions) {
-      const targetPos = positions.get(transition.nextNodeId);
-      if (targetPos) {
-        // Calculate edge endpoints to start/end at node boundaries
-        const x1 = nodePos.x + nodeWidth / 2;
-        const y1 = nodePos.y;
-        const x2 = targetPos.x - nodeWidth / 2 - 10; // -10 for arrowhead
-        const y2 = targetPos.y;
-
-        edgeList.push({
-          id: `${nodePos.node.nodeId}-${transition.nextNodeId}`,
-          x1,
-          y1,
-          x2,
-          y2,
-        });
-      }
-    }
-  }
-
-  nodePositions.value = Array.from(positions.values());
-  edges.value = edgeList;
-
-  // Adjust SVG size based on content
-  if (nodePositions.value.length > 0) {
-    const maxX = Math.max(...nodePositions.value.map((p) => p.x)) + nodeWidth / 2 + 50;
-    const maxY = Math.max(...nodePositions.value.map((p) => p.y)) + nodeHeight / 2 + 50;
-    const minY = Math.min(...nodePositions.value.map((p) => p.y)) - nodeHeight / 2;
-
-    svgWidth.value = Math.max(800, maxX);
-    svgHeight.value = Math.max(600, maxY - Math.min(0, minY) + 50);
-
-    // Adjust y positions if needed
-    if (minY < nodeHeight / 2 + 20) {
-      const offset = nodeHeight / 2 + 20 - minY;
-      for (const pos of nodePositions.value) {
-        pos.y += offset;
-      }
-      for (const edge of edges.value) {
-        edge.y1 += offset;
-        edge.y2 += offset;
-      }
-      svgHeight.value += offset;
-    }
-  }
 }
 
-/**
- * Check if a node is currently selected.
- */
-function isSelectedNode(nodeId: string): boolean {
-  return gameTreeStore.selectedNodeId === nodeId;
-}
-
-/**
- * Get the stroke color for a node (highlight if selected).
- */
-function getNodeStroke(nodeId: string): string {
-  return isSelectedNode(nodeId) ? '#FFD700' : '#333';
-}
-
-/**
- * Get the stroke width for a node (thicker if selected).
- */
-function getNodeStrokeWidth(nodeId: string): number {
-  return isSelectedNode(nodeId) ? 4 : 2;
-}
-
-// Calculate layout when gameTree changes
+// Watch for gameTree changes
 watch(
   () => props.gameTree,
   () => {
-    calculateLayout();
+    buildGraphData();
   },
   { deep: true, immediate: true }
 );
+
+// Sync selectedNodes with gameTreeStore
+watch(
+  selectedNodes,
+  (newValue) => {
+    const nodeId = newValue.length > 0 ? newValue[0] : null;
+    if (nodeId && nodeId !== gameTreeStore.selectedNodeId) {
+      gameTreeStore.selectNode(nodeId);
+    }
+  }
+);
+
+// Sync from store to local selectedNodes
+watch(
+  () => gameTreeStore.selectedNodeId,
+  (newValue) => {
+    if (newValue) {
+      if (selectedNodes.value.length !== 1 || selectedNodes.value[0] !== newValue) {
+        selectedNodes.value = [newValue];
+      }
+    } else {
+      if (selectedNodes.value.length > 0) {
+        selectedNodes.value = [];
+      }
+    }
+  },
+  { immediate: true }
+);
+
 </script>
 
 <style scoped>
@@ -395,14 +405,10 @@ watch(
   overflow: hidden;
 }
 
-.game-tree-visualization h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
 .game-tree-header {
   display: flex;
   align-items: baseline;
+  margin-bottom: 10px;
 }
 
 .game-tree-title {
@@ -415,31 +421,25 @@ watch(
   margin-left: 10px;
 }
 
-.svg-container {
+.graph-container {
   flex: 1;
   border: 1px solid var(--border-primary);
   border-radius: 4px;
-  overflow: auto;
+  overflow: hidden;
   background-color: var(--bg-tertiary);
 }
 
-.tree-svg {
-  display: block;
-}
-
-.node-group {
-  cursor: pointer;
+.graph-container :deep(.v-network-graph) {
+  width: 100%;
+  height: 100%;
 }
 
 .node-rect {
+  cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.node-group:hover .node-rect {
+.node-rect:hover {
   opacity: 0.8;
-}
-
-.node-group.selected .node-rect {
-  filter: drop-shadow(0 0 6px #FFD700);
 }
 </style>
