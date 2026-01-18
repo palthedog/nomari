@@ -42,6 +42,7 @@ import { ref, computed, watch, reactive } from 'vue';
 import type { Nodes, Edges, Layouts, UserConfigs, EventHandlers } from 'v-network-graph';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 import { useGameTreeStore } from '@/stores/game-tree-store';
+import log from 'loglevel';
 
 const props = defineProps<{
   gameTree: GameTree;
@@ -54,8 +55,8 @@ const selectedNodes = ref<string[]>([]);
 
 const nodeWidth = 140;
 const nodeHeight = 50;
-const levelGap = 200;
-const nodeGap = 100;
+const levelGap = 160;
+const nodeGap = 80;
 
 // Reactive data for v-network-graph
 const graphNodes = reactive<Nodes>({});
@@ -73,6 +74,8 @@ const configs = computed<UserConfigs>(() => ({
     zoomEnabled: true,
     minZoomLevel: 0.1,
     maxZoomLevel: 4,
+    autoPanAndZoomOnLoad: false,
+    autoPanMargin: 1000,
   },
   node: {
     selectable: true,
@@ -263,10 +266,11 @@ function getNodeDisplayText(nodeId: string): string {
 function bfsBuildGraphData(
   rootNodeId: string,
   nodes: Record<string, Node>,
+  levelNodes: Map<number, string[]>,
+  terminalNodes: string[],
   graphNodes: Nodes,
-  graphEdges: Edges
-): Map<number, string[]> {
-  const levelNodes: Map<number, string[]> = new Map();
+  graphEdges: Edges,
+) {
   const queue: Array<{ nodeId: string; level: number }> = [
     { nodeId: rootNodeId, level: 0 },
   ];
@@ -285,11 +289,15 @@ function bfsBuildGraphData(
       continue;
     }
 
-    // Add to level map
-    if (!levelNodes.has(level)) {
-      levelNodes.set(level, []);
+    if (isTerminalNode(nodeId)) {
+      terminalNodes.push(nodeId);
+    } else {
+      // Add to level map
+      if (!levelNodes.has(level)) {
+        levelNodes.set(level, []);
+      }
+      levelNodes.get(level)!.push(nodeId);
     }
-    levelNodes.get(level)!.push(nodeId);
 
     // Add node to graph
     graphNodes[nodeId] = {
@@ -310,37 +318,15 @@ function bfsBuildGraphData(
       };
     }
   }
-
-  return levelNodes;
 }
 
-function getNodeWeight(node: Node): number {
-  if (!isTerminalNode(node.nodeId)) {
-    return 20000;
-  }
-  if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
-    return 15000;
-  }
-  if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
-    return 14000;
-  }
-  if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
-    return 13000;
-  }
-  // Other terminal nodes
-  return node.playerReward?.value ?? 0;
-}
-
-function sortNodesByType(
-  nodes: Record<string, Node>,
-  nodeIds: string[]): string[] {
-  return nodeIds.sort((a, b) => {
-    const nodeA = nodes[a];
-    const nodeB = nodes[b];
-    return getNodeWeight(nodeB!) - getNodeWeight(nodeA!);
+function sortTerminalNodes(nodes: Record<string, Node>, terminalNodes: string[]): string[] {
+  return terminalNodes.sort((a, b) => {
+    const nodeA = nodes[a]!;
+    const nodeB = nodes[b]!;
+    return (nodeB.playerReward?.value ?? 0) - (nodeA.playerReward?.value ?? 0);
   });
 }
-
 /**
  * Build graph data from GameTree using BFS for tree layout.
  */
@@ -353,26 +339,43 @@ function buildGraphData() {
   const rootNode = props.gameTree.nodes[props.gameTree.root];
   if (!rootNode) return;
 
+  const terminalNodes: string[] = [];
+  const levelNodes = new Map<number, string[]>();
+
   // BFS traversal that populates graph data and gathers level info
-  const levelNodes = bfsBuildGraphData(
+  bfsBuildGraphData(
     rootNode.nodeId,
     props.gameTree.nodes,
+    levelNodes,
+    terminalNodes,
     graphNodes,
     graphEdges
   );
 
+  const topLeftX = nodeWidth / 2 + 20;
+  const topLeftY = nodeHeight / 2 + 20;
   // Calculate layout positions
+  let maxLevel = 0;
   for (const [level, nodeIds] of levelNodes.entries()) {
-    const x = level * levelGap;
-    const startY = 0;
+    const x = topLeftX + level * levelGap;
+    maxLevel = Math.max(maxLevel, level);
 
-    const sortedNodeIds = sortNodesByType(props.gameTree.nodes, nodeIds);
-    sortedNodeIds.forEach((nodeId, index) => {
+    nodeIds.forEach((nodeId, index) => {
       layouts.nodes[nodeId] = {
         x,
-        y: startY + index * nodeGap,
+        y: topLeftY + index * nodeGap,
       };
     });
+  }
+
+  const sortedTerminalNodes = sortTerminalNodes(props.gameTree.nodes, terminalNodes);
+  let index = 0;
+  for (const terminalNode of sortedTerminalNodes) {
+    layouts.nodes[terminalNode] = {
+      x: topLeftX + (maxLevel + 1) * levelGap,
+      y: topLeftY + index * nodeGap,
+    };
+    index++;
   }
 }
 
