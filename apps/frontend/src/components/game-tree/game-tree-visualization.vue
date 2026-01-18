@@ -256,60 +256,34 @@ function getNodeDisplayText(nodeId: string): string {
 }
 
 /**
- * Get the label for a node type.
+ * Perform BFS traversal on the game tree and build:
+ * - graphNodes and graphEdges
+ * - levelNodes to collect nodes per level
  */
-function getNodeTypeLabel(nodeId: string): string {
-  const node = props.gameTree.nodes[nodeId];
-  if (!node) return 'Node';
-
-  if (nodeId === rootNodeId.value) {
-    return 'Root';
-  }
-
-  if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
-    return 'Lose';
-  }
-  if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
-    return 'Win';
-  }
-  if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
-    return 'Draw';
-  }
-
-  if (node.playerReward !== undefined || node.opponentReward !== undefined) {
-    return 'Terminal';
-  }
-
-  return 'Node';
-}
-
-/**
- * Build graph data from GameTree using BFS for tree layout.
- */
-function buildGraphData() {
-  // Clear existing data
-  Object.keys(graphNodes).forEach((key) => delete graphNodes[key]);
-  Object.keys(graphEdges).forEach((key) => delete graphEdges[key]);
-  Object.keys(layouts.nodes).forEach((key) => delete layouts.nodes[key]);
-
-  const rootNode = props.gameTree.nodes[props.gameTree.root];
-  if (!rootNode) return;
-
-  // BFS to build nodes and calculate positions
+function bfsBuildGraphData(
+  rootNodeId: string,
+  nodes: Record<string, Node>,
+  graphNodes: Nodes,
+  graphEdges: Edges
+): Map<number, string[]> {
   const levelNodes: Map<number, string[]> = new Map();
   const queue: Array<{ nodeId: string; level: number }> = [
-    { nodeId: rootNode.nodeId, level: 0 },
+    { nodeId: rootNodeId, level: 0 },
   ];
   const visited = new Set<string>();
 
   while (queue.length > 0) {
     const { nodeId, level } = queue.shift()!;
 
-    if (visited.has(nodeId)) continue;
+    if (visited.has(nodeId)) {
+      continue;
+    }
     visited.add(nodeId);
 
-    const node = props.gameTree.nodes[nodeId];
-    if (!node) continue;
+    const node = nodes[nodeId];
+    if (!node) {
+      continue;
+    }
 
     // Add to level map
     if (!levelNodes.has(level)) {
@@ -337,13 +311,63 @@ function buildGraphData() {
     }
   }
 
+  return levelNodes;
+}
+
+function getNodeWeight(node: Node): number {
+  if (!isTerminalNode(node.nodeId)) {
+    return 20000;
+  }
+  if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
+    return 15000;
+  }
+  if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
+    return 14000;
+  }
+  if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
+    return 13000;
+  }
+  // Other terminal nodes
+  return node.playerReward?.value ?? 0;
+}
+
+function sortNodesByType(
+  nodes: Record<string, Node>,
+  nodeIds: string[]): string[] {
+  return nodeIds.sort((a, b) => {
+    const nodeA = nodes[a];
+    const nodeB = nodes[b];
+    return getNodeWeight(nodeB!) - getNodeWeight(nodeA!);
+  });
+}
+
+/**
+ * Build graph data from GameTree using BFS for tree layout.
+ */
+function buildGraphData() {
+  // Clear existing data
+  Object.keys(graphNodes).forEach((key) => delete graphNodes[key]);
+  Object.keys(graphEdges).forEach((key) => delete graphEdges[key]);
+  Object.keys(layouts.nodes).forEach((key) => delete layouts.nodes[key]);
+
+  const rootNode = props.gameTree.nodes[props.gameTree.root];
+  if (!rootNode) return;
+
+  // BFS traversal that populates graph data and gathers level info
+  const levelNodes = bfsBuildGraphData(
+    rootNode.nodeId,
+    props.gameTree.nodes,
+    graphNodes,
+    graphEdges
+  );
+
   // Calculate layout positions
   for (const [level, nodeIds] of levelNodes.entries()) {
     const x = level * levelGap;
-    const totalHeight = (nodeIds.length - 1) * nodeGap;
-    const startY = -totalHeight / 2;
+    const startY = 0;
 
-    nodeIds.forEach((nodeId, index) => {
+    const sortedNodeIds = sortNodesByType(props.gameTree.nodes, nodeIds);
+    sortedNodeIds.forEach((nodeId, index) => {
       layouts.nodes[nodeId] = {
         x,
         y: startY + index * nodeGap,
