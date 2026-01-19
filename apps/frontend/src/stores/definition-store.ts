@@ -1,5 +1,9 @@
-import { createInitialGameDefinition } from "@/utils/game-definition-utils";
+import {
+    createInitialGameDefinition,
+    syncIdCounterWithGameDefinition,
+} from "@/utils/game-definition-utils";
 import { validateGameDefinition, type ValidationError } from "@/utils/validation";
+import type { GameDefinition } from "@mari/ts-proto";
 import { defineStore } from "pinia";
 
 export const useDefinitionStore = defineStore('definition', {
@@ -12,6 +16,16 @@ export const useDefinitionStore = defineStore('definition', {
         hasValidationErrors: (state) => state.validationErrors.length > 0,
     },
     actions: {
+        /**
+         * Load a GameDefinition (e.g., from JSON import)
+         * This also syncs the ID counter to prevent ID collisions
+         */
+        loadGameDefinition(gameDefinition: GameDefinition) {
+            this.gameDefinition = gameDefinition;
+            syncIdCounterWithGameDefinition(gameDefinition);
+            this.validationErrors = [];
+            this.showValidationErrors = false;
+        },
         /**
          * Validate the game definition and show errors if any.
          * Returns true if validation passed (no errors).

@@ -5,7 +5,7 @@ import type { StrategyData } from '../workers/solver-types';
  * Expected value for a single action
  */
 export interface ActionExpectedValue {
-    actionId: string;
+    actionId: number;
     expectedValue: number;
 }
 
@@ -52,7 +52,7 @@ export function calculateExpectedValues(
      * Get strategy probability for an action
      */
     function getActionProbability(
-        actionId: string,
+        actionId: number,
         strategy: StrategyData['playerStrategy'] | StrategyData['opponentStrategy']
     ): number {
         const action = strategy.find(a => a.actionId === actionId);

@@ -7,8 +7,8 @@ import type { GameTree } from '@mari/game-tree/game-tree';
  */
 export interface StrategyData {
   nodeId: string;
-  playerStrategy: Array<{ actionId: string; probability: number }>;
-  opponentStrategy: Array<{ actionId: string; probability: number }>;
+  playerStrategy: Array<{ actionId: number; probability: number }>;
+  opponentStrategy: Array<{ actionId: number; probability: number }>;
 }
 
 /**

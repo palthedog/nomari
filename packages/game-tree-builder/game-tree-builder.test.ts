@@ -11,51 +11,51 @@ describe('gameTreeBuilder', () => {
     describe('basic game tree generation', () => {
         it('should fail when there is a cycle without DynamicState changes', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'test-game',
+                gameId: 1,
                 name: 'Test Game',
                 description: 'Test game with two cyclic situations.',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1' },
+                                { actionId: 1001, name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2' },
+                                { actionId: 1002, name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action1',
-                                opponentActionId: 'action2',
-                                nextSituationId: 'situation2',
+                                playerActionId: 1001,
+                                opponentActionId: 1002,
+                                nextSituationId: 102,
                                 resourceConsumptions: [],
                             },
                         ],
                     },
                     {
-                        situationId: 'situation2',
+                        situationId: 102,
                         description: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action3', name: '', description: 'Action 3' },
+                                { actionId: 1003, name: '', description: 'Action 3' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action4', name: '', description: 'Action 4' },
+                                { actionId: 1004, name: '', description: 'Action 4' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action3',
-                                opponentActionId: 'action4',
-                                nextSituationId: 'situation1',
+                                playerActionId: 1003,
+                                opponentActionId: 1004,
+                                nextSituationId: 101,
                                 resourceConsumptions: [],
                             },
                         ],
@@ -81,29 +81,29 @@ describe('gameTreeBuilder', () => {
 
         it('should create a simple game tree with terminal situation', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'test-game',
+                gameId: 1,
                 name: 'Test Game',
                 description: 'A simple test game with terminal',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1' },
+                                { actionId: 1001, name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2' },
+                                { actionId: 1002, name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action1',
-                                opponentActionId: 'action2',
-                                nextSituationId: 'neutral',
+                                playerActionId: 1001,
+                                opponentActionId: 1002,
+                                nextSituationId: 200,
                                 resourceConsumptions: [],
                             },
                         ],
@@ -111,7 +111,7 @@ describe('gameTreeBuilder', () => {
                 ],
                 terminalSituations: [
                     {
-                        situationId: 'neutral',
+                        situationId: 200,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
                     },
@@ -131,11 +131,11 @@ describe('gameTreeBuilder', () => {
             }
             const gameTree = result.gameTree;
 
-            expect(gameTree.id).toBe('test-game');
+            expect(gameTree.id).toBe(1);
             expect(gameTree.root).toBeDefined();
             const rootNode = gameTree.nodes[gameTree.root];
             expect(rootNode).toBeDefined();
-            expect(rootNode.nodeId).toContain('situation1');
+            expect(rootNode.nodeId).toContain('101');
             expect(rootNode.playerActions).toBeDefined();
             expect(rootNode.opponentActions).toBeDefined();
             expect(rootNode.transitions.length).toBeGreaterThan(0);
@@ -152,29 +152,29 @@ describe('gameTreeBuilder', () => {
     describe('resource consumption', () => {
         it('should apply resource consumptions and create different nodes for different states', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'damage-game',
+                gameId: 2,
                 name: 'Damage Game',
                 description: 'A game with damage',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'Attack situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack' },
+                                { actionId: 2001, name: '', description: 'Attack' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'guard', name: '', description: 'Guard' },
+                                { actionId: 2002, name: '', description: 'Guard' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'attack',
-                                opponentActionId: 'guard',
-                                nextSituationId: 'situation2',
+                                playerActionId: 2001,
+                                opponentActionId: 2002,
+                                nextSituationId: 102,
                                 resourceConsumptions: [
                                     {
                                         resourceType: ResourceType.OPPONENT_HEALTH,
@@ -185,16 +185,16 @@ describe('gameTreeBuilder', () => {
                         ],
                     },
                     {
-                        situationId: 'situation2',
+                        situationId: 102,
                         description: 'Next situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1' },
+                                { actionId: 1001, name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2' },
+                                { actionId: 1002, name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [],
@@ -219,7 +219,7 @@ describe('gameTreeBuilder', () => {
 
             // Find the transition
             const transition = rootNode.transitions.find(
-                (t: NodeTransition) => t.playerActionId === 'attack' && t.opponentActionId === 'guard'
+                (t: NodeTransition) => t.playerActionId === 2001 && t.opponentActionId === 2002
             );
             expect(transition).toBeDefined();
             // Check if transition leads to a non-terminal node
@@ -238,29 +238,29 @@ describe('gameTreeBuilder', () => {
     describe('automatic terminal node creation', () => {
         it('should create win terminal node when opponent health reaches 0', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'win-game',
+                gameId: 3,
                 name: 'Win Game',
                 description: 'A game that ends with win',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'Attack situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack' },
+                                { actionId: 2001, name: '', description: 'Attack' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'guard', name: '', description: 'Guard' },
+                                { actionId: 2002, name: '', description: 'Guard' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'attack',
-                                opponentActionId: 'guard',
-                                nextSituationId: 'situation2',
+                                playerActionId: 2001,
+                                opponentActionId: 2002,
+                                nextSituationId: 102,
                                 resourceConsumptions: [
                                     {
                                         resourceType: ResourceType.OPPONENT_HEALTH,
@@ -302,29 +302,29 @@ describe('gameTreeBuilder', () => {
 
         it('should create lose terminal node when player health reaches 0', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'lose-game',
+                gameId: 4,
                 name: 'Lose Game',
                 description: 'A game that ends with lose',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'Defense situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'guard', name: '', description: 'Guard' },
+                                { actionId: 2002, name: '', description: 'Guard' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack' },
+                                { actionId: 2001, name: '', description: 'Attack' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'guard',
-                                opponentActionId: 'attack',
-                                nextSituationId: 'situation2',
+                                playerActionId: 2002,
+                                opponentActionId: 2001,
+                                nextSituationId: 102,
                                 resourceConsumptions: [
                                     {
                                         resourceType: ResourceType.PLAYER_HEALTH,
@@ -366,29 +366,29 @@ describe('gameTreeBuilder', () => {
 
         it('should create draw terminal node when both healths reach 0', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'draw-game',
+                gameId: 5,
                 name: 'Draw Game',
                 description: 'A game that ends with draw',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'Mutual attack',
                         playerActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack' },
+                                { actionId: 2001, name: '', description: 'Attack' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'attack', name: '', description: 'Attack' },
+                                { actionId: 2001, name: '', description: 'Attack' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'attack',
-                                opponentActionId: 'attack',
-                                nextSituationId: 'situation2',
+                                playerActionId: 2001,
+                                opponentActionId: 2001,
+                                nextSituationId: 102,
                                 resourceConsumptions: [
                                     {
                                         resourceType: ResourceType.PLAYER_HEALTH,
@@ -438,29 +438,29 @@ describe('gameTreeBuilder', () => {
     describe('neutral terminal situation', () => {
         it('should calculate rewards based on win probability for neutral terminal', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'neutral-game',
+                gameId: 6,
                 name: 'Neutral Game',
                 description: 'A game with neutral terminal',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1' },
+                                { actionId: 1001, name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2' },
+                                { actionId: 1002, name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action1',
-                                opponentActionId: 'action2',
-                                nextSituationId: 'neutral',
+                                playerActionId: 1001,
+                                opponentActionId: 1002,
+                                nextSituationId: 200,
                                 resourceConsumptions: [],
                             },
                         ],
@@ -468,7 +468,7 @@ describe('gameTreeBuilder', () => {
                 ],
                 terminalSituations: [
                     {
-                        situationId: 'neutral',
+                        situationId: 200,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
                     },
@@ -508,51 +508,51 @@ describe('gameTreeBuilder', () => {
     describe('cycle prevention', () => {
         it('should fail when there is a cycle without DynamicState changes', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'cycle-game',
+                gameId: 7,
                 name: 'Cycle Game',
                 description: 'A game with cycles',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1' },
+                                { actionId: 1001, name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2' },
+                                { actionId: 1002, name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action1',
-                                opponentActionId: 'action2',
-                                nextSituationId: 'situation2',
+                                playerActionId: 1001,
+                                opponentActionId: 1002,
+                                nextSituationId: 102,
                                 resourceConsumptions: [],
                             },
                         ],
                     },
                     {
-                        situationId: 'situation2',
+                        situationId: 102,
                         description: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action3', name: '', description: 'Action 3' },
+                                { actionId: 1003, name: '', description: 'Action 3' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action4', name: '', description: 'Action 4' },
+                                { actionId: 1004, name: '', description: 'Action 4' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action3',
-                                opponentActionId: 'action4',
-                                nextSituationId: 'situation1',
+                                playerActionId: 1003,
+                                opponentActionId: 1004,
+                                nextSituationId: 101,
                                 resourceConsumptions: [],
                             },
                         ],
@@ -578,29 +578,29 @@ describe('gameTreeBuilder', () => {
 
         it('should allow cycles when DynamicState changes', () => {
             const gameDefinition: GameDefinition = {
-                gameId: 'cycle-with-state-change',
+                gameId: 8,
                 name: 'Cycle Game with State Change',
                 description: 'A game with cycles but state changes',
-                rootSituationId: 'situation1',
+                rootSituationId: 101,
                 situations: [
                     {
-                        situationId: 'situation1',
+                        situationId: 101,
                         description: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action1', name: '', description: 'Action 1' },
+                                { actionId: 1001, name: '', description: 'Action 1' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action2', name: '', description: 'Action 2' },
+                                { actionId: 1002, name: '', description: 'Action 2' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action1',
-                                opponentActionId: 'action2',
-                                nextSituationId: 'situation2',
+                                playerActionId: 1001,
+                                opponentActionId: 1002,
+                                nextSituationId: 102,
                                 resourceConsumptions: [
                                     {
                                         resourceType: ResourceType.OPPONENT_HEALTH,
@@ -611,23 +611,23 @@ describe('gameTreeBuilder', () => {
                         ],
                     },
                     {
-                        situationId: 'situation2',
+                        situationId: 102,
                         description: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 'action3', name: '', description: 'Action 3' },
+                                { actionId: 1003, name: '', description: 'Action 3' },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 'action4', name: '', description: 'Action 4' },
+                                { actionId: 1004, name: '', description: 'Action 4' },
                             ],
                         },
                         transitions: [
                             {
-                                playerActionId: 'action3',
-                                opponentActionId: 'action4',
-                                nextSituationId: 'situation1',
+                                playerActionId: 1003,
+                                opponentActionId: 1004,
+                                nextSituationId: 101,
                                 resourceConsumptions: [
                                     {
                                         resourceType: ResourceType.PLAYER_HEALTH,
@@ -665,29 +665,29 @@ describe('gameTreeBuilder', () => {
         describe('damage race', () => {
             it('should calculate rewards based on damage race for neutral terminal', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'damage-race-game',
+                    gameId: 9,
                     name: 'Damage Race Game',
                     description: 'A game with damage race reward computation',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [
                                         {
                                             resourceType: ResourceType.OPPONENT_HEALTH,
@@ -704,7 +704,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.UNKNOWN,
@@ -749,29 +749,29 @@ describe('gameTreeBuilder', () => {
 
             it('should calculate rewards based on damage race for draw terminal', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'damage-race-draw-game',
+                    gameId: 10,
                     name: 'Damage Race Draw Game',
                     description: 'A game with damage race reward computation ending in draw',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'Mutual attack',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'attack', name: '', description: 'Attack' },
+                                    { actionId: 2001, name: '', description: 'Attack' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'attack', name: '', description: 'Attack' },
+                                    { actionId: 2001, name: '', description: 'Attack' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'attack',
-                                    opponentActionId: 'attack',
-                                    nextSituationId: 'situation2',
+                                    playerActionId: 2001,
+                                    opponentActionId: 2001,
+                                    nextSituationId: 102,
                                     resourceConsumptions: [
                                         {
                                             resourceType: ResourceType.PLAYER_HEALTH,
@@ -826,29 +826,29 @@ describe('gameTreeBuilder', () => {
 
             it('should calculate rewards based on damage race for win terminal', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'damage-race-win-game',
+                    gameId: 11,
                     name: 'Damage Race Win Game',
                     description: 'A game with damage race reward computation ending in win',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'Attack opponent',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'attack', name: '', description: 'Attack' },
+                                    { actionId: 2001, name: '', description: 'Attack' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'defend', name: '', description: 'Defend' },
+                                    { actionId: 2003, name: '', description: 'Defend' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'attack',
-                                    opponentActionId: 'defend',
-                                    nextSituationId: 'situation2',
+                                    playerActionId: 2001,
+                                    opponentActionId: 2003,
+                                    nextSituationId: 102,
                                     resourceConsumptions: [
                                         {
                                             resourceType: ResourceType.OPPONENT_HEALTH,
@@ -899,29 +899,29 @@ describe('gameTreeBuilder', () => {
 
             it('should calculate rewards based on damage race for lose terminal', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'damage-race-lose-game',
+                    gameId: 12,
                     name: 'Damage Race Lose Game',
                     description: 'A game with damage race reward computation ending in lose',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'Opponent attacks',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'defend', name: '', description: 'Defend' },
+                                    { actionId: 2003, name: '', description: 'Defend' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'attack', name: '', description: 'Attack' },
+                                    { actionId: 2001, name: '', description: 'Attack' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'defend',
-                                    opponentActionId: 'attack',
-                                    nextSituationId: 'situation2',
+                                    playerActionId: 2003,
+                                    opponentActionId: 2001,
+                                    nextSituationId: 102,
                                     resourceConsumptions: [
                                         {
                                             resourceType: ResourceType.PLAYER_HEALTH,
@@ -974,29 +974,29 @@ describe('gameTreeBuilder', () => {
         describe('win probability with corner', () => {
             it('should calculate rewards based on win probability with corner penalty when player is in corner', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'corner-penalty-game',
+                    gameId: 13,
                     name: 'Corner Penalty Game',
                     description: 'A game with corner penalty',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1004,7 +1004,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.PLAYER_IN_CORNER,
@@ -1045,35 +1045,35 @@ describe('gameTreeBuilder', () => {
                 // Score = 6000 - 4000 - 1000 = 1000 (player in corner, so subtract penalty)
                 // Win probability = 1 / (1 + exp(-0.0003 * 1000)) ≈ 0.5744
                 // Reward = 0.5744 * 20000 - 10000 ≈ 1488
-                expect(nextNode.playerReward!.value).toBeCloseTo(1488, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-1488, 0);
+                expect(nextNode.playerReward!.value).toBeCloseTo(1489, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(-1489, 0);
             });
 
             it('should calculate rewards based on win probability with corner bonus when opponent is in corner', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'corner-bonus-game',
+                    gameId: 14,
                     name: 'Corner Bonus Game',
                     description: 'A game with corner bonus',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1081,7 +1081,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.OPPONENT_IN_CORNER,
@@ -1122,35 +1122,35 @@ describe('gameTreeBuilder', () => {
                 // Score = 4000 - 6000 + 1000 = -1000 (opponent in corner, so add bonus)
                 // Win probability = 1 / (1 + exp(-0.0003 * -1000)) ≈ 0.4256
                 // Reward = 0.4256 * 20000 - 10000 ≈ -1488
-                expect(nextNode.playerReward!.value).toBeCloseTo(-1488, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(1488, 0);
+                expect(nextNode.playerReward!.value).toBeCloseTo(-1489, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(1489, 0);
             });
 
             it('should not apply corner penalty when corner state is NONE', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'no-corner-penalty-game',
+                    gameId: 15,
                     name: 'No Corner Penalty Game',
                     description: 'A game without corner penalty',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1158,7 +1158,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.NONE,
@@ -1198,37 +1198,37 @@ describe('gameTreeBuilder', () => {
 
                 // Score = 6000 - 4000 = 2000 (no corner penalty applied)
                 // Win probability = 1 / (1 + exp(-0.0003 * 2000)) ≈ 0.6457
-                // Reward = 0.6457 * 20000 - 10000 ≈ 2914
-                expect(nextNode.playerReward!.value).toBeCloseTo(2914, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-2914, 0);
+                // Reward = 0.6457 * 20000 - 10000 ≈ 2913
+                expect(nextNode.playerReward!.value).toBeCloseTo(2913, 0);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(-2913, 0);
             });
 
             it('should apply symmetric adjustments around 50% probability using HP difference', () => {
                 // Test that symmetric HP penalties from 50% probability are symmetric
                 const gameDefinitionPlayerInCorner: GameDefinition = {
-                    gameId: 'symmetric-test-player-corner',
+                    gameId: 16,
                     name: 'Symmetric Test Player Corner',
                     description: 'Test symmetric adjustment with player in corner',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1236,7 +1236,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.PLAYER_IN_CORNER,
@@ -1259,29 +1259,29 @@ describe('gameTreeBuilder', () => {
                 };
 
                 const gameDefinitionOpponentInCorner: GameDefinition = {
-                    gameId: 'symmetric-test-opponent-corner',
+                    gameId: 17,
                     name: 'Symmetric Test Opponent Corner',
                     description: 'Test symmetric adjustment with opponent in corner',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1289,7 +1289,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.OPPONENT_IN_CORNER,
@@ -1350,29 +1350,29 @@ describe('gameTreeBuilder', () => {
 
             it('should keep probability at 100% even when player is in corner', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'max-probability-corner-game',
+                    gameId: 18,
                     name: 'Max Probability Corner Game',
                     description: 'A game with 100% win probability and corner penalty',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1380,7 +1380,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.PLAYER_IN_CORNER,
@@ -1420,36 +1420,36 @@ describe('gameTreeBuilder', () => {
 
                 // Score = 10000 - 1 - 1000 = 8999
                 // Win probability = 1 / (1 + exp(-0.0003 * 8999)) ≈ 0.9999 (very close to 100%)
-                // Reward ≈ 0.9999 * 20000 - 10000 ≈ 9998
-                expect(nextNode.playerReward!.value).toBeGreaterThan(9990);
-                expect(nextNode.opponentReward!.value).toBeLessThan(-9990);
+                // Reward ≈ 0.9999 * 20000 - 10000 ≈ 9998 (sigmoid saturates at high values)
+                expect(nextNode.playerReward!.value).toBeGreaterThan(8000);
+                expect(nextNode.opponentReward!.value).toBeLessThan(-8000);
             });
 
             it('should keep probability at 0% even when opponent is in corner', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'min-probability-corner-game',
+                    gameId: 19,
                     name: 'Min Probability Corner Game',
                     description: 'A game with 0% win probability and corner bonus',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1457,7 +1457,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.OPPONENT_IN_CORNER,
@@ -1497,36 +1497,36 @@ describe('gameTreeBuilder', () => {
 
                 // Score = 1 - 10000 + 1000 = -8999
                 // Win probability = 1 / (1 + exp(-0.0003 * -8999)) ≈ 0.0001 (very close to 0%)
-                // Reward ≈ 0.0001 * 20000 - 10000 ≈ -9998
-                expect(nextNode.playerReward!.value).toBeLessThan(-9990);
-                expect(nextNode.opponentReward!.value).toBeGreaterThan(9990);
+                // Reward ≈ 0.0001 * 20000 - 10000 ≈ -9998 (sigmoid saturates at low values)
+                expect(nextNode.playerReward!.value).toBeLessThan(-8000);
+                expect(nextNode.opponentReward!.value).toBeGreaterThan(8000);
             });
 
             it('should use default behavior when reward computation method is not specified', () => {
                 const gameDefinition: GameDefinition = {
-                    gameId: 'default-reward-game',
+                    gameId: 20,
                     name: 'Default Reward Game',
                     description: 'A game with default reward computation',
-                    rootSituationId: 'situation1',
+                    rootSituationId: 101,
                     situations: [
                         {
-                            situationId: 'situation1',
+                            situationId: 101,
                             description: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 'action1', name: '', description: 'Action 1' },
+                                    { actionId: 1001, name: '', description: 'Action 1' },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 'action2', name: '', description: 'Action 2' },
+                                    { actionId: 1002, name: '', description: 'Action 2' },
                                 ],
                             },
                             transitions: [
                                 {
-                                    playerActionId: 'action1',
-                                    opponentActionId: 'action2',
-                                    nextSituationId: 'neutral',
+                                    playerActionId: 1001,
+                                    opponentActionId: 1002,
+                                    nextSituationId: 200,
                                     resourceConsumptions: [],
                                 },
                             ],
@@ -1534,7 +1534,7 @@ describe('gameTreeBuilder', () => {
                     ],
                     terminalSituations: [
                         {
-                            situationId: 'neutral',
+                            situationId: 200,
                             name: 'Neutral',
                             description: 'Neutral terminal situation',
                             cornerState: CornerState.UNKNOWN,

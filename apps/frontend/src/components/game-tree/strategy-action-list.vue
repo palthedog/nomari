@@ -62,7 +62,7 @@ interface CalculationRow {
 }
 
 const props = defineProps<{
-    strategy: Array<{ actionId: string; probability: number }>;
+    strategy: Array<{ actionId: number; probability: number }>;
     playerType: 'player' | 'opponent';
     selectedNode: Node | null;
     expectedValues: ExpectedValuesMap | null;
@@ -87,8 +87,8 @@ function formatExpectedValue(value: number | null): string {
     return Math.round(value).toLocaleString();
 }
 
-function getActionName(actionId: string): string {
-    if (!props.selectedNode) return actionId;
+function getActionName(actionId: number): string {
+    if (!props.selectedNode) return String(actionId);
 
     const actions =
         props.playerType === 'player'
@@ -96,10 +96,10 @@ function getActionName(actionId: string): string {
             : props.selectedNode.opponentActions?.actions;
 
     const action = actions?.find((a) => a.actionId === actionId);
-    return action?.name || actionId;
+    return action?.name || String(actionId);
 }
 
-function getActionExpectedValue(actionId: string): number | null {
+function getActionExpectedValue(actionId: number): number | null {
     if (!nodeExpectedValues.value) {
         return null;
     }
@@ -120,7 +120,7 @@ function getActionExpectedValue(actionId: string): number | null {
     }
 }
 
-function getActionCalculation(actionId: string): CalculationRow[] {
+function getActionCalculation(actionId: number): CalculationRow[] {
     if (!props.selectedNode || !props.strategyData || !props.expectedValues) {
         return [];
     }
@@ -185,8 +185,8 @@ function getActionCalculation(actionId: string): CalculationRow[] {
     return rows;
 }
 
-function getActionNameForType(actionId: string, type: 'player' | 'opponent'): string {
-    if (!props.selectedNode) return actionId;
+function getActionNameForType(actionId: number, type: 'player' | 'opponent'): string {
+    if (!props.selectedNode) return String(actionId);
 
     const actions =
         type === 'player'
@@ -194,7 +194,7 @@ function getActionNameForType(actionId: string, type: 'player' | 'opponent'): st
             : props.selectedNode.opponentActions?.actions;
 
     const action = actions?.find((a) => a.actionId === actionId);
-    return action?.name || actionId;
+    return action?.name || String(actionId);
 }
 </script>
 

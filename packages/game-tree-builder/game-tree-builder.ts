@@ -13,7 +13,6 @@ import {
     GameTree,
     Node,
     NodeTransition,
-    Reward,
 } from '@mari/game-tree/game-tree';
 
 /**
@@ -30,7 +29,7 @@ export enum GameTreeBuildErrorCode {
 export interface GameTreeBuildError {
     code: GameTreeBuildErrorCode;
     message: string;
-    situationId?: string;
+    situationId?: number;
     stateHash?: string;
 }
 
@@ -334,12 +333,12 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     const rewardComputationMethod = gameDefinition.rewardComputationMethod;
 
     // Map situations and terminal situations by ID
-    const situationMap = new Map<string, Situation>();
+    const situationMap = new Map<number, Situation>();
     for (const situation of gameDefinition.situations) {
         situationMap.set(situation.situationId, situation);
     }
 
-    const terminalSituationMap = new Map<string, TerminalSituation>();
+    const terminalSituationMap = new Map<number, TerminalSituation>();
     for (const terminalSituation of gameDefinition.terminalSituations) {
         terminalSituationMap.set(terminalSituation.situationId, terminalSituation);
     }
@@ -355,7 +354,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
      * Get or create a node for a given situation and dynamic state
      * Returns either a Node or an error result
      */
-    function getOrCreateNode(situationId: string, state: DynamicState): Node | GameTreeBuildError {
+    function getOrCreateNode(situationId: number, state: DynamicState): Node | GameTreeBuildError {
         const stateHash = hashDynamicState(state);
         const nodeKey = `${situationId}_${stateHash}`;
 
@@ -472,31 +471,36 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             let nextNode: Node;
 
             if (newTerminalCheck.isTerminal) {
-                // Create terminal node
-                const playerHealth = getResourceValue(
-                    newState,
-                    ResourceType.PLAYER_HEALTH
-                );
-                const opponentHealth = getResourceValue(
-                    newState,
-                    ResourceType.OPPONENT_HEALTH
-                );
+                // Create terminal node directly (not via getOrCreateNode)
+                const terminalPlayerHealth = getResourceValue(newState, ResourceType.PLAYER_HEALTH);
+                const terminalOpponentHealth = getResourceValue(newState, ResourceType.OPPONENT_HEALTH);
                 const newStateHash = hashDynamicState(newState);
                 const terminalNodeKey = `terminal_${newTerminalCheck.type}_${newStateHash}`;
-                const terminalNodeResult = getOrCreateNode(terminalNodeKey, newState);
-                if (isError(terminalNodeResult)) {
-                    return terminalNodeResult; // Return error to propagate
-                }
-                nextNode = terminalNodeResult;
 
-                // Rewards are already set on the terminal node by createTerminalNode
+                // Check if terminal node already exists in cache
+                if (nodeMap.has(terminalNodeKey)) {
+                    nextNode = nodeMap.get(terminalNodeKey)!;
+                } else {
+                    nextNode = createTerminalNode(
+                        terminalNodeKey,
+                        newTerminalCheck.type!,
+                        terminalPlayerHealth,
+                        terminalOpponentHealth,
+                        rewardComputationMethod,
+                        initialPlayerHealth,
+                        initialOpponentHealth
+                    );
+                    nodeMap.set(terminalNodeKey, nextNode);
+                    nodeStateMap.set(terminalNodeKey, newState);
+                }
+
                 const transition: NodeTransition = {
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
                     nextNodeId: nextNode.nodeId,
                 };
                 node.transitions.push(transition);
-                continue; // Skip to next transition
+                continue;
             }
 
             // Check if next situation is a terminal situation

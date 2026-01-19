@@ -31,7 +31,7 @@ function getNodeStrategyData(nodeId: string): StrategyData | null {
     const playerStrategyMap = solver.getAverageStrategy(nodeId);
 
     // Get player actions
-    const playerStrategy: Array<{ actionId: string; probability: number }> = [];
+    const playerStrategy: Array<{ actionId: number; probability: number }> = [];
     if (node.playerActions) {
         for (const action of node.playerActions.actions) {
             const prob = playerStrategyMap?.get(action.actionId) ?? 0;
@@ -42,7 +42,7 @@ function getNodeStrategyData(nodeId: string): StrategyData | null {
     // Get opponent strategy
     const opponentStrategyMap = solver.getAverageOpponentStrategy(nodeId);
 
-    const opponentStrategy: Array<{ actionId: string; probability: number }> = [];
+    const opponentStrategy: Array<{ actionId: number; probability: number }> = [];
     if (node.opponentActions) {
         for (const action of node.opponentActions.actions) {
             const prob = opponentStrategyMap?.get(action.actionId) ?? 0;

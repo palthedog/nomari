@@ -3,13 +3,13 @@ syntax = "proto3";
 // Definition of the game
 // Mari game tree builder would build a game tree from this definition.
 message GameDefinition {
-  string game_id = 1;
+  uint32 game_id = 1;
 
   string name = 2;
   string description = 3;
 
   // Root situation id of the game tree
-  string root_situation_id = 4;
+  uint32 root_situation_id = 4;
 
   // Situations of the game
   repeated Situation situations = 5;
@@ -25,7 +25,7 @@ message GameDefinition {
 }
 
 message Situation {
-  string situation_id = 1;
+  uint32 situation_id = 1;
 
   // Human readable description of the situation
   string description = 2;
@@ -41,7 +41,7 @@ message Situation {
 }
 
 message TerminalSituation {
-  string situation_id = 1;
+  uint32 situation_id = 1;
 
   string name = 2;
   string description = 3;
@@ -102,7 +102,7 @@ message PlayerActions {
 }
 
 message Action {
-  string action_id = 1;
+  uint32 action_id = 1;
   
   // Name of the action (e.g. "attack", "guard")
   string name = 2;
@@ -117,12 +117,12 @@ message Action {
 
 // Transition to the next node based on the player and opponent actions
 message Transition {
-  string player_action_id = 1;
-  string opponent_action_id = 2;
+  uint32 player_action_id = 1;
+  uint32 opponent_action_id = 2;
 
   // Situation would be reached after the action is taken.
   // In case player/opponent's health becomes 0, the next situation would be overwritten to a terminal situation.
-  string next_situation_id = 3;
+  uint32 next_situation_id = 3;
 
   // Resource consumptions that occur during this transition (e.g., damage dealt)
   repeated ResourceConsumption resource_consumptions = 4;

@@ -14,7 +14,7 @@ import { generateId } from './game-definition-utils';
 
 function generateAction(name: string, description: string): Action {
     return {
-        actionId: generateId('action'),
+        actionId: generateId(),
         name: name,
         description: description,
     };
@@ -31,9 +31,9 @@ function generateResourceConsumption(resourceType: ResourceType, value: number):
  * Create a Judo GameDefinition
  */
 export function createJudoGameDefinition(): GameDefinition {
-    const advantageSituationId = generateId('situation');
-    const cornerNeutralSituationId = generateId('situation');
-    const neutralSituationId = generateId('situation');
+    const advantageSituationId = generateId();
+    const cornerNeutralSituationId = generateId();
+    const neutralSituationId = generateId();
 
     const initialTerminalSituations: TerminalSituation[] =
         [
@@ -66,7 +66,7 @@ export function createJudoGameDefinition(): GameDefinition {
     function createTransition(
         playerActionName: string,
         opponentActionName: string,
-        nextSituationId: string,
+        nextSituationId: number,
         playerDamage: number,
         opponentDamage: number): Transition {
         // Find playerAction from defPlayerActions by name
@@ -84,8 +84,8 @@ export function createJudoGameDefinition(): GameDefinition {
 
         // Find nextSituation from initialTerminalSituations by name
         return {
-            playerActionId: playerAction?.actionId ?? '',
-            opponentActionId: opponentAction?.actionId ?? '',
+            playerActionId: playerAction?.actionId ?? 0,
+            opponentActionId: opponentAction?.actionId ?? 0,
             nextSituationId: nextSituationId,
             resourceConsumptions: resourceConsumptions,
         };
@@ -116,7 +116,7 @@ export function createJudoGameDefinition(): GameDefinition {
     };
 
     return {
-        gameId: generateId('game'),
+        gameId: generateId(),
         name: '画面端柔道',
         description: '',
         rootSituationId: advantageSituationId,
@@ -138,596 +138,201 @@ export function createJudoGameDefinition(): GameDefinition {
 }
 
 /**
- * Create a heavy Dimachaerus comboGameDefinition
+ * Create a heavy Dimachaerus combo GameDefinition
+ * Uses numeric IDs for all situation and action references
  */
 export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
+    // Situation IDs (using generateId for consistency)
+    const gameId = generateId();
+    const rootSituationId = generateId();
+    const closeRangeSituationId = generateId();
+    const throwRangeSituationId = generateId();
+    const afterDashSituationId = generateId();
+    const neutralTerminalId = generateId();
+
+    // Action IDs for root situation
+    const rootJumpActionId = generateId();
+    const rootDashActionId = generateId();
+    const rootWaitActionId = generateId();
+
+    // Action IDs for close range situation (player)
+    const closeTcActionId = generateId();
+    const closeThrowActionId = generateId();
+    const closeCommandThrowActionId = generateId();
+    const closeGuardActionId = generateId();
+
+    // Action IDs for close range situation (opponent)
+    const closeDelayGrapActionId = generateId();
+    const closeGuardOppActionId = generateId();
+    const closeJumpOppActionId = generateId();
+    const closeInvincibleActionId = generateId();
+
+    // Action IDs for throw range situation (player)
+    const throwThrowActionId = generateId();
+    const throwCommandThrowActionId = generateId();
+    const throwShimmyActionId = generateId();
+
+    // Action IDs for throw range situation (opponent)
+    const throwDelayGrapActionId = generateId();
+    const throwInvincibleActionId = generateId();
+    const throwJumpActionId = generateId();
+
+    // Action IDs for after dash situation (player)
+    const dashWalkThrowActionId = generateId();
+    const dashKneeActionId = generateId();
+    const dashShimmyActionId = generateId();
+
+    // Action IDs for after dash situation (opponent)
+    const dashGuardActionId = generateId();
+    const dashJumpActionId = generateId();
+    const dashInvincibleActionId = generateId();
+    const dashThrowEscapeActionId = generateId();
+
     return {
-        "gameId": "game_1768562188643_vykwo3r0f",
-        "name": "強ディマ>溜強P",
-        "description": "",
-        "rootSituationId": "situation_1768562188643_aim9qkpt0",
-        "situations": [
+        gameId: gameId,
+        name: '強ディマ>溜強P',
+        description: '',
+        rootSituationId: rootSituationId,
+        situations: [
             {
-                "situationId": "situation_1768562188643_aim9qkpt0",
-                "description": "強ディマ > 溜強P +47F",
-                "playerActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768562188643_7ykmucfkj",
-                            "name": "前ジャンプ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768562188643_8rdqtiw63",
-                            "name": "前ステップ",
-                            "description": ""
-                        }
-                    ]
+                situationId: rootSituationId,
+                description: '強ディマ > 溜強P +47F',
+                playerActions: {
+                    actions: [
+                        { actionId: rootJumpActionId, name: '前ジャンプ', description: '' },
+                        { actionId: rootDashActionId, name: '前ステップ', description: '' },
+                    ],
                 },
-                "opponentActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768562188643_q29k4akzb",
-                            "name": "待機",
-                            "description": "TODO: 選択肢が空でも動くように（選択肢が1つと同じ）"
-                        }
-                    ]
+                opponentActions: {
+                    actions: [
+                        { actionId: rootWaitActionId, name: '待機', description: '' },
+                    ],
                 },
-                "transitions": [
-                    {
-                        "playerActionId": "action_1768562188643_7ykmucfkj",
-                        "opponentActionId": "action_1768562188643_q29k4akzb",
-                        "nextSituationId": "situation_1768562317722_w3iieyvlf",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768562188643_8rdqtiw63",
-                        "opponentActionId": "action_1768562188643_q29k4akzb",
-                        "nextSituationId": "situation_1768562534072_airzum1nt",
-                        "resourceConsumptions": []
-                    }
-                ]
+                transitions: [
+                    { playerActionId: rootJumpActionId, opponentActionId: rootWaitActionId, nextSituationId: closeRangeSituationId, resourceConsumptions: [] },
+                    { playerActionId: rootDashActionId, opponentActionId: rootWaitActionId, nextSituationId: afterDashSituationId, resourceConsumptions: [] },
+                ],
             },
             {
-                "situationId": "situation_1768562317722_w3iieyvlf",
-                "description": "密着 +4F",
-                "playerActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768563502958_looc06uln",
-                            "name": "中PTC > 中ディマ",
-                            "description": "TODO: 本当は起き攻めついてくる"
-                        },
-                        {
-                            "actionId": "action_1768563510125_8nmft3c9i",
-                            "name": "投げ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768563515438_waelytwoy",
-                            "name": "コマ投げ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768565086736_jtasbecz6",
-                            "name": "ガード",
-                            "description": "様子見(ぼっ立ち）"
-                        }
-                    ]
+                situationId: closeRangeSituationId,
+                description: '密着 +4F',
+                playerActions: {
+                    actions: [
+                        { actionId: closeTcActionId, name: '中PTC > 中ディマ', description: '' },
+                        { actionId: closeThrowActionId, name: '投げ', description: '' },
+                        { actionId: closeCommandThrowActionId, name: 'コマ投げ', description: '' },
+                        { actionId: closeGuardActionId, name: 'ガード', description: '様子見' },
+                    ],
                 },
-                "opponentActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768563521104_ln4i1w919",
-                            "name": "遅らせグラップ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768563540040_hpjsgguwo",
-                            "name": "ガード",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768563545886_2shig2cmp",
-                            "name": "垂直ジャンプ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768565012018_t8dl58krt",
-                            "name": "無敵暴れ",
-                            "description": ""
-                        }
-                    ]
+                opponentActions: {
+                    actions: [
+                        { actionId: closeDelayGrapActionId, name: '遅らせグラップ', description: '' },
+                        { actionId: closeGuardOppActionId, name: 'ガード', description: '' },
+                        { actionId: closeJumpOppActionId, name: '垂直ジャンプ', description: '' },
+                        { actionId: closeInvincibleActionId, name: '無敵暴れ', description: '' },
+                    ],
                 },
-                "transitions": [
-                    {
-                        "playerActionId": "action_1768563502958_looc06uln",
-                        "opponentActionId": "action_1768563521104_ln4i1w919",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768563502958_looc06uln",
-                        "opponentActionId": "action_1768563540040_hpjsgguwo",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768563502958_looc06uln",
-                        "opponentActionId": "action_1768563545886_2shig2cmp",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 2160
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563502958_looc06uln",
-                        "opponentActionId": "action_1768565012018_t8dl58krt",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563510125_8nmft3c9i",
-                        "opponentActionId": "action_1768563521104_ln4i1w919",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768563510125_8nmft3c9i",
-                        "opponentActionId": "action_1768563540040_hpjsgguwo",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 1200
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563510125_8nmft3c9i",
-                        "opponentActionId": "action_1768563545886_2shig2cmp",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1500
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563510125_8nmft3c9i",
-                        "opponentActionId": "action_1768565012018_t8dl58krt",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563515438_waelytwoy",
-                        "opponentActionId": "action_1768563521104_ln4i1w919",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 2000
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563515438_waelytwoy",
-                        "opponentActionId": "action_1768563540040_hpjsgguwo",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 2000
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563515438_waelytwoy",
-                        "opponentActionId": "action_1768563545886_2shig2cmp",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1500
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563515438_waelytwoy",
-                        "opponentActionId": "action_1768565012018_t8dl58krt",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768565086736_jtasbecz6",
-                        "opponentActionId": "action_1768563521104_ln4i1w919",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768565086736_jtasbecz6",
-                        "opponentActionId": "action_1768563540040_hpjsgguwo",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768565086736_jtasbecz6",
-                        "opponentActionId": "action_1768563545886_2shig2cmp",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 1000
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768565086736_jtasbecz6",
-                        "opponentActionId": "action_1768565012018_t8dl58krt",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3910
-                            }
-                        ]
-                    }
-                ]
+                transitions: [
+                    { playerActionId: closeTcActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2160 }] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
+                ],
             },
             {
-                "situationId": "situation_1768562328142_adqu7v5tb",
-                "description": "投げ間合い +3F",
-                "playerActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768563727245_6f13679cf",
-                            "name": "投げ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768564316704_uk4rn55oq",
-                            "name": "コマ投げ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768564321626_s6cx8rwca",
-                            "name": "シミー",
-                            "description": ""
-                        }
-                    ]
+                situationId: throwRangeSituationId,
+                description: '投げ間合い +3F',
+                playerActions: {
+                    actions: [
+                        { actionId: throwThrowActionId, name: '投げ', description: '' },
+                        { actionId: throwCommandThrowActionId, name: 'コマ投げ', description: '' },
+                        { actionId: throwShimmyActionId, name: 'シミー', description: '' },
+                    ],
                 },
-                "opponentActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768564332974_wq5lqi8cz",
-                            "name": "遅らせグラップ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768564341884_hab2cwuau",
-                            "name": "無敵暴れ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768564353897_jy1c67jrh",
-                            "name": "垂直ジャンプ",
-                            "description": ""
-                        }
-                    ]
+                opponentActions: {
+                    actions: [
+                        { actionId: throwDelayGrapActionId, name: '遅らせグラップ', description: '' },
+                        { actionId: throwInvincibleActionId, name: '無敵暴れ', description: '' },
+                        { actionId: throwJumpActionId, name: '垂直ジャンプ', description: '' },
+                    ],
                 },
-                "transitions": [
-                    {
-                        "playerActionId": "action_1768563727245_6f13679cf",
-                        "opponentActionId": "action_1768564332974_wq5lqi8cz",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768563727245_6f13679cf",
-                        "opponentActionId": "action_1768564341884_hab2cwuau",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768563727245_6f13679cf",
-                        "opponentActionId": "action_1768564353897_jy1c67jrh",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1500
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768564316704_uk4rn55oq",
-                        "opponentActionId": "action_1768564332974_wq5lqi8cz",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 2000
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768564316704_uk4rn55oq",
-                        "opponentActionId": "action_1768564341884_hab2cwuau",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768564316704_uk4rn55oq",
-                        "opponentActionId": "action_1768564353897_jy1c67jrh",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1500
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768564321626_s6cx8rwca",
-                        "opponentActionId": "action_1768564332974_wq5lqi8cz",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3760
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768564321626_s6cx8rwca",
-                        "opponentActionId": "action_1768564341884_hab2cwuau",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3910
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768564321626_s6cx8rwca",
-                        "opponentActionId": "action_1768564353897_jy1c67jrh",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 1000
-                            }
-                        ]
-                    }
-                ]
+                transitions: [
+                    { playerActionId: throwThrowActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: throwThrowActionId, opponentActionId: throwInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: throwThrowActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
+                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }] },
+                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
+                    { playerActionId: throwShimmyActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3760 }] },
+                    { playerActionId: throwShimmyActionId, opponentActionId: throwInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
+                    { playerActionId: throwShimmyActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }] },
+                ],
             },
             {
-                "situationId": "situation_1768562534072_airzum1nt",
-                "description": "前ステ後 +25F",
-                "playerActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768562856650_fx896zwox",
-                            "name": "歩き投げ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768562866618_h6qt5hi5l",
-                            "name": "タメ膝",
-                            "description": "ガード時 +3F, ヒット時コンボ"
-                        },
-                        {
-                            "actionId": "action_1768562909931_ucaj841jg",
-                            "name": "シミー",
-                            "description": ""
-                        }
-                    ]
+                situationId: afterDashSituationId,
+                description: '前ステ後 +25F',
+                playerActions: {
+                    actions: [
+                        { actionId: dashWalkThrowActionId, name: '歩き投げ', description: '' },
+                        { actionId: dashKneeActionId, name: 'タメ膝', description: 'ガード時 +3F, ヒット時コンボ' },
+                        { actionId: dashShimmyActionId, name: 'シミー', description: '' },
+                    ],
                 },
-                "opponentActions": {
-                    "actions": [
-                        {
-                            "actionId": "action_1768562931257_ex1f6p8u0",
-                            "name": "ガード",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768562947089_0t6sdytbu",
-                            "name": "垂直ジャンプ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768562987704_l5gyoqv4y",
-                            "name": "無敵暴れ",
-                            "description": ""
-                        },
-                        {
-                            "actionId": "action_1768563014357_uizbd9ph1",
-                            "name": "投げ抜け",
-                            "description": ""
-                        }
-                    ]
+                opponentActions: {
+                    actions: [
+                        { actionId: dashGuardActionId, name: 'ガード', description: '' },
+                        { actionId: dashJumpActionId, name: '垂直ジャンプ', description: '' },
+                        { actionId: dashInvincibleActionId, name: '無敵暴れ', description: '' },
+                        { actionId: dashThrowEscapeActionId, name: '投げ抜け', description: '' },
+                    ],
                 },
-                "transitions": [
-                    {
-                        "playerActionId": "action_1768562856650_fx896zwox",
-                        "opponentActionId": "action_1768562931257_ex1f6p8u0",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 1200
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562856650_fx896zwox",
-                        "opponentActionId": "action_1768562947089_0t6sdytbu",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 2500
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562856650_fx896zwox",
-                        "opponentActionId": "action_1768562987704_l5gyoqv4y",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562856650_fx896zwox",
-                        "opponentActionId": "action_1768563014357_uizbd9ph1",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768562866618_h6qt5hi5l",
-                        "opponentActionId": "action_1768562931257_ex1f6p8u0",
-                        "nextSituationId": "situation_1768562328142_adqu7v5tb",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768562866618_h6qt5hi5l",
-                        "opponentActionId": "action_1768562947089_0t6sdytbu",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3560
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562866618_h6qt5hi5l",
-                        "opponentActionId": "action_1768562987704_l5gyoqv4y",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 1,
-                                "value": 1600
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562866618_h6qt5hi5l",
-                        "opponentActionId": "action_1768563014357_uizbd9ph1",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3560
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562909931_ucaj841jg",
-                        "opponentActionId": "action_1768562931257_ex1f6p8u0",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": []
-                    },
-                    {
-                        "playerActionId": "action_1768562909931_ucaj841jg",
-                        "opponentActionId": "action_1768562947089_0t6sdytbu",
-                        "nextSituationId": "situation_1768562188643_3jwicvshw",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 1000
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562909931_ucaj841jg",
-                        "opponentActionId": "action_1768562987704_l5gyoqv4y",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3910
-                            }
-                        ]
-                    },
-                    {
-                        "playerActionId": "action_1768562909931_ucaj841jg",
-                        "opponentActionId": "action_1768563014357_uizbd9ph1",
-                        "nextSituationId": "situation_1768562188643_aim9qkpt0",
-                        "resourceConsumptions": [
-                            {
-                                "resourceType": 2,
-                                "value": 3910
-                            }
-                        ]
-                    }
-                ]
-            }
+                transitions: [
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashGuardActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 2500 }] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashGuardActionId, nextSituationId: throwRangeSituationId, resourceConsumptions: [] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashJumpActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3560 }] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3560 }] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashGuardActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
+                ],
+            },
         ],
-        "terminalSituations": [
+        terminalSituations: [
             {
-                "situationId": "situation_1768562188643_3jwicvshw",
-                "name": "ニュートラル",
-                "description": "",
-                "cornerState": 1
-            }
+                situationId: neutralTerminalId,
+                name: 'ニュートラル',
+                description: '',
+                cornerState: CornerState.NONE,
+            },
         ],
-        "initialDynamicState": {
-            "resources": [
-                {
-                    "resourceType": 1,
-                    "value": 10000
-                },
-                {
-                    "resourceType": 2,
-                    "value": 7000
-                }
-            ]
+        initialDynamicState: {
+            resources: [
+                { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
+                { resourceType: ResourceType.OPPONENT_HEALTH, value: 7000 },
+            ],
         },
-        "rewardComputationMethod": {
-            "method": {
-                "oneofKind": "damageRace",
-                "damageRace": {}
-            }
-        }
-    } as GameDefinition;
+        rewardComputationMethod: {
+            method: {
+                oneofKind: 'damageRace',
+                damageRace: {},
+            },
+        },
+    };
 }

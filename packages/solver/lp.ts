@@ -52,14 +52,14 @@ interface LPResult {
 class LPNode {
     nodeId: string;
     isTerminal: boolean;
-    playerActions: string[];
-    opponentActions: string[];
+    playerActions: number[];
+    opponentActions: number[];
     children: Map<string, LPNode>; // key: `${playerActionId}-${opponentActionId}`
     rewards: Map<string, [number, number]>; // [playerReward, opponentReward]
 
     // LP solution results
-    playerStrategy: Map<string, number>; // action -> probability
-    opponentStrategy: Map<string, number>; // action -> probability
+    playerStrategy: Map<number, number>; // action -> probability
+    opponentStrategy: Map<number, number>; // action -> probability
     playerValue: number; // expected payoff for player
     opponentValue: number; // expected payoff for opponent
 
@@ -563,7 +563,7 @@ export class LPSolver {
     /**
      * Get average strategy for a node (player)
      */
-    public getAverageStrategy(nodeId: string): Map<string, number> | null {
+    public getAverageStrategy(nodeId: string): Map<number, number> | null {
         const node = this.nodes.get(nodeId);
         if (!node) {
             return null;
@@ -572,7 +572,7 @@ export class LPSolver {
         // Return computed strategy
         if (node.playerStrategy.size === 0 && node.playerActions.length > 0) {
             // Return uniform if not solved yet
-            const strategy = new Map<string, number>();
+            const strategy = new Map<number, number>();
             const uniformProb = 1.0 / node.playerActions.length;
             for (const action of node.playerActions) {
                 strategy.set(action, uniformProb);
@@ -586,7 +586,7 @@ export class LPSolver {
     /**
      * Get average strategy for opponent at a node
      */
-    public getAverageOpponentStrategy(nodeId: string): Map<string, number> | null {
+    public getAverageOpponentStrategy(nodeId: string): Map<number, number> | null {
         const node = this.nodes.get(nodeId);
         if (!node) {
             return null;
@@ -595,7 +595,7 @@ export class LPSolver {
         // Return computed strategy
         if (node.opponentStrategy.size === 0 && node.opponentActions.length > 0) {
             // Return uniform if not solved yet
-            const strategy = new Map<string, number>();
+            const strategy = new Map<number, number>();
             const uniformProb = 1.0 / node.opponentActions.length;
             for (const action of node.opponentActions) {
                 strategy.set(action, uniformProb);
@@ -609,7 +609,7 @@ export class LPSolver {
     /**
      * Get average strategy for the root node
      */
-    public getRootStrategy(): Map<string, number> | null {
+    public getRootStrategy(): Map<number, number> | null {
         return this.getAverageStrategy(this.gameTree.root);
     }
 }

@@ -14,7 +14,7 @@ export function validateGameDefinition(gameDefinition: GameDefinition): Validati
     const errors: ValidationError[] = [];
 
     // Validate rootSituationId exists
-    const allSituationIds = new Set<string>();
+    const allSituationIds = new Set<number>();
     gameDefinition.situations.forEach((s) => allSituationIds.add(s.situationId));
     gameDefinition.terminalSituations.forEach((t) => allSituationIds.add(t.situationId));
 

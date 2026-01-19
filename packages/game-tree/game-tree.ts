@@ -5,7 +5,7 @@ export interface Reward {
 }
 
 export interface Action {
-    actionId: string;
+    actionId: number;
     name: string;
     description: string;
 }
@@ -20,15 +20,15 @@ export interface SituationCell {
 }
 
 export interface State {
-    situation_id?: string;
+    situation_id?: number;
 
     playerHealth: number;
     opponentHealth: number;
 }
 
 export interface NodeTransition {
-    playerActionId: string;
-    opponentActionId: string;
+    playerActionId: number;
+    opponentActionId: number;
     nextNodeId: string;
 }
 
@@ -52,7 +52,7 @@ export interface Node {
 }
 
 export interface GameTree {
-    id: string;
+    id: number;
     root: string; // root node id
     nodes: Record<string, Node>; // all nodes in the tree, keyed by node id
 }

@@ -131,12 +131,12 @@ const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(d
 const { closeValidationErrors } = definitionStore;
 
 const selectedItemType = ref<'situation' | 'terminal-situation' | null>(null);
-const selectedSituationId = ref<string | null>(null);
-const selectedTerminalSituationId = ref<string | null>(null);
+const selectedSituationId = ref<number | null>(null);
+const selectedTerminalSituationId = ref<number | null>(null);
 
 const situationItems = computed(() => {
   return [
-    { title: '選択してください', value: '' },
+    { title: '選択してください', value: 0 },
     ...gameDefinition.value.situations.map((s) => ({
       title: s.description || '(説明なし)',
       value: s.situationId,
@@ -162,13 +162,13 @@ const selectedTerminalSituation = computed(() => {
   );
 });
 
-function selectSituation(situationId: string) {
+function selectSituation(situationId: number) {
   selectedItemType.value = 'situation';
   selectedSituationId.value = situationId;
   selectedTerminalSituationId.value = null;
 }
 
-function selectTerminalSituation(terminalSituationId: string) {
+function selectTerminalSituation(terminalSituationId: number) {
   selectedItemType.value = 'terminal-situation';
   selectedTerminalSituationId.value = terminalSituationId;
   selectedSituationId.value = null;
@@ -212,7 +212,7 @@ function deleteSituation() {
         gameDefinition.value.rootSituationId =
           gameDefinition.value.terminalSituations[0].situationId;
       } else {
-        gameDefinition.value.rootSituationId = '';
+        gameDefinition.value.rootSituationId = 0;
       }
     }
 
@@ -269,7 +269,7 @@ function deleteTerminalSituation() {
         gameDefinition.value.rootSituationId =
           gameDefinition.value.terminalSituations[0].situationId;
       } else {
-        gameDefinition.value.rootSituationId = '';
+        gameDefinition.value.rootSituationId = 0;
       }
     }
 

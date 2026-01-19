@@ -73,8 +73,8 @@
               <div class="transition-inputs">
                 <div class="next-situation-row">
                   <v-select
-                    :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || ''"
-                    @update:model-value="(value: string) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
+                    :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
+                    @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
                     :items="nextSituationItems" item-title="title" item-value="value" label="次の状況" density="compact"
                     variant="outlined" hide-details />
                 </div>
@@ -129,8 +129,8 @@ const emit = defineEmits<{
 }>();
 
 const nextSituationItems = computed(() => {
-  const items: Array<{ title: string; value: string }> = [
-    { title: '次の状況を選択してください', value: '' },
+  const items: Array<{ title: string; value: number }> = [
+    { title: '次の状況を選択してください', value: 0 },
   ];
 
   if (props.availableSituations.length > 0) {
@@ -158,7 +158,7 @@ const resourceTypeItems = computed(() => [
 function addPlayerAction() {
   if (!model.value.playerActions) return;
   model.value.playerActions.actions.push({
-    actionId: generateId('action'),
+    actionId: generateId(),
     name: '',
     description: '',
   });
@@ -179,7 +179,7 @@ function removePlayerAction(index: number) {
 function addOpponentAction() {
   if (!model.value.opponentActions) return;
   model.value.opponentActions.actions.push({
-    actionId: generateId('action'),
+    actionId: generateId(),
     name: '',
     description: '',
   });
@@ -215,7 +215,7 @@ function updateTransitions() {
         newTransitions.push({
           playerActionId: playerAction.actionId,
           opponentActionId: oppAction.actionId,
-          nextSituationId: '',
+          nextSituationId: 0,
           resourceConsumptions: [],
         });
       }
@@ -225,8 +225,8 @@ function updateTransitions() {
 }
 
 function getTransition(
-  playerActionId: string,
-  opponentActionId: string
+  playerActionId: number,
+  opponentActionId: number
 ): Transition | undefined {
   return model.value.transitions.find(
     (t) => t.playerActionId === playerActionId && t.opponentActionId === opponentActionId
@@ -234,9 +234,9 @@ function getTransition(
 }
 
 function updateNextSituationId(
-  playerActionId: string,
-  opponentActionId: string,
-  nextSituationId: string
+  playerActionId: number,
+  opponentActionId: number,
+  nextSituationId: number
 ) {
   const transition = getTransition(playerActionId, opponentActionId);
   if (transition) {
@@ -244,7 +244,7 @@ function updateNextSituationId(
   }
 }
 
-function addResourceConsumption(playerActionId: string, opponentActionId: string) {
+function addResourceConsumption(playerActionId: number, opponentActionId: number) {
   const transition = getTransition(playerActionId, opponentActionId);
   if (transition) {
     if (!transition.resourceConsumptions) {
@@ -258,8 +258,8 @@ function addResourceConsumption(playerActionId: string, opponentActionId: string
 }
 
 function removeResourceConsumption(
-  playerActionId: string,
-  opponentActionId: string,
+  playerActionId: number,
+  opponentActionId: number,
   index: number
 ) {
   const transition = getTransition(playerActionId, opponentActionId);
@@ -269,8 +269,8 @@ function removeResourceConsumption(
 }
 
 function updateResourceConsumption(
-  playerActionId: string,
-  opponentActionId: string,
+  playerActionId: number,
+  opponentActionId: number,
   index: number,
   field: 'type' | 'value',
   value: number
