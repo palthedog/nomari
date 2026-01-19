@@ -87,18 +87,6 @@ function formatExpectedValue(value: number | null): string {
     return Math.round(value).toLocaleString();
 }
 
-function getActionName(actionId: number): string {
-    if (!props.selectedNode) return String(actionId);
-
-    const actions =
-        props.playerType === 'player'
-            ? props.selectedNode.playerActions?.actions
-            : props.selectedNode.opponentActions?.actions;
-
-    const action = actions?.find((a) => a.actionId === actionId);
-    return action?.name || String(actionId);
-}
-
 function getActionExpectedValue(actionId: number): number | null {
     if (!nodeExpectedValues.value) {
         return null;
@@ -185,6 +173,10 @@ function getActionCalculation(actionId: number): CalculationRow[] {
     return rows;
 }
 
+function getActionName(actionId: number): string {
+    return getActionNameForType(actionId, props.playerType);
+}
+
 function getActionNameForType(actionId: number, type: 'player' | 'opponent'): string {
     if (!props.selectedNode) return String(actionId);
 
@@ -194,7 +186,7 @@ function getActionNameForType(actionId: number, type: 'player' | 'opponent'): st
             : props.selectedNode.opponentActions?.actions;
 
     const action = actions?.find((a) => a.actionId === actionId);
-    return action?.name || String(actionId);
+    return action?.name || '(名前なし)';
 }
 </script>
 
