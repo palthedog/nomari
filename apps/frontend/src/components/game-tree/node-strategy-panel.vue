@@ -1,75 +1,119 @@
 <template>
-    <div class="node-strategy-panel">
-        <h3>ノード戦略</h3>
+  <div class="node-strategy-panel">
+    <h3>ノード戦略</h3>
 
-        <div v-if="!selectedNode" class="no-selection">
-            <div class="no-selection-icon">🎯</div>
-            <p>ゲーム木のノードをクリックして戦略を表示</p>
-        </div>
+    <div
+      v-if="!selectedNode"
+      class="no-selection"
+    >
+      <div class="no-selection-icon">
+        🎯
+      </div>
+      <p>ゲーム木のノードをクリックして戦略を表示</p>
+    </div>
 
-        <div v-else class="node-details">
-            <!-- Node info -->
-            <div class="node-info">
-                <!--
+    <div
+      v-else
+      class="node-details"
+    >
+      <!-- Node info -->
+      <div class="node-info">
+        <!--
                 <div class="info-row">
                     <span class="label">ノードID:</span>
                     <span class="value">{{ selectedNode.nodeId }}</span>
                 </div>
                 -->
-                <div class="info-row">
-                    <span class="label">状況:</span>
-                    <span class="value">{{ selectedNode.description }}</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">HP:</span>
-                    <span class="value">
-                        プレイヤー {{ selectedNode.state.playerHealth }} /
-                        相手 {{ selectedNode.state.opponentHealth }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Terminal node indicator -->
-            <div v-if="isTerminal" class="terminal-indicator">
-                <span class="terminal-badge">終端ノード</span>
-                <div class="rewards">
-                    <span>報酬: {{ formatReward(selectedNode.playerReward?.value) }}</span>
-                </div>
-            </div>
-
-            <!-- Strategy display -->
-            <div v-else-if="hasStrategy" class="strategy-section">
-                <!-- Node expected value -->
-                <div v-if="nodeExpectedValues" class="node-expected-value">
-                    <div class="expected-value-row">
-                        <div class="expected-value-label">プレイヤー期待値:</div>
-                        <div class="expected-value-number">{{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
-                        }}</div>
-                    </div>
-                    <div class="expected-value-row" v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined">
-                        <div class="expected-value-label">相手期待値:</div>
-                        <div class="expected-value-number opponent-value">{{
-                            formatExpectedValue(nodeExpectedValues.opponentNodeExpectedValue) }}</div>
-                    </div>
-                </div>
-
-                <!-- Player strategy -->
-                <StrategyActionList v-if="playerStrategy.length > 0" :strategy="playerStrategy" player-type="player"
-                    :selected-node="selectedNode" :expected-values="expectedValues" :strategy-data="strategyData" />
-
-                <!-- Opponent strategy -->
-                <StrategyActionList v-if="opponentStrategy.length > 0" :strategy="opponentStrategy"
-                    player-type="opponent" :selected-node="selectedNode" :expected-values="expectedValues"
-                    :strategy-data="strategyData" />
-            </div>
-
-            <!-- No strategy computed yet -->
-            <div v-else class="no-strategy">
-                <p>戦略がまだ計算されていません</p>
-                <p class="hint">「戦略を計算」ボタンを押してください</p>
-            </div>
+        <div class="info-row">
+          <span class="label">状況:</span>
+          <span class="value">{{ selectedNode.description }}</span>
         </div>
+        <div class="info-row">
+          <span class="label">HP:</span>
+          <span class="value">
+            プレイヤー {{ selectedNode.state.playerHealth }} /
+            相手 {{ selectedNode.state.opponentHealth }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Terminal node indicator -->
+      <div
+        v-if="isTerminal"
+        class="terminal-indicator"
+      >
+        <span class="terminal-badge">終端ノード</span>
+        <div class="rewards">
+          <span>報酬: {{ formatReward(selectedNode.playerReward?.value) }}</span>
+        </div>
+      </div>
+
+      <!-- Strategy display -->
+      <div
+        v-else-if="hasStrategy"
+        class="strategy-section"
+      >
+        <!-- Node expected value -->
+        <div
+          v-if="nodeExpectedValues"
+          class="node-expected-value"
+        >
+          <div class="expected-value-row">
+            <div class="expected-value-label">
+              プレイヤー期待値:
+            </div>
+            <div class="expected-value-number">
+              {{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
+              }}
+            </div>
+          </div>
+          <div
+            v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined"
+            class="expected-value-row"
+          >
+            <div class="expected-value-label">
+              相手期待値:
+            </div>
+            <div class="expected-value-number opponent-value">
+              {{
+                formatExpectedValue(nodeExpectedValues.opponentNodeExpectedValue) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Player strategy -->
+        <StrategyActionList
+          v-if="playerStrategy.length > 0"
+          :strategy="playerStrategy"
+          player-type="player"
+          :selected-node="selectedNode"
+          :expected-values="expectedValues"
+          :strategy-data="strategyData"
+        />
+
+        <!-- Opponent strategy -->
+        <StrategyActionList
+          v-if="opponentStrategy.length > 0"
+          :strategy="opponentStrategy"
+          player-type="opponent"
+          :selected-node="selectedNode"
+          :expected-values="expectedValues"
+          :strategy-data="strategyData"
+        />
+      </div>
+
+      <!-- No strategy computed yet -->
+      <div
+        v-else
+        class="no-strategy"
+      >
+        <p>戦略がまだ計算されていません</p>
+        <p class="hint">
+          「戦略を計算」ボタンを押してください
+        </p>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -87,7 +131,7 @@ const props = defineProps<{
 
 // Computed properties
 const isTerminal = computed(() => {
-    if (!props.selectedNode) return false;
+    if (!props.selectedNode) {return false;}
     return (
         props.selectedNode.playerReward !== undefined ||
         props.selectedNode.opponentReward !== undefined
@@ -116,12 +160,12 @@ const nodeExpectedValues = computed(() => {
 
 // Helper functions
 function formatReward(value: number | undefined): string {
-    if (value === undefined) return '-';
+    if (value === undefined) {return '-';}
     return Math.round(value).toLocaleString();
 }
 
 function formatExpectedValue(value: number | null): string {
-    if (value === null) return '-';
+    if (value === null) {return '-';}
     return Math.round(value).toLocaleString();
 }
 </script>

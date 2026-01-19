@@ -1,40 +1,60 @@
 <template>
-    <div class="reward-computation-method-editor">
-        <h4>報酬計算方法</h4>
+  <div class="reward-computation-method-editor">
+    <h4>報酬計算方法</h4>
 
-        <div class="method-selection">
-            <label class="radio-option">
-                <input type="radio" value="damageRace" :checked="selectedMethod === 'damageRace'"
-                    @change="selectMethod('damageRace')">
-                <span>ダメージレース</span>
-            </label>
-            <label class="radio-option">
-                <input type="radio" value="winProbability" :checked="selectedMethod === 'winProbability'"
-                    @change="selectMethod('winProbability')">
-                <span>勝率ベース</span>
-            </label>
-        </div>
-
-        <!-- Description for Damage Race -->
-        <div v-if="selectedMethod === 'damageRace'" class="damage-race-settings">
-            <div class="help-text">
-                与えたダメージ - 受けたダメージ をそのまま報酬として使用します。
-            </div>
-        </div>
-
-        <!-- Description for Win Probability -->
-        <div v-if="selectedMethod === 'winProbability'" class="win-probability-settings">
-            <div class="form-group">
-                <label for="corner-penalty">画面端 ペナルティ:</label>
-                <input id="corner-penalty" type="number" min="0" max="10000" step="100" :value="cornerPenalty"
-                    @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))">
-                <div class="help-text">
-                    画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します。
-                </div>
-            </div>
-        </div>
-
+    <div class="method-selection">
+      <label class="radio-option">
+        <input
+          type="radio"
+          value="damageRace"
+          :checked="selectedMethod === 'damageRace'"
+          @change="selectMethod('damageRace')"
+        >
+        <span>ダメージレース</span>
+      </label>
+      <label class="radio-option">
+        <input
+          type="radio"
+          value="winProbability"
+          :checked="selectedMethod === 'winProbability'"
+          @change="selectMethod('winProbability')"
+        >
+        <span>勝率ベース</span>
+      </label>
     </div>
+
+    <!-- Description for Damage Race -->
+    <div
+      v-if="selectedMethod === 'damageRace'"
+      class="damage-race-settings"
+    >
+      <div class="help-text">
+        与えたダメージ - 受けたダメージ をそのまま報酬として使用します。
+      </div>
+    </div>
+
+    <!-- Description for Win Probability -->
+    <div
+      v-if="selectedMethod === 'winProbability'"
+      class="win-probability-settings"
+    >
+      <div class="form-group">
+        <label for="corner-penalty">画面端 ペナルティ:</label>
+        <input
+          id="corner-penalty"
+          type="number"
+          min="0"
+          max="10000"
+          step="100"
+          :value="cornerPenalty"
+          @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))"
+        >
+        <div class="help-text">
+          画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します。
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

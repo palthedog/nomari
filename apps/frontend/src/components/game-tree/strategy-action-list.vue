@@ -1,49 +1,83 @@
 <template>
-    <div v-if="strategy.length > 0" class="strategy-group">
-        <h4>{{ playerType === 'player' ? 'プレイヤー戦略' : '相手戦略' }}</h4>
-        <div class="action-list">
-            <v-tooltip v-for="action in strategy" :key="action.actionId" location="right" :open-delay="50"
-                :close-delay="playerType === 'player' ? 0 : undefined" :transition="false" :interactive="true"
-                :disabled="getActionCalculation(action.actionId).length === 0" content-class="calculation-tooltip">
-                <template #activator="{ props: tooltipProps }">
-                    <div v-bind="tooltipProps" class="action-row">
-                        <div class="action-info">
-                            <div class="action-name-row">
-                                <span class="action-name">{{ getActionName(action.actionId) }}</span>
-                                <span class="action-expected-value"
-                                    v-if="getActionExpectedValue(action.actionId) !== null">
-                                    期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
-                                </span>
-                            </div>
-                            <span class="action-prob">{{ formatPercent(action.probability) }}</span>
-                        </div>
-                        <div class="prob-bar">
-                            <div class="prob-fill" :class="playerType === 'player' ? 'player-fill' : 'opponent-fill'"
-                                :style="{ width: action.probability * 100 + '%' }">
-                            </div>
-                        </div>
-                    </div>
-                </template>
-                <template #default>
-                    <table class="calculation-table">
-                        <tbody>
-                            <tr v-for="row in getActionCalculation(action.actionId)" :key="row.actionName"
-                                @mouseenter="gameTreeStore.highlightNode(row.nextNodeId)"
-                                @mouseleave="gameTreeStore.highlightNode(null)"
-                                @click="gameTreeStore.selectNode(row.nextNodeId)" class="calc-row">
-                                <td class="calc-action-name">{{ row.actionName }}</td>
-                                <td class="calc-value">{{ Math.round(row.nextNodeValue) }}</td>
-                                <td class="calc-operator">*</td>
-                                <td class="calc-prob">{{ (row.probability * 100).toFixed(1) }}%</td>
-                                <td class="calc-operator">=</td>
-                                <td class="calc-product">{{ Math.round(row.product) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </template>
-            </v-tooltip>
-        </div>
+  <div
+    v-if="strategy.length > 0"
+    class="strategy-group"
+  >
+    <h4>{{ playerType === 'player' ? 'プレイヤー戦略' : '相手戦略' }}</h4>
+    <div class="action-list">
+      <v-tooltip
+        v-for="action in strategy"
+        :key="action.actionId"
+        location="right"
+        :open-delay="50"
+        :close-delay="playerType === 'player' ? 0 : undefined"
+        :transition="false"
+        :interactive="true"
+        :disabled="getActionCalculation(action.actionId).length === 0"
+        content-class="calculation-tooltip"
+      >
+        <template #activator="{ props: tooltipProps }">
+          <div
+            v-bind="tooltipProps"
+            class="action-row"
+          >
+            <div class="action-info">
+              <div class="action-name-row">
+                <span class="action-name">{{ getActionName(action.actionId) }}</span>
+                <span
+                  v-if="getActionExpectedValue(action.actionId) !== null"
+                  class="action-expected-value"
+                >
+                  期待値: {{ formatExpectedValue(getActionExpectedValue(action.actionId)) }}
+                </span>
+              </div>
+              <span class="action-prob">{{ formatPercent(action.probability) }}</span>
+            </div>
+            <div class="prob-bar">
+              <div
+                class="prob-fill"
+                :class="playerType === 'player' ? 'player-fill' : 'opponent-fill'"
+                :style="{ width: action.probability * 100 + '%' }"
+              />
+            </div>
+          </div>
+        </template>
+        <template #default>
+          <table class="calculation-table">
+            <tbody>
+              <tr
+                v-for="row in getActionCalculation(action.actionId)"
+                :key="row.actionName"
+                class="calc-row"
+                @mouseenter="gameTreeStore.highlightNode(row.nextNodeId)"
+                @mouseleave="gameTreeStore.highlightNode(null)"
+                @click="gameTreeStore.selectNode(row.nextNodeId)"
+              >
+                <td class="calc-action-name">
+                  {{ row.actionName }}
+                </td>
+                <td class="calc-value">
+                  {{ Math.round(row.nextNodeValue) }}
+                </td>
+                <td class="calc-operator">
+                  *
+                </td>
+                <td class="calc-prob">
+                  {{ (row.probability * 100).toFixed(1) }}%
+                </td>
+                <td class="calc-operator">
+                  =
+                </td>
+                <td class="calc-product">
+                  {{ Math.round(row.product) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+      </v-tooltip>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -83,7 +117,7 @@ function formatPercent(value: number): string {
 }
 
 function formatExpectedValue(value: number | null): string {
-    if (value === null) return '-';
+    if (value === null) {return '-';}
     return Math.round(value).toLocaleString();
 }
 
@@ -178,7 +212,7 @@ function getActionName(actionId: number): string {
 }
 
 function getActionNameForType(actionId: number, type: 'player' | 'opponent'): string {
-    if (!props.selectedNode) return String(actionId);
+    if (!props.selectedNode) {return String(actionId);}
 
     const actions =
         type === 'player'

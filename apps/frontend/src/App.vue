@@ -5,14 +5,23 @@
       <div class="header-content">
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
-          <button v-for="mode in viewModes" :key="mode.id" type="button" class="mode-btn"
-            :class="{ active: viewMode === mode.id }" @click="viewStore.setViewMode(mode.id)">
+          <button
+            v-for="mode in viewModes"
+            :key="mode.id"
+            type="button"
+            class="mode-btn"
+            :class="{ active: viewMode === mode.id }"
+            @click="viewStore.setViewMode(mode.id)"
+          >
             {{ mode.label }}
           </button>
         </div>
 
         <div class="header-actions">
-          <button type="button" @click="exportJSON">
+          <button
+            type="button"
+            @click="exportJSON"
+          >
             JSONでエクスポート
           </button>
         </div>
@@ -26,14 +35,20 @@
           <GameDefinitionEditor v-model="gameDefinition" />
         </div>
         <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
+          <GameTreeBuildPanel
+            v-model="gameDefinition"
+            @update="updateGameTree"
+          />
         </div>
       </template>
 
       <!-- Game Tree Mode: GameTreeBuildPanel | GameTreeVisualization -->
       <template v-else-if="viewMode === 'game-tree'">
         <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTreeOnly" />
+          <GameTreeBuildPanel
+            v-model="gameDefinition"
+            @update="updateGameTreeOnly"
+          />
         </div>
         <GameTreePanel :game-tree="gameTree" />
       </template>
@@ -42,8 +57,11 @@
       <template v-else-if="viewMode === 'strategy'">
         <GameTreePanel :game-tree="gameTree" />
         <div class="strategy-section">
-          <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
-            :expected-values="expectedValues" />
+          <NodeStrategyPanel
+            :selected-node="selectedNode"
+            :strategy-data="selectedNodeStrategy"
+            :expected-values="expectedValues"
+          />
         </div>
       </template>
     </div>

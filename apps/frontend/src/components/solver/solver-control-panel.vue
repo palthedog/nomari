@@ -2,13 +2,21 @@
   <div class="solver-control-panel">
     <!-- Control buttons -->
     <div class="button-group">
-      <button type="button" class="primary-btn" :disabled="!canStart" @click="handleStart">
+      <button
+        type="button"
+        class="primary-btn"
+        :disabled="!canStart"
+        @click="handleStart"
+      >
         最適戦略を計算
       </button>
     </div>
 
     <!-- Error display -->
-    <div v-if="error" class="error-section">
+    <div
+      v-if="error"
+      class="error-section"
+    >
       <strong>エラー:</strong> {{ error }}
     </div>
   </div>

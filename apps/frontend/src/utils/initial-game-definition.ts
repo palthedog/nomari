@@ -74,7 +74,7 @@ export function createJudoGameDefinition(): GameDefinition {
         // Find opponentAction from defOpponentActions by name
         const opponentAction = defOpponentActions.find(action => action.name === opponentActionName);
 
-        let resourceConsumptions: ResourceConsumption[] = [];
+        const resourceConsumptions: ResourceConsumption[] = [];
         if (playerDamage > 0) {
             resourceConsumptions.push(generateResourceConsumption(ResourceType.PLAYER_HEALTH, playerDamage));
         }

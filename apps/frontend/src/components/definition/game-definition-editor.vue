@@ -3,27 +3,54 @@
     <div class="header">
       <div class="header-controls">
         <!-- Game ID-->
-        <div class="form-group" v-show="false">
-          <v-text-field v-model="gameDefinition.gameId" label="Game ID" density="compact" variant="outlined"
-            hide-details />
+        <div
+          v-show="false"
+          class="form-group"
+        >
+          <v-text-field
+            v-model="gameDefinition.gameId"
+            label="Game ID"
+            density="compact"
+            variant="outlined"
+            hide-details
+          />
         </div>
 
         <!-- Name-->
         <div class="form-group">
-          <v-text-field v-model="gameDefinition.name" label="名前" placeholder="例:" density="compact" variant="outlined"
-            hide-details />
+          <v-text-field
+            v-model="gameDefinition.name"
+            label="名前"
+            placeholder="例:"
+            density="compact"
+            variant="outlined"
+            hide-details
+          />
         </div>
 
         <!-- Root Situation-->
         <div class="form-group">
-          <v-select v-model="gameDefinition.rootSituationId" :items="situationItems" item-title="title"
-            item-value="value" label="初期状況" density="compact" variant="outlined" hide-details />
+          <v-select
+            v-model="gameDefinition.rootSituationId"
+            :items="situationItems"
+            item-title="title"
+            item-value="value"
+            label="初期状況"
+            density="compact"
+            variant="outlined"
+            hide-details
+          />
         </div>
 
         <!-- Description-->
         <div class="form-group form-description">
-          <v-text-field v-model="gameDefinition.description" label="説明" density="compact" variant="outlined"
-            hide-details />
+          <v-text-field
+            v-model="gameDefinition.description"
+            label="説明"
+            density="compact"
+            variant="outlined"
+            hide-details
+          />
         </div>
       </div>
     </div>
@@ -37,12 +64,19 @@
               <h4>状況</h4>
             </div>
             <ul class="section-list">
-              <li v-for="situation in gameDefinition.situations" :key="situation.situationId"
-                class="section-item situation-item" :class="{ active: selectedSituationId === situation.situationId }"
-                @click="selectSituation(situation.situationId)">
+              <li
+                v-for="situation in gameDefinition.situations"
+                :key="situation.situationId"
+                class="section-item situation-item"
+                :class="{ active: selectedSituationId === situation.situationId }"
+                @click="selectSituation(situation.situationId)"
+              >
                 {{ situation.description || '(説明なし)' }}
               </li>
-              <li class="section-item add-button" @click="addSituation">
+              <li
+                class="section-item add-button"
+                @click="addSituation"
+              >
                 <span class="add-icon">+</span>
                 追加
               </li>
@@ -55,13 +89,19 @@
               <h4>終了条件</h4>
             </div>
             <ul class="section-list">
-              <li v-for="terminal in gameDefinition.terminalSituations" :key="terminal.situationId"
+              <li
+                v-for="terminal in gameDefinition.terminalSituations"
+                :key="terminal.situationId"
                 class="section-item terminal-situation-item"
                 :class="{ active: selectedTerminalSituationId === terminal.situationId }"
-                @click="selectTerminalSituation(terminal.situationId)">
+                @click="selectTerminalSituation(terminal.situationId)"
+              >
                 {{ terminal.name || '(名前なし)' }}
               </li>
-              <li class="section-item add-button" @click="addTerminalSituation">
+              <li
+                class="section-item add-button"
+                @click="addTerminalSituation"
+              >
                 <span class="add-icon">+</span>
                 追加
               </li>
@@ -72,13 +112,24 @@
 
       <div class="right-panel">
         <div class="panel-content">
-          <SituationEditor v-if="selectedSituation" :model-value="selectedSituation"
+          <SituationEditor
+            v-if="selectedSituation"
+            :model-value="selectedSituation"
             :available-situations="gameDefinition.situations"
-            :available-terminal-situations="gameDefinition.terminalSituations" @update:model-value="updateSituation"
-            @delete="deleteSituation" />
-          <TerminalSituationEditor v-else-if="selectedTerminalSituation" :model-value="selectedTerminalSituation"
-            @update:model-value="updateTerminalSituation" @delete="deleteTerminalSituation" />
-          <div v-else class="no-selection">
+            :available-terminal-situations="gameDefinition.terminalSituations"
+            @update:model-value="updateSituation"
+            @delete="deleteSituation"
+          />
+          <TerminalSituationEditor
+            v-else-if="selectedTerminalSituation"
+            :model-value="selectedTerminalSituation"
+            @update:model-value="updateTerminalSituation"
+            @delete="deleteTerminalSituation"
+          />
+          <div
+            v-else
+            class="no-selection"
+          >
             <p>編集する要素を選択してください</p>
           </div>
         </div>
@@ -88,21 +139,43 @@
     <v-bottom-sheet v-model="showValidationErrors">
       <v-card class="validation-errors-sheet">
         <v-card-title class="validation-errors-header">
-          <v-icon color="error" class="mr-2">mdi-alert-circle</v-icon>
+          <v-icon
+            color="error"
+            class="mr-2"
+          >
+            mdi-alert-circle
+          </v-icon>
           バリデーションエラー
           <v-spacer />
-          <v-btn icon variant="text" @click="closeValidationErrors">
+          <v-btn
+            icon
+            variant="text"
+            @click="closeValidationErrors"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text class="validation-errors-content">
           <v-list density="compact">
-            <v-list-item v-for="(error, index) in validationErrors" :key="index" class="validation-error-item">
+            <v-list-item
+              v-for="(error, index) in validationErrors"
+              :key="index"
+              class="validation-error-item"
+            >
               <template #prepend>
-                <v-icon color="error" size="small">mdi-alert</v-icon>
+                <v-icon
+                  color="error"
+                  size="small"
+                >
+                  mdi-alert
+                </v-icon>
               </template>
-              <v-list-item-title class="error-field">{{ error.field }}</v-list-item-title>
-              <v-list-item-subtitle class="error-message">{{ error.message }}</v-list-item-subtitle>
+              <v-list-item-title class="error-field">
+                {{ error.field }}
+              </v-list-item-title>
+              <v-list-item-subtitle class="error-message">
+                {{ error.message }}
+              </v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card-text>
@@ -145,7 +218,7 @@ const situationItems = computed(() => {
 });
 
 const selectedSituation = computed(() => {
-  if (!selectedSituationId.value) return null;
+  if (!selectedSituationId.value) {return null;}
   return (
     gameDefinition.value.situations.find(
       (s) => s.situationId === selectedSituationId.value
@@ -154,7 +227,7 @@ const selectedSituation = computed(() => {
 });
 
 const selectedTerminalSituation = computed(() => {
-  if (!selectedTerminalSituationId.value) return null;
+  if (!selectedTerminalSituationId.value) {return null;}
   return (
     gameDefinition.value.terminalSituations.find(
       (t) => t.situationId === selectedTerminalSituationId.value
@@ -190,7 +263,7 @@ function updateSituation(updatedSituation: Situation) {
 }
 
 function deleteSituation() {
-  if (!selectedSituationId.value) return;
+  if (!selectedSituationId.value) {return;}
 
   const situationId = selectedSituationId.value;
   const index = gameDefinition.value.situations.findIndex((s) => s.situationId === situationId);
@@ -245,7 +318,7 @@ function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
 }
 
 function deleteTerminalSituation() {
-  if (!selectedTerminalSituationId.value) return;
+  if (!selectedTerminalSituationId.value) {return;}
 
   const terminalSituationId = selectedTerminalSituationId.value;
   const index = gameDefinition.value.terminalSituations.findIndex(

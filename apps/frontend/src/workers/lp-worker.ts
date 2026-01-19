@@ -120,7 +120,7 @@ self.onmessage = async (event: MessageEvent<SolverCommand>) => {
             // LP solver doesn't support resume (solves instantly)
             break;
 
-        case 'getStrategy':
+        case 'getStrategy': {
             const data = getNodeStrategyData(command.nodeId);
             postResult({
                 type: 'strategy',
@@ -128,7 +128,7 @@ self.onmessage = async (event: MessageEvent<SolverCommand>) => {
                 data,
             });
             break;
-
+        }
         case 'getAllStrategies':
             postResult({
                 type: 'allStrategies',

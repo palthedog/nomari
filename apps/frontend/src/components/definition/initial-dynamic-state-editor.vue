@@ -1,25 +1,33 @@
 <template>
-    <div class="initial-dynamic-state-editor">
-        <h4>初期状態</h4>
+  <div class="initial-dynamic-state-editor">
+    <h4>初期状態</h4>
 
-        <div class="resources-section">
-            <div v-for="(resource, index) in model.resources" :key="index" class="resource-row">
-                <div class="resource-label">
-                    <template v-if="resource.resourceType === ResourceType.PLAYER_HEALTH">
-                        プレイヤーの体力
-                    </template>
-                    <template v-else-if="resource.resourceType === ResourceType.OPPONENT_HEALTH">
-                        相手の体力
-                    </template>
-                </div>
-
-                <div class="resource-value">
-                    <input type="number" :value="resource.value" placeholder="Value"
-                        @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))">
-                </div>
-            </div>
+    <div class="resources-section">
+      <div
+        v-for="(resource, index) in model.resources"
+        :key="index"
+        class="resource-row"
+      >
+        <div class="resource-label">
+          <template v-if="resource.resourceType === ResourceType.PLAYER_HEALTH">
+            プレイヤーの体力
+          </template>
+          <template v-else-if="resource.resourceType === ResourceType.OPPONENT_HEALTH">
+            相手の体力
+          </template>
         </div>
+
+        <div class="resource-value">
+          <input
+            type="number"
+            :value="resource.value"
+            placeholder="Value"
+            @input="updateResourceValue(index, parseFloat(($event.target as HTMLInputElement).value))"
+          >
+        </div>
+      </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -28,29 +36,26 @@ import { ResourceType } from '@mari/ts-proto';
 
 const model = defineModel<DynamicState>({ required: true });
 
-console.log('initial resources', model.value.resources);
 fillDefaultResources();
-console.log('updated resources', model.value.resources);
 
 function fillDefaultResources(): void {
-    const defaultResources: DynamicState_Resource[] = [
-        {
-            resourceType: ResourceType.PLAYER_HEALTH,
-            value: 5000,
-        },
-        {
-            resourceType: ResourceType.OPPONENT_HEALTH,
-            value: 5000,
-        },
-    ];
-    for (let i = 0; i < defaultResources.length; i++) {
-        const defResource = defaultResources[i];
-        if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
-            continue;
-        }
-        console.info('adding resource', defResource.resourceType);
-        model.value.resources.push(defResource);
+  const defaultResources: DynamicState_Resource[] = [
+    {
+      resourceType: ResourceType.PLAYER_HEALTH,
+      value: 5000,
+    },
+    {
+      resourceType: ResourceType.OPPONENT_HEALTH,
+      value: 5000,
+    },
+  ];
+  for (let i = 0; i < defaultResources.length; i++) {
+    const defResource = defaultResources[i];
+    if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
+      continue;
     }
+    model.value.resources.push(defResource);
+  }
 }
 
 /**
@@ -59,73 +64,73 @@ function fillDefaultResources(): void {
  * @param {number} value - The new value for the resource.
  */
 function updateResourceValue(index: number, value: number) {
-    if (!model.value.resources[index]) {
-        return;
-    }
-    model.value.resources[index].value = value;
+  if (!model.value.resources[index]) {
+    return;
+  }
+  model.value.resources[index].value = value;
 }
 </script>
 
 <style scoped>
 .initial-dynamic-state-editor {
-    padding: 15px;
-    border: 1px solid var(--border-primary);
-    border-radius: 4px;
-    background-color: white;
+  padding: 15px;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  background-color: white;
 }
 
 .initial-dynamic-state-editor h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
+  margin-top: 0;
+  margin-bottom: 15px;
 }
 
 .resources-section {
-    display: grid;
-    grid-template-columns: max-content auto;
-    gap: 10px;
-    align-items: center;
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: 10px;
+  align-items: center;
 }
 
 .resource-row {
-    display: contents;
+  display: contents;
 }
 
 .resource-checkbox {
-    display: flex;
-    padding: 8px;
+  display: flex;
+  padding: 8px;
 }
 
 .resource-label {
-    padding: 8px;
+  padding: 8px;
 }
 
 .resource-value {
-    display: flex;
-    min-width: 0;
+  display: flex;
+  min-width: 0;
 }
 
 .resource-value input {
-    flex: 1;
-    min-width: 0;
-    width: 100%;
-    padding: 8px;
-    border: 1px solid var(--border-input);
-    border-radius: 4px;
-    box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .resources-section>button {
-    grid-column: 1 / -1;
-    padding: 8px 15px;
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
+  grid-column: 1 / -1;
+  padding: 8px 15px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
 .resources-section>button:hover {
-    opacity: 0.8;
+  opacity: 0.8;
 }
 </style>

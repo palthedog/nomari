@@ -1,16 +1,18 @@
 <template>
   <div class="game-tree-visualization">
     <div class="game-tree-header">
-      <div class="game-tree-title">ゲーム木</div>
+      <div class="game-tree-title">
+        ゲーム木
+      </div>
       <div class="tree-stats">
         <span>ノード数: {{ nodeCount }}</span>
       </div>
     </div>
     <div class="graph-container">
-      <v-network-graph :nodes="graphNodes" :edges="graphEdges" :layouts="layouts" :configs="configs"
-        :event-handlers="eventHandlers" v-model:selected-nodes="selectedNodes">
+      <v-network-graph v-model:selected-nodes="selectedNodes" :nodes="graphNodes" :edges="graphEdges" :layouts="layouts"
+        :configs="configs" :event-handlers="eventHandlers">
         <!-- Custom node rendering with HTML -->
-        <template #override-node="{ nodeId, scale, config, ...slotProps }">
+        <template #override-node="{ nodeId }">
           <rect :x="-nodeWidth / 2" :y="-nodeHeight / 2" :width="nodeWidth" :height="nodeHeight"
             :fill="getNodeFillColor(nodeId)" :stroke="getNodeStrokeColor(nodeId)"
             :stroke-width="getNodeStrokeWidth(nodeId)" rx="5" class="node-rect" />
@@ -30,7 +32,6 @@
           <text :y="10" text-anchor="middle" fill="white" font-size="9">
             HP: {{ getHpInfo(nodeId) }}
           </text>
-
         </template>
       </v-network-graph>
     </div>
@@ -42,7 +43,6 @@ import { ref, computed, watch, reactive } from 'vue';
 import type { Nodes, Edges, Layouts, UserConfigs, EventHandlers } from 'v-network-graph';
 import type { GameTree, Node } from '@mari/game-tree/game-tree';
 import { useGameTreeStore } from '@/stores/game-tree-store';
-import log from 'loglevel';
 
 const props = defineProps<{
   gameTree: GameTree;
@@ -117,7 +117,7 @@ const eventHandlers = computed<EventHandlers>(() => ({}));
  * Truncate a string to a specified length.
  */
 function truncate(str: string, length: number): string {
-  if (str.length <= length) return str;
+  if (str.length <= length) { return str; }
   return str.substring(0, length) + '...';
 }
 
@@ -126,9 +126,9 @@ function truncate(str: string, length: number): string {
  */
 function formatReward(nodeId: string): string {
   const node = props.gameTree.nodes[nodeId];
-  if (!node) return '-';
+  if (!node) { return '-'; }
   const value = node.playerReward?.value;
-  if (value === undefined) return '-';
+  if (value === undefined) { return '-'; }
   return Math.round(value).toLocaleString();
 }
 
@@ -137,7 +137,7 @@ function formatReward(nodeId: string): string {
  */
 function getHpInfo(nodeId: string): string {
   const node = props.gameTree.nodes[nodeId];
-  if (!node) return '- / -';
+  if (!node) { return '- / -'; }
   return `${node.state.playerHealth} / ${node.state.opponentHealth}`;
 }
 
@@ -146,10 +146,10 @@ function getHpInfo(nodeId: string): string {
  */
 function getRewardColor(nodeId: string): string {
   const node = props.gameTree.nodes[nodeId];
-  if (!node) return '#FFD700';
+  if (!node) { return '#FFD700'; }
   const value = node.playerReward?.value;
-  if (value === undefined) return '#FFD700';
-  if (value < 0) return '#FF6B6B';
+  if (value === undefined) { return '#FFD700'; }
+  if (value < 0) { return '#FF6B6B'; }
   return '#FFD700';
 }
 
@@ -158,7 +158,7 @@ function getRewardColor(nodeId: string): string {
  */
 function isTerminalNode(nodeId: string): boolean {
   const node = props.gameTree.nodes[nodeId];
-  if (!node) return false;
+  if (!node) { return false; }
   return node.playerReward !== undefined || node.opponentReward !== undefined;
 }
 
@@ -203,7 +203,7 @@ function isSelectedNode(nodeId: string): boolean {
  */
 function getNodeFillColor(nodeId: string): string {
   const node = props.gameTree.nodes[nodeId];
-  if (!node) return '#2196F3';
+  if (!node) { return '#2196F3'; }
 
   if (isHighlightedNode(nodeId)) {
     return '#FFC107';
@@ -249,7 +249,7 @@ function getNodeStrokeWidth(nodeId: string): number {
  */
 function getNodeDisplayText(nodeId: string): string {
   const node = props.gameTree.nodes[nodeId];
-  if (!node) return '';
+  if (!node) { return ''; }
 
   if (isOtherTerminalNode(node) && node.name) {
     return node.name;
@@ -337,7 +337,7 @@ function buildGraphData() {
   Object.keys(layouts.nodes).forEach((key) => delete layouts.nodes[key]);
 
   const rootNode = props.gameTree.nodes[props.gameTree.root];
-  if (!rootNode) return;
+  if (!rootNode) { return; }
 
   const terminalNodes: string[] = [];
   const levelNodes = new Map<number, string[]>();

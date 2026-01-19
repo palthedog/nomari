@@ -1,13 +1,19 @@
 <template>
-    <div class="visualization-section">
-        <GameTreeVisualization v-if="gameTree" :game-tree="gameTree" />
+  <div class="visualization-section">
+    <GameTreeVisualization
+      v-if="gameTree"
+      :game-tree="gameTree"
+    />
 
-        <SolverControlPanel v-if="gameTree" />
+    <SolverControlPanel v-if="gameTree" />
 
-        <div v-if="!gameTree" class="no-tree-message">
-            「ゲーム木を更新」ボタンを押してゲーム木を生成してください
-        </div>
+    <div
+      v-if="!gameTree"
+      class="no-tree-message"
+    >
+      「ゲーム木を更新」ボタンを押してゲーム木を生成してください
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">

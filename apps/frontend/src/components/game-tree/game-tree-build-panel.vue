@@ -1,21 +1,27 @@
 <template>
-    <div class="game-tree-build-panel">
-        <div class="panel-header">
-            <h3>ゲーム木構築設定</h3>
-        </div>
-        <div class="panel-content">
-            <InitialDynamicStateEditor v-if="gameDefinition.initialDynamicState"
-                v-model="gameDefinition.initialDynamicState" />
-
-            <RewardComputationMethodEditor v-model="gameDefinition.rewardComputationMethod" />
-
-            <div class="update-button-section">
-                <button type="button" class="update-tree-btn" @click="handleUpdate">
-                    ゲーム木を更新
-                </button>
-            </div>
-        </div>
+  <div class="game-tree-build-panel">
+    <div class="panel-header">
+      <h3>ゲーム木構築設定</h3>
     </div>
+    <div class="panel-content">
+      <InitialDynamicStateEditor
+        v-if="gameDefinition.initialDynamicState"
+        v-model="gameDefinition.initialDynamicState"
+      />
+
+      <RewardComputationMethodEditor v-model="gameDefinition.rewardComputationMethod" />
+
+      <div class="update-button-section">
+        <button
+          type="button"
+          class="update-tree-btn"
+          @click="handleUpdate"
+        >
+          ゲーム木を更新
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
