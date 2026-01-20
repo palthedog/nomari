@@ -12,6 +12,9 @@
         </div>
 
         <div class="header-actions">
+          <button type="button" @click="importFile">
+            インポート
+          </button>
           <button type="button" @click="exportJSON">
             JSONでエクスポート
           </button>
@@ -56,7 +59,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Node } from '@mari/game-tree/game-tree';
-import { exportAsJSON, exportAsProto } from '@/utils/export';
+import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
@@ -125,6 +128,18 @@ function exportJSON() {
 function exportProto() {
   exportAsProto(definitionStore.gameDefinition,
     `gamedefinition_${definitionStore.gameDefinition.name}.pb`);
+}
+
+async function importFile() {
+  try {
+    const gameDefinition = await importGameDefinition();
+    if (gameDefinition) {
+      definitionStore.loadGameDefinition(gameDefinition);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    alert(`Failed to import file: ${message}`);
+  }
 }
 
 function updateGameTreeOnly() {
