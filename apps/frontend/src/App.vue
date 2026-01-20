@@ -5,24 +5,18 @@
       <div class="header-content">
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
-          <button
-            v-for="mode in viewModes"
-            :key="mode.id"
-            type="button"
-            class="mode-btn"
-            :class="{ active: viewMode === mode.id }"
-            @click="viewStore.setViewMode(mode.id)"
-          >
+          <button v-for="mode in viewModes" :key="mode.id" type="button" class="mode-btn"
+            :class="{ active: viewMode === mode.id }" @click="viewStore.setViewMode(mode.id)">
             {{ mode.label }}
           </button>
         </div>
 
         <div class="header-actions">
-          <button
-            type="button"
-            @click="exportJSON"
-          >
+          <button type="button" @click="exportJSON">
             JSONでエクスポート
+          </button>
+          <button type="button" @click="exportProto">
+            Protoでエクスポート
           </button>
         </div>
       </div>
@@ -35,20 +29,14 @@
           <GameDefinitionEditor v-model="gameDefinition" />
         </div>
         <div class="build-panel-section">
-          <GameTreeBuildPanel
-            v-model="gameDefinition"
-            @update="updateGameTree"
-          />
+          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTree" />
         </div>
       </template>
 
       <!-- Game Tree Mode: GameTreeBuildPanel | GameTreeVisualization -->
       <template v-else-if="viewMode === 'game-tree'">
         <div class="build-panel-section">
-          <GameTreeBuildPanel
-            v-model="gameDefinition"
-            @update="updateGameTreeOnly"
-          />
+          <GameTreeBuildPanel v-model="gameDefinition" @update="updateGameTreeOnly" />
         </div>
         <GameTreePanel :game-tree="gameTree" />
       </template>
@@ -57,11 +45,8 @@
       <template v-else-if="viewMode === 'strategy'">
         <GameTreePanel :game-tree="gameTree" />
         <div class="strategy-section">
-          <NodeStrategyPanel
-            :selected-node="selectedNode"
-            :strategy-data="selectedNodeStrategy"
-            :expected-values="expectedValues"
-          />
+          <NodeStrategyPanel :selected-node="selectedNode" :strategy-data="selectedNodeStrategy"
+            :expected-values="expectedValues" />
         </div>
       </template>
     </div>
@@ -71,7 +56,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Node } from '@mari/game-tree/game-tree';
-import { exportAsJSON } from '@/utils/export';
+import { exportAsJSON, exportAsProto } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
@@ -133,7 +118,13 @@ const expectedValues = computed<ExpectedValuesMap | null>(() => {
 });
 
 function exportJSON() {
-  exportAsJSON(definitionStore.gameDefinition, `gamedefinition_${definitionStore.gameDefinition.gameId}.json`);
+  exportAsJSON(definitionStore.gameDefinition,
+    `gamedefinition_${definitionStore.gameDefinition.name}.json`);
+}
+
+function exportProto() {
+  exportAsProto(definitionStore.gameDefinition,
+    `gamedefinition_${definitionStore.gameDefinition.name}.pb`);
 }
 
 function updateGameTreeOnly() {
