@@ -2,7 +2,7 @@
 set -e
 
 # Repository name (GitHub Pages subpath)
-BASE_PATH="/mari/"
+BASE_PATH="/Mari/"
 
 # Move to project root
 cd "$(dirname "$0")/.."
