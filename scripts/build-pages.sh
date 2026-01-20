@@ -13,6 +13,6 @@ npm run build --workspace=@mari/ts-proto
 
 # Build frontend (with base path specified)
 cd apps/frontend
-npx vite build --base="$BASE_PATH" --outDir=../../pages --emptyOutDir
+npx vite build --base="$BASE_PATH" --outDir=../../docs --emptyOutDir
 
 echo "Build completed: pages/"
