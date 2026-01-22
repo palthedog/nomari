@@ -1,20 +1,20 @@
 {
-    "name": "@mari/frontend",
+    "name": "@nomari/frontend",
     "version": "1.0.0",
     "type": "module",
     "scripts": {
-        "predev": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
-        "prebuild": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
+        "predev": "npm run generate --workspace=@nomari/ts-proto && npm run build --workspace=@nomari/ts-proto",
+        "prebuild": "npm run generate --workspace=@nomari/ts-proto && npm run build --workspace=@nomari/ts-proto",
         "dev": "vite",
         "build": "tsc && vite build",
         "preview": "vite preview",
         "test": "echo \"No tests yet\""
     },
     "dependencies": {
-        "@mari/game-tree": "*",
-        "@mari/game-tree-builder": "*",
-        "@mari/solver": "*",
-        "@mari/ts-proto": "*",
+        "@nomari/game-tree": "*",
+        "@nomari/game-tree-builder": "*",
+        "@nomari/solver": "*",
+        "@nomari/ts-proto": "*",
         "@mdi/font": "^7.4.47",
         "loglevel": "^1.9.2",
         "pinia": "^3.0.4",
@@ -23,7 +23,7 @@
         "vuetify": "^3.11.6"
     },
     "devDependencies": {
-        "@mari/eslint-config": "*",
+        "@nomari/eslint-config": "*",
         "@vitejs/plugin-vue": "^6.0.3",
         "eslint": "^9.39.2",
         "typescript": "^5.9.3",

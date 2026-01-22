@@ -58,8 +58,8 @@
 </template>
 
 <script setup lang="ts">
-import type { TerminalSituation } from '@mari/ts-proto';
-import { CornerState } from '@mari/ts-proto';
+import type { TerminalSituation } from '@nomari/ts-proto';
+import { CornerState } from '@nomari/ts-proto';
 
 const model = defineModel<TerminalSituation>({ required: true });
 

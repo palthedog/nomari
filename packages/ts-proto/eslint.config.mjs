@@ -1,4 +1,4 @@
-import baseConfig from '@mari/eslint-config';
+import baseConfig from '@nomari/eslint-config';
 
 export default [
     ...baseConfig,

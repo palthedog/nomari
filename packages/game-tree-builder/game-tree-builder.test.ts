@@ -4,8 +4,8 @@ import {
     ResourceType,
     RewardComputationMethod,
     CornerState,
-} from '@mari/ts-proto';
-import type { NodeTransition } from '@mari/game-tree/game-tree';
+} from '@nomari/ts-proto';
+import type { NodeTransition } from '@nomari/game-tree/game-tree';
 
 describe('gameTreeBuilder', () => {
     describe('basic game tree generation', () => {

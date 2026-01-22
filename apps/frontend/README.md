@@ -1,1 +1,1 @@
-# Mari Frontend
+# nomari Frontend

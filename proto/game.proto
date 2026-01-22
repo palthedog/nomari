@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 // Definition of the game
-// Mari game tree builder would build a game tree from this definition.
+// nomari game tree builder would build a game tree from this definition.
 message GameDefinition {
   uint32 game_id = 1;
 

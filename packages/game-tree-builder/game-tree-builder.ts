@@ -8,12 +8,12 @@ import {
     Action,
     RewardComputationMethod,
     CornerState,
-} from '@mari/ts-proto';
+} from '@nomari/ts-proto';
 import {
     GameTree,
     Node,
     NodeTransition,
-} from '@mari/game-tree/game-tree';
+} from '@nomari/game-tree/game-tree';
 
 /**
  * Error codes for game tree building

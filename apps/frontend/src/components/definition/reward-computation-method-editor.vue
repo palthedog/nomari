@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import type { RewardComputationMethod } from '@mari/ts-proto';
+import type { RewardComputationMethod } from '@nomari/ts-proto';
 
 const model = defineModel<RewardComputationMethod | undefined>({ required: false });
 

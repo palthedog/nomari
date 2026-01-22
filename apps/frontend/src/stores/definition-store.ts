@@ -3,7 +3,7 @@ import {
     syncIdCounterWithGameDefinition,
 } from "@/utils/game-definition-utils";
 import { validateGameDefinition, type ValidationError } from "@/utils/validation";
-import type { GameDefinition } from "@mari/ts-proto";
+import type { GameDefinition } from "@nomari/ts-proto";
 import { defineStore } from "pinia";
 
 export const useDefinitionStore = defineStore('definition', {

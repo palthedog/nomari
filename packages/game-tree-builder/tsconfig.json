@@ -17,10 +17,10 @@
         "sourceMap": true,
         "baseUrl": ".",
         "paths": {
-            "@mari/ts-proto": [
+            "@nomari/ts-proto": [
                 "../ts-proto"
             ],
-            "@mari/game-tree/game-tree": [
+            "@nomari/game-tree/game-tree": [
                 "../game-tree/game-tree"
             ]
         }

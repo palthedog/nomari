@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, reactive } from 'vue';
 import type { Nodes, Edges, Layouts, UserConfigs, EventHandlers } from 'v-network-graph';
-import type { GameTree, Node } from '@mari/game-tree/game-tree';
+import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 
 const props = defineProps<{

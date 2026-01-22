@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, shallowRef } from 'vue';
-import type { GameTree } from '@mari/game-tree/game-tree';
+import type { GameTree } from '@nomari/game-tree/game-tree';
 import type { SolverCommand, SolverResult, SolverStatus, StrategyData } from '../workers/solver-types';
 
 // Import worker using Vite's worker import syntax

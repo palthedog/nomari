@@ -4,7 +4,7 @@ Game solver implementations for solving imperfect information games.
 
 ## Overview
 
-This package contains implementations of algorithms for finding Nash equilibrium strategies for two-player zero-sum games defined using the game tree structure from `@mari/game-tree`.
+This package contains implementations of algorithms for finding Nash equilibrium strategies for two-player zero-sum games defined using the game tree structure from `@nomari/game-tree`.
 
 ## Solvers
 
@@ -25,8 +25,8 @@ LP (Linear Programming) solver computes the exact Nash equilibrium for simultane
 ### LP Solver
 
 ```typescript
-import { LPSolver } from '@mari/solver/lp';
-import { GameTree } from '@mari/game-tree/game-tree';
+import { LPSolver } from '@nomari/solver/lp';
+import { GameTree } from '@nomari/game-tree/game-tree';
 
 const gameTree: GameTree = { /* ... */ };
 const solver = new LPSolver(gameTree);

@@ -1,7 +1,7 @@
 {
-    "name": "@mari/solver",
+    "name": "@nomari/solver",
     "version": "1.0.0",
-    "description": "LP Solver for Mari game",
+    "description": "LP Solver for nomari game",
     "main": "lp.js",
     "scripts": {
         "test": "jest",
@@ -9,11 +9,11 @@
         "test:watch": "jest --watch"
     },
     "dependencies": {
-        "@mari/game-tree": "*",
+        "@nomari/game-tree": "*",
         "javascript-lp-solver": "^1.0.1"
     },
     "devDependencies": {
-        "@mari/eslint-config": "*",
+        "@nomari/eslint-config": "*",
         "@types/jest": "^29.5.0",
         "@types/node": "^20.0.0",
         "jest": "^29.5.0",

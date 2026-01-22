@@ -1,5 +1,5 @@
 {
-    "name": "@mari/ts-proto",
+    "name": "@nomari/ts-proto",
     "version": "1.0.0",
     "description": "Generated TypeScript types from proto files",
     "type": "module",
@@ -14,7 +14,7 @@
         "@protobuf-ts/runtime": "^2.11.1"
     },
     "devDependencies": {
-        "@mari/eslint-config": "*",
+        "@nomari/eslint-config": "*",
         "@protobuf-ts/plugin": "^2.11.1",
         "protoc": "^33.4.0",
         "typescript": "^5.0.0"

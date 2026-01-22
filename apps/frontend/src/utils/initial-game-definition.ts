@@ -5,11 +5,11 @@ import type {
     Situation,
     TerminalSituation,
     Transition,
-} from '@mari/ts-proto';
+} from '@nomari/ts-proto';
 import {
     CornerState,
     ResourceType,
-} from '@mari/ts-proto';
+} from '@nomari/ts-proto';
 import { generateId } from './game-definition-utils';
 
 function generateAction(name: string, description: string): Action {

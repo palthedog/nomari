@@ -1,8 +1,8 @@
-import { GameTree } from '@mari/game-tree';
+import { GameTree } from '@nomari/game-tree';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-import { buildGameTree } from '@mari/game-tree-builder';
+import { buildGameTree } from '@nomari/game-tree-builder';
 import { useDefinitionStore } from './definition-store';
 
 export const useGameTreeStore = defineStore('gameTree', () => {

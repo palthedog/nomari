@@ -1,21 +1,21 @@
 {
-    "name": "@mari/game-tree-builder",
+    "name": "@nomari/game-tree-builder",
     "version": "1.0.0",
-    "description": "Game tree builder for Mari game",
+    "description": "Game tree builder for Nomari game",
     "main": "game-tree-builder.js",
     "types": "game-tree-builder.d.ts",
     "scripts": {
         "build": "tsc",
-        "pretest": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
+        "pretest": "npm run generate --workspace=@nomari/ts-proto && npm run build --workspace=@nomari/ts-proto",
         "test": "jest",
         "test:watch": "jest --watch"
     },
     "dependencies": {
-        "@mari/ts-proto": "*",
-        "@mari/game-tree": "*"
+        "@nomari/ts-proto": "*",
+        "@nomari/game-tree": "*"
     },
     "devDependencies": {
-        "@mari/eslint-config": "*",
+        "@nomari/eslint-config": "*",
         "@types/jest": "^29.5.0",
         "@types/node": "^20.0.0",
         "jest": "^29.5.0",

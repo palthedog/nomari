@@ -9,6 +9,6 @@ module.exports = {
         '!**/node_modules/**'
     ],
     moduleNameMapper: {
-        '^@mari/game-tree/game-tree$': '<rootDir>/../game-tree/game-tree',
+        '^@nomari/game-tree/game-tree$': '<rootDir>/../game-tree/game-tree',
     },
 };

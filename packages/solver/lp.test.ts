@@ -1,5 +1,5 @@
 import { LPSolver } from './lp';
-import { GameTree, Node, PlayerActions, Action, NodeTransition } from '@mari/game-tree/game-tree';
+import { GameTree, Node, PlayerActions, Action, NodeTransition } from '@nomari/game-tree/game-tree';
 
 /**
  * Helper function to create a rock-paper-scissors game tree

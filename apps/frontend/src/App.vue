@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>Mari-chan 起き攻め 計算機</h1>
+      <h1>Nomari 計算機</h1>
       <div class="header-content">
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Node } from '@mari/game-tree/game-tree';
+import type { Node } from '@nomari/game-tree/game-tree';
 import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';

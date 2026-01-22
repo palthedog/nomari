@@ -1,7 +1,7 @@
 {
-    "name": "@mari/game-tree",
+    "name": "@nomari/game-tree",
     "version": "1.0.0",
-    "description": "Game tree types for Mari game",
+    "description": "Game tree types for Nomari game",
     "main": "game-tree.js",
     "types": "game-tree.d.ts",
     "scripts": {
@@ -9,7 +9,7 @@
         "test": "echo \"No tests yet\""
     },
     "devDependencies": {
-        "@mari/eslint-config": "*",
+        "@nomari/eslint-config": "*",
         "typescript": "^5.0.0"
     }
 }

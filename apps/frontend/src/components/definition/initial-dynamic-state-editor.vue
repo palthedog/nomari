@@ -31,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import type { DynamicState, DynamicState_Resource } from '@mari/ts-proto';
-import { ResourceType } from '@mari/ts-proto';
+import type { DynamicState, DynamicState_Resource } from '@nomari/ts-proto';
+import { ResourceType } from '@nomari/ts-proto';
 
 const model = defineModel<DynamicState>({ required: true });
 

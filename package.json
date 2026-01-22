@@ -1,5 +1,5 @@
 {
-    "name": "mari",
+    "name": "nomari",
     "version": "1.0.0",
     "private": true,
     "workspaces": [
@@ -7,9 +7,9 @@
         "packages/*"
     ],
     "scripts": {
-        "predev": "npm run generate --workspace=@mari/ts-proto && npm run build --workspace=@mari/ts-proto",
-        "prebuild": "npm run generate --workspace=@mari/ts-proto",
-        "build": "npm run build --workspaces",
+        "predev": "npm run generate --workspace=@nomari/ts-proto && npm run build --workspace=@nomari/ts-proto",
+        "prebuild": "npm run generate --workspace=@nomari/ts-proto",
+        "build": "npm run build --workspaces --if-present",
         "build:pages": "bash scripts/build-pages.sh",
         "test": "npm run test --workspaces --if-present"
     },

@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GameDefinition } from '@mari/ts-proto';
+import type { GameDefinition } from '@nomari/ts-proto';
 import InitialDynamicStateEditor from '../definition/initial-dynamic-state-editor.vue';
 import RewardComputationMethodEditor from '../definition/reward-computation-method-editor.vue';
 

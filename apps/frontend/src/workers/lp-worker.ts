@@ -1,8 +1,8 @@
 // LP Solver Web Worker
 // Runs the LP algorithm to compute Nash equilibrium strategies
 
-import { LPSolver } from '@mari/solver/lp';
-import type { GameTree } from '@mari/game-tree/game-tree';
+import { LPSolver } from '@nomari/solver/lp';
+import type { GameTree } from '@nomari/game-tree/game-tree';
 import type { SolverCommand, SolverResult, StrategyData } from './solver-types';
 
 let solver: LPSolver | null = null;

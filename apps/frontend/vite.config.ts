@@ -11,11 +11,11 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
-            '@mari/ts-proto': path.resolve(__dirname, '../../packages/ts-proto'),
-            '@mari/game-tree/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),
-            '@mari/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),
-            '@mari/game-tree-builder/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
-            '@mari/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
+            '@nomari/ts-proto': path.resolve(__dirname, '../../packages/ts-proto'),
+            '@nomari/game-tree/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),
+            '@nomari/game-tree': path.resolve(__dirname, '../../packages/game-tree/game-tree.ts'),
+            '@nomari/game-tree-builder/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
+            '@nomari/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
         },
     },
     worker: {

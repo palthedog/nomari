@@ -190,7 +190,7 @@ import { storeToRefs } from 'pinia';
 import type {
   Situation,
   TerminalSituation,
-} from '@mari/ts-proto';
+} from '@nomari/ts-proto';
 import {
   createEmptySituation,
   createEmptyTerminalSituation,

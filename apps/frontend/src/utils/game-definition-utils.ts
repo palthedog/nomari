@@ -2,7 +2,7 @@ import type {
     GameDefinition,
     Situation,
     TerminalSituation,
-} from '@mari/ts-proto';
+} from '@nomari/ts-proto';
 import './initial-game-definition';
 import { createHeavyDimachaerusComboGameDefinition } from './initial-game-definition';
 

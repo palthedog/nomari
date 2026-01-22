@@ -1,6 +1,6 @@
 // Type definitions for LP Solver Web Worker communication
 
-import type { GameTree } from '@mari/game-tree/game-tree';
+import type { GameTree } from '@nomari/game-tree/game-tree';
 
 /**
  * Strategy data for a single node

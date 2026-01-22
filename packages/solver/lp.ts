@@ -1,4 +1,4 @@
-import { GameTree, Node } from '@mari/game-tree/game-tree';
+import { GameTree, Node } from '@nomari/game-tree/game-tree';
 
 import log from 'loglevel';
 

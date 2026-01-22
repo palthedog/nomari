@@ -1,4 +1,4 @@
-import { GameDefinition } from '@mari/ts-proto';
+import { GameDefinition } from '@nomari/ts-proto';
 
 function exportAsFile(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);

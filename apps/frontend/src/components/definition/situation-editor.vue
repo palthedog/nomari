@@ -1,79 +1,37 @@
 <template>
   <div class="situation-editor">
     <div class="header-actions">
-      <button
-        type="button"
-        class="delete-btn"
-        @click="handleDelete"
-      >
+      <button type="button" class="delete-btn" @click="handleDelete">
         この状況を削除
       </button>
     </div>
 
     <!-- 基本情報 -->
     <div class="section">
-      <div
-        class="form-group"
-        hidden
-      >
-        <v-text-field
-          v-model="model.situationId"
-          label="Situation ID"
-          readonly
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
+      <div class="form-group" hidden>
+        <v-text-field v-model="model.situationId" label="Situation ID" readonly density="compact" variant="outlined"
+          hide-details />
       </div>
       <div class="form-group">
         <label>名前:</label>
-        <textarea
-          v-model="model.description"
-          placeholder="例: 密着+4F"
-          rows="3"
-        />
+        <textarea v-model="model.description" placeholder="例: 密着+4F" rows="3" />
       </div>
     </div>
 
     <!-- プレイヤー選択肢 -->
     <div class="section">
       <h4>プレイヤー選択肢</h4>
-      <div
-        v-for="(action, index) in model.playerActions?.actions || []"
-        :key="index"
-        class="form-row"
-      >
-        <input
-          v-model="action.actionId"
-          type="hidden"
-        >
-        <v-text-field
-          v-model="action.name"
-          class="form-name"
-          placeholder="行動"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <v-text-field
-          v-model="action.description"
-          class="form-description"
-          placeholder="説明"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <button
-          type="button"
-          @click="removePlayerAction(index)"
-        >
+      <div v-for="(action, index) in model.playerActions?.actions || []" :key="index" class="form-row">
+        <input v-model="action.actionId" type="hidden">
+        <v-text-field v-model="action.name" class="form-name" placeholder="行動" density="compact" variant="outlined"
+          hide-details />
+        <v-text-field v-model="action.description" class="form-description" placeholder="説明" density="compact"
+          variant="outlined" hide-details />
+        <button type="button" @click="removePlayerAction(index)">
           削除
         </button>
       </div>
-      <button
-        type="button"
-        @click="addPlayerAction"
-      >
+      <button type="button" @click="addPlayerAction">
         追加
       </button>
     </div>
@@ -81,67 +39,34 @@
     <!-- 相手選択肢 -->
     <div class="section">
       <h4>相手選択肢</h4>
-      <div
-        v-for="(action, index) in model.opponentActions?.actions || []"
-        :key="index"
-        class="form-row"
-      >
-        <input
-          v-model="action.actionId"
-          type="hidden"
-        >
-        <v-text-field
-          v-model="action.name"
-          class="form-name"
-          placeholder="行動"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <v-text-field
-          v-model="action.description"
-          class="form-description"
-          placeholder="説明"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <button
-          type="button"
-          @click="removeOpponentAction(index)"
-        >
+      <div v-for="(action, index) in model.opponentActions?.actions || []" :key="index" class="form-row">
+        <input v-model="action.actionId" type="hidden">
+        <v-text-field v-model="action.name" class="form-name" placeholder="行動" density="compact" variant="outlined"
+          hide-details />
+        <v-text-field v-model="action.description" class="form-description" placeholder="説明" density="compact"
+          variant="outlined" hide-details />
+        <button type="button" @click="removeOpponentAction(index)">
           削除
         </button>
       </div>
-      <button
-        type="button"
-        @click="addOpponentAction"
-      >
+      <button type="button" @click="addOpponentAction">
         追加
       </button>
     </div>
 
     <!-- 遷移テーブル -->
-    <div
-      v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0"
-      class="section"
-    >
+    <div v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0"
+      class="section">
       <h4>遷移テーブル</h4>
       <div class="player-actions-list">
-        <div
-          v-for="playerAction in model.playerActions?.actions || []"
-          :key="playerAction.actionId"
-          class="player-action-section"
-        >
+        <div v-for="playerAction in model.playerActions?.actions || []" :key="playerAction.actionId"
+          class="player-action-section">
           <div class="player-action-header">
             <strong>{{ playerAction.name || '(行動名説明なし)' }}</strong>
           </div>
           <div class="opponent-actions-list">
-            <div
-              v-for="oppAction in model.opponentActions?.actions || []"
-              :key="oppAction.actionId"
-              class="opponent-action-item"
-            >
+            <div v-for="oppAction in model.opponentActions?.actions || []" :key="oppAction.actionId"
+              class="opponent-action-item">
               <div class="opponent-action-label">
                 {{ playerAction.name || '(行動名なし)' }} v.s. {{ oppAction.name || '(行動名なし)' }}
               </div>
@@ -149,50 +74,26 @@
                 <div class="next-situation-row">
                   <v-select
                     :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
-                    :items="nextSituationItems"
-                    item-title="title"
-                    item-value="value"
-                    label="次の状況"
-                    density="compact"
-                    variant="outlined"
-                    hide-details
-                    @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
-                  />
+                    :items="nextSituationItems" item-title="title" item-value="value" label="次の状況" density="compact"
+                    variant="outlined" hide-details
+                    @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)" />
                 </div>
                 <div class="resource-consumptions">
                   <!--label>Resource Consumptions:</label-->
                   <div
                     v-for="(consumption, idx) in getTransition(playerAction.actionId, oppAction.actionId)?.resourceConsumptions || []"
-                    :key="idx"
-                    class="consumption-row"
-                  >
-                    <v-select
-                      :model-value="consumption.resourceType"
-                      :items="resourceTypeItems"
-                      item-title="title"
-                      item-value="value"
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      @update:model-value="(value: number) => updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'type', value)"
-                    />
-                    <input
-                      type="number"
-                      :value="consumption.value"
-                      placeholder="Value"
-                      @input="updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)"
-                    >
-                    <button
-                      type="button"
-                      @click="removeResourceConsumption(playerAction.actionId, oppAction.actionId, idx)"
-                    >
+                    :key="idx" class="consumption-row">
+                    <v-select :model-value="consumption.resourceType" :items="resourceTypeItems" item-title="title"
+                      item-value="value" density="compact" variant="outlined" hide-details
+                      @update:model-value="(value: number) => updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'type', value)" />
+                    <input type="number" :value="consumption.value" placeholder="Value"
+                      @input="updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)">
+                    <button type="button"
+                      @click="removeResourceConsumption(playerAction.actionId, oppAction.actionId, idx)">
                       削除
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    @click="addResourceConsumption(playerAction.actionId, oppAction.actionId)"
-                  >
+                  <button type="button" @click="addResourceConsumption(playerAction.actionId, oppAction.actionId)">
                     ダメージ等を追加
                   </button>
                 </div>
@@ -211,8 +112,8 @@ import type {
   Situation,
   Transition,
   TerminalSituation,
-} from '@mari/ts-proto';
-import { ResourceType } from '@mari/ts-proto';
+} from '@nomari/ts-proto';
+import { ResourceType } from '@nomari/ts-proto';
 import { generateId } from '@/utils/game-definition-utils';
 
 const model = defineModel<Situation>({ required: true });
@@ -254,7 +155,7 @@ const resourceTypeItems = computed(() => [
 ]);
 
 function addPlayerAction() {
-  if (!model.value.playerActions) {return;}
+  if (!model.value.playerActions) { return; }
   model.value.playerActions.actions.push({
     actionId: generateId(),
     name: '',
@@ -264,7 +165,7 @@ function addPlayerAction() {
 }
 
 function removePlayerAction(index: number) {
-  if (!model.value.playerActions) {return;}
+  if (!model.value.playerActions) { return; }
   const actionId = model.value.playerActions.actions[index].actionId;
   model.value.playerActions.actions.splice(index, 1);
   // Remove transitions for this action
@@ -275,7 +176,7 @@ function removePlayerAction(index: number) {
 }
 
 function addOpponentAction() {
-  if (!model.value.opponentActions) {return;}
+  if (!model.value.opponentActions) { return; }
   model.value.opponentActions.actions.push({
     actionId: generateId(),
     name: '',
@@ -285,7 +186,7 @@ function addOpponentAction() {
 }
 
 function removeOpponentAction(index: number) {
-  if (!model.value.opponentActions) {return;}
+  if (!model.value.opponentActions) { return; }
   const actionId = model.value.opponentActions.actions[index].actionId;
   model.value.opponentActions.actions.splice(index, 1);
   // Remove transitions for this action
@@ -296,7 +197,7 @@ function removeOpponentAction(index: number) {
 }
 
 function updateTransitions() {
-  if (!model.value.playerActions || !model.value.opponentActions) {return;}
+  if (!model.value.playerActions || !model.value.opponentActions) { return; }
   const existingTransitions = new Map<string, Transition>();
   model.value.transitions.forEach((t) => {
     existingTransitions.set(`${t.playerActionId}-${t.opponentActionId}`, t);

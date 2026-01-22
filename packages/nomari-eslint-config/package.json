@@ -1,7 +1,7 @@
 {
-    "name": "@mari/eslint-config",
+    "name": "@nomari/eslint-config",
     "version": "1.0.0",
-    "description": "Shared ESLint configuration for Mari project",
+    "description": "Shared ESLint configuration for nomari project",
     "type": "module",
     "main": "./index.mjs",
     "exports": {

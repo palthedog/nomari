@@ -118,7 +118,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Node } from '@mari/game-tree/game-tree';
+import type { Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
 import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import StrategyActionList from './strategy-action-list.vue';

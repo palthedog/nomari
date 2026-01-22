@@ -24,13 +24,13 @@
             "@/*": [
                 "src/*"
             ],
-            "@mari/ts-proto": [
+            "@nomari/ts-proto": [
                 "../../packages/ts-proto"
             ],
-            "@mari/game-tree": [
+            "@nomari/game-tree": [
                 "../../packages/game-tree/game-tree"
             ],
-            "@mari/game-tree-builder": [
+            "@nomari/game-tree-builder": [
                 "../../packages/game-tree-builder/game-tree-builder"
             ]
         }

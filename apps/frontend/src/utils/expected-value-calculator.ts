@@ -1,4 +1,4 @@
-import type { GameTree, Node } from '@mari/game-tree/game-tree';
+import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '../workers/solver-types';
 
 /**

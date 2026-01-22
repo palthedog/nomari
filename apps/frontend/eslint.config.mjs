@@ -1,4 +1,4 @@
-import vueConfig from '@mari/eslint-config/vue';
+import vueConfig from '@nomari/eslint-config/vue';
 
 export default [
     ...vueConfig,
