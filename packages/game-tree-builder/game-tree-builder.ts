@@ -438,7 +438,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
         const node: Node = {
             nodeId: nodeKey,
-            description: situation.description,
+            description: situation.name,
             state: {
                 situation_id: situationId,
                 playerHealth: playerHealth,

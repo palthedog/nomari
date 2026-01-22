@@ -7,6 +7,9 @@ BASE_PATH="/nomari/"
 # Move to project root
 cd "$(dirname "$0")/.."
 
+# Clean prebuit docs/
+rm -rf docs
+
 # Build dependent packages
 npm run generate --workspace=@nomari/ts-proto
 npm run build --workspace=@nomari/ts-proto

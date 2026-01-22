@@ -83,7 +83,7 @@ export function createInitialGameDefinition(): GameDefinition {
 export function createEmptySituation(): Situation {
     return {
         situationId: generateId(),
-        description: '',
+        name: '',
         playerActions: {
             actions: [],
         },

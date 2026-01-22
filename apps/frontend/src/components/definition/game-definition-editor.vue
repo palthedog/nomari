@@ -71,7 +71,7 @@
                 :class="{ active: selectedSituationId === situation.situationId }"
                 @click="selectSituation(situation.situationId)"
               >
-                {{ situation.description || '(説明なし)' }}
+                {{ situation.name || '(説明なし)' }}
               </li>
               <li
                 class="section-item add-button"
@@ -211,7 +211,7 @@ const situationItems = computed(() => {
   return [
     { title: '選択してください', value: 0 },
     ...gameDefinition.value.situations.map((s) => ({
-      title: s.description || '(説明なし)',
+      title: s.name || '(説明なし)',
       value: s.situationId,
     })),
   ];

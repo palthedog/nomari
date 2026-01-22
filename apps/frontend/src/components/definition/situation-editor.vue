@@ -13,8 +13,8 @@
           hide-details />
       </div>
       <div class="form-group">
-        <label>名前:</label>
-        <textarea v-model="model.description" placeholder="例: 密着+4F" rows="3" />
+        <v-text-field v-model="model.name" label="名前" readonly density="compact" placeholder="例: 密着+4F"
+          variant="outlined" hide-details />
       </div>
     </div>
 
@@ -134,7 +134,7 @@ const nextSituationItems = computed(() => {
 
   if (props.availableSituations.length > 0) {
     items.push(...props.availableSituations.map((s) => ({
-      title: `${s.description || '(説明なし)'}`,
+      title: `${s.name || '(説明なし)'}`,
       value: s.situationId,
     })));
   }

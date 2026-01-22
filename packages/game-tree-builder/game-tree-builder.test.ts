@@ -18,7 +18,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'First situation',
+                        name: 'First situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1001, name: '', description: 'Action 1' },
@@ -40,7 +40,7 @@ describe('gameTreeBuilder', () => {
                     },
                     {
                         situationId: 102,
-                        description: 'Second situation',
+                        name: 'Second situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1003, name: '', description: 'Action 3' },
@@ -88,7 +88,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'First situation',
+                        name: 'First situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1001, name: '', description: 'Action 1' },
@@ -159,7 +159,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'Attack situation',
+                        name: 'Attack situation',
                         playerActions: {
                             actions: [
                                 { actionId: 2001, name: '', description: 'Attack' },
@@ -186,7 +186,7 @@ describe('gameTreeBuilder', () => {
                     },
                     {
                         situationId: 102,
-                        description: 'Next situation',
+                        name: 'Next situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1001, name: '', description: 'Action 1' },
@@ -245,7 +245,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'Attack situation',
+                        name: 'Attack situation',
                         playerActions: {
                             actions: [
                                 { actionId: 2001, name: '', description: 'Attack' },
@@ -309,7 +309,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'Defense situation',
+                        name: 'Defense situation',
                         playerActions: {
                             actions: [
                                 { actionId: 2002, name: '', description: 'Guard' },
@@ -373,7 +373,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'Mutual attack',
+                        name: 'Mutual attack',
                         playerActions: {
                             actions: [
                                 { actionId: 2001, name: '', description: 'Attack' },
@@ -445,7 +445,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'First situation',
+                        name: 'First situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1001, name: '', description: 'Action 1' },
@@ -515,7 +515,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'First situation',
+                        name: 'First situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1001, name: '', description: 'Action 1' },
@@ -537,7 +537,7 @@ describe('gameTreeBuilder', () => {
                     },
                     {
                         situationId: 102,
-                        description: 'Second situation',
+                        name: 'Second situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1003, name: '', description: 'Action 3' },
@@ -585,7 +585,7 @@ describe('gameTreeBuilder', () => {
                 situations: [
                     {
                         situationId: 101,
-                        description: 'First situation',
+                        name: 'First situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1001, name: '', description: 'Action 1' },
@@ -612,7 +612,7 @@ describe('gameTreeBuilder', () => {
                     },
                     {
                         situationId: 102,
-                        description: 'Second situation',
+                        name: 'Second situation',
                         playerActions: {
                             actions: [
                                 { actionId: 1003, name: '', description: 'Action 3' },
@@ -672,7 +672,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -756,7 +756,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'Mutual attack',
+                            name: 'Mutual attack',
                             playerActions: {
                                 actions: [
                                     { actionId: 2001, name: '', description: 'Attack' },
@@ -833,7 +833,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'Attack opponent',
+                            name: 'Attack opponent',
                             playerActions: {
                                 actions: [
                                     { actionId: 2001, name: '', description: 'Attack' },
@@ -906,7 +906,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'Opponent attacks',
+                            name: 'Opponent attacks',
                             playerActions: {
                                 actions: [
                                     { actionId: 2003, name: '', description: 'Defend' },
@@ -981,7 +981,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1058,7 +1058,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1135,7 +1135,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1213,7 +1213,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1266,7 +1266,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1357,7 +1357,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1434,7 +1434,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },
@@ -1511,7 +1511,7 @@ describe('gameTreeBuilder', () => {
                     situations: [
                         {
                             situationId: 101,
-                            description: 'First situation',
+                            name: 'First situation',
                             playerActions: {
                                 actions: [
                                     { actionId: 1001, name: '', description: 'Action 1' },

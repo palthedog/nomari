@@ -109,7 +109,7 @@ export function createJudoGameDefinition(): GameDefinition {
 
     const initialSituation: Situation = {
         situationId: advantageSituationId,
-        description: '画面端 有利',
+        name: '画面端 有利',
         playerActions: { actions: defPlayerActions },
         opponentActions: { actions: defOpponentActions },
         transitions: transitions,
@@ -196,7 +196,7 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
         situations: [
             {
                 situationId: rootSituationId,
-                description: '強ディマ > 溜強P +47F',
+                name: '強ディマ > 溜強P +47F',
                 playerActions: {
                     actions: [
                         { actionId: rootJumpActionId, name: '前ジャンプ', description: '' },
@@ -215,7 +215,7 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
             },
             {
                 situationId: closeRangeSituationId,
-                description: '密着 +4F',
+                name: '密着 +4F',
                 playerActions: {
                     actions: [
                         { actionId: closeTcActionId, name: '中PTC > 中ディマ', description: '' },
@@ -253,7 +253,7 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
             },
             {
                 situationId: throwRangeSituationId,
-                description: '投げ間合い +3F',
+                name: '投げ間合い +3F',
                 playerActions: {
                     actions: [
                         { actionId: throwThrowActionId, name: '投げ', description: '' },
@@ -282,7 +282,7 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
             },
             {
                 situationId: afterDashSituationId,
-                description: '前ステ後 +25F',
+                name: '前ステ後 +25F',
                 playerActions: {
                     actions: [
                         { actionId: dashWalkThrowActionId, name: '歩き投げ', description: '' },

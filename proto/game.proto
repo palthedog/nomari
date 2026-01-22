@@ -28,7 +28,7 @@ message Situation {
   uint32 situation_id = 1;
 
   // Human readable description of the situation
-  string description = 2;
+  string name = 2;
 
   // Possible actions for the player
   PlayerActions player_actions = 4;
