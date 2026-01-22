@@ -32,7 +32,7 @@ export function validateGameDefinition(gameDefinition: GameDefinition): Validati
 
     // Validate all transitions reference existing situations
     for (const situation of gameDefinition.situations) {
-        const situationName = situation.description || '(説明なし)';
+        const situationName = situation.name || '(説明なし)';
         for (const transition of situation.transitions) {
             if (!transition.nextSituationId) {
                 errors.push({

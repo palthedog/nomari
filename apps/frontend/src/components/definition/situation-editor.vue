@@ -13,8 +13,8 @@
           hide-details />
       </div>
       <div class="form-group">
-        <v-text-field v-model="model.name" label="名前" readonly density="compact" placeholder="例: 密着+4F"
-          variant="outlined" hide-details />
+        <v-text-field v-model="model.name" label="名前" density="compact" placeholder="例: 密着+4F" variant="outlined"
+          hide-details />
       </div>
     </div>
 
@@ -250,8 +250,8 @@ function addResourceConsumption(playerActionId: number, opponentActionId: number
       transition.resourceConsumptions = [];
     }
     transition.resourceConsumptions.push({
-      resourceType: ResourceType.UNKNOWN,
-      value: 0,
+      resourceType: ResourceType.OPPONENT_HEALTH,
+      value: 1000,
     });
   }
 }

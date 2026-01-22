@@ -1,10 +1,5 @@
 import type {
-    Action,
     GameDefinition,
-    ResourceConsumption,
-    Situation,
-    TerminalSituation,
-    Transition,
 } from '@nomari/ts-proto';
 import {
     CornerState,
@@ -12,129 +7,158 @@ import {
 } from '@nomari/ts-proto';
 import { generateId } from './game-definition-utils';
 
-function generateAction(name: string, description: string): Action {
-    return {
-        actionId: generateId(),
-        name: name,
-        description: description,
-    };
-}
-
-function generateResourceConsumption(resourceType: ResourceType, value: number): ResourceConsumption {
-    return {
-        resourceType: resourceType,
-        value: value,
-    };
-}
 
 /**
  * Create a Judo GameDefinition
  */
 export function createJudoGameDefinition(): GameDefinition {
-    const advantageSituationId = generateId();
-    const cornerNeutralSituationId = generateId();
-    const neutralSituationId = generateId();
-
-    const initialTerminalSituations: TerminalSituation[] =
-        [
-            {
-                situationId: cornerNeutralSituationId,
-                name: '画面端 五分',
-                description: '画面端にいるけど、距離がいったん離れた',
-                cornerState: CornerState.OPPONENT_IN_CORNER,
-            },
-            {
-                situationId: neutralSituationId,
-                name: '脱出 五分',
-                description: '画面端脱出',
-                cornerState: CornerState.PLAYER_IN_CORNER,
-            },
-        ];
-
-    const defPlayerActions: Action[] = [
-        generateAction('打撃重ね', ''),
-        generateAction('投げ', ''),
-        generateAction('シミー', ''),
-    ];
-    const defOpponentActions: Action[] = [
-        generateAction('遅らせグラップ', '遅らせ投げ抜け'),
-        generateAction('ガード', ''),
-        generateAction('無敵暴れ', ''),
-        generateAction('前ジャンプ', ''),
-    ];
-
-    function createTransition(
-        playerActionName: string,
-        opponentActionName: string,
-        nextSituationId: number,
-        playerDamage: number,
-        opponentDamage: number): Transition {
-        // Find playerAction from defPlayerActions by name
-        const playerAction = defPlayerActions.find(action => action.name === playerActionName);
-        // Find opponentAction from defOpponentActions by name
-        const opponentAction = defOpponentActions.find(action => action.name === opponentActionName);
-
-        const resourceConsumptions: ResourceConsumption[] = [];
-        if (playerDamage > 0) {
-            resourceConsumptions.push(generateResourceConsumption(ResourceType.PLAYER_HEALTH, playerDamage));
-        }
-        if (opponentDamage > 0) {
-            resourceConsumptions.push(generateResourceConsumption(ResourceType.OPPONENT_HEALTH, opponentDamage));
-        }
-
-        // Find nextSituation from initialTerminalSituations by name
-        return {
-            playerActionId: playerAction?.actionId ?? 0,
-            opponentActionId: opponentAction?.actionId ?? 0,
-            nextSituationId: nextSituationId,
-            resourceConsumptions: resourceConsumptions,
-        };
-    }
-
-    const transitions: Transition[] = [
-        createTransition('打撃重ね', '遅らせグラップ', cornerNeutralSituationId, 0, 0),
-        createTransition('打撃重ね', 'ガード', cornerNeutralSituationId, 0, 0),
-        createTransition('打撃重ね', '無敵暴れ', cornerNeutralSituationId, 1600, 0),
-        createTransition('打撃重ね', '前ジャンプ', neutralSituationId, 0, 3000),
-        createTransition('投げ', '遅らせグラップ', cornerNeutralSituationId, 0, 0),
-        createTransition('投げ', 'ガード', advantageSituationId, 0, 1200),
-        createTransition('投げ', '無敵暴れ', cornerNeutralSituationId, 1600, 0),
-        createTransition('投げ', '前ジャンプ', neutralSituationId, 0, 0),
-        createTransition('シミー', '遅らせグラップ', advantageSituationId, 0, 2000),
-        createTransition('シミー', 'ガード', cornerNeutralSituationId, 0, 0),
-        createTransition('シミー', '無敵暴れ', advantageSituationId, 0, 3000),
-        createTransition('シミー', '前ジャンプ', advantageSituationId, 0, 1600),
-    ];
-
-
-    const initialSituation: Situation = {
-        situationId: advantageSituationId,
-        name: '画面端 有利',
-        playerActions: { actions: defPlayerActions },
-        opponentActions: { actions: defOpponentActions },
-        transitions: transitions,
-    };
-
     return {
-        gameId: generateId(),
-        name: '画面端柔道',
-        description: '',
-        rootSituationId: advantageSituationId,
-        situations: [initialSituation],
-        terminalSituations: initialTerminalSituations,
+        gameId: 11,
+        name: "画面端柔道",
+        description: "",
+        rootSituationId: 1,
+        situations: [
+            {
+                situationId: 1,
+                name: "画面端 有利",
+                playerActions: {
+                    actions: [
+                        // All actions must specify the required fields: actionId, name, and description
+                        { actionId: 4, name: "打撃重ね", description: "" },
+                        { actionId: 5, name: "投げ", description: "" },
+                        { actionId: 6, name: "シミー", description: "" }
+                    ]
+                },
+                opponentActions: {
+                    actions: [
+                        { actionId: 7, name: "遅らせグラップ", description: "遅らせ投げ抜け" },
+                        { actionId: 8, name: "ガード", description: "" },
+                        { actionId: 9, name: "無敵暴れ", description: "" },
+                        { actionId: 10, name: "前ジャンプ", description: "" }
+                    ]
+                },
+                transitions: [
+                    // All transitions must specify resourceConsumptions even if it's empty
+                    { playerActionId: 4, opponentActionId: 7, nextSituationId: 2, resourceConsumptions: [] },
+                    { playerActionId: 4, opponentActionId: 8, nextSituationId: 2, resourceConsumptions: [] },
+                    {
+                        playerActionId: 4,
+                        opponentActionId: 9,
+                        nextSituationId: 2,
+                        resourceConsumptions: [
+                            { resourceType: 1, value: 1600 }
+                        ]
+                    },
+                    { playerActionId: 4, opponentActionId: 10, nextSituationId: 12, resourceConsumptions: [] },
+
+                    { playerActionId: 5, opponentActionId: 7, nextSituationId: 2, resourceConsumptions: [] },
+                    {
+                        playerActionId: 5,
+                        opponentActionId: 8,
+                        nextSituationId: 1,
+                        resourceConsumptions: [
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }
+                        ]
+                    },
+                    {
+                        playerActionId: 5,
+                        opponentActionId: 9,
+                        nextSituationId: 2,
+                        resourceConsumptions: [
+                            { resourceType: 1, value: 1600 }
+                        ]
+                    },
+                    { playerActionId: 5, opponentActionId: 10, nextSituationId: 3, resourceConsumptions: [] },
+
+                    { playerActionId: 6, opponentActionId: 7, nextSituationId: 13, resourceConsumptions: [] },
+                    { playerActionId: 6, opponentActionId: 8, nextSituationId: 2, resourceConsumptions: [] },
+                    { playerActionId: 6, opponentActionId: 9, nextSituationId: 13, resourceConsumptions: [] },
+                    {
+                        playerActionId: 6,
+                        opponentActionId: 10,
+                        nextSituationId: 3,
+                        resourceConsumptions: [
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 1600 }
+                        ]
+                    }
+                ]
+            },
+            {
+                situationId: 12,
+                name: "打撃ヒット",
+                playerActions: {
+                    actions: [
+                        { actionId: 14, name: "打撃ヒット", description: "" }
+                    ]
+                },
+                opponentActions: {
+                    actions: [
+                        { actionId: 15, name: "受け", description: "" }
+                    ]
+                },
+                transitions: [
+                    {
+                        playerActionId: 14,
+                        opponentActionId: 15,
+                        nextSituationId: 1,
+                        resourceConsumptions: [
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }
+                        ]
+                    }
+                ]
+            },
+            {
+                situationId: 13,
+                name: "打撃パニカンヒット",
+                playerActions: {
+                    actions: [
+                        { actionId: 16, name: "パニカンヒット", description: "" }
+                    ]
+                },
+                opponentActions: {
+                    actions: [
+                        { actionId: 17, name: "受け", description: "" }
+                    ]
+                },
+                transitions: [
+                    {
+                        playerActionId: 16,
+                        opponentActionId: 17,
+                        nextSituationId: 1,
+                        resourceConsumptions: [
+                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 3000 }
+                        ]
+                    }
+                ]
+            }
+        ],
+        terminalSituations: [
+            {
+                situationId: 2,
+                name: "画面端 五分",
+                description: "画面端にいるけど、距離がいったん離れた",
+                cornerState: CornerState.OPPONENT_IN_CORNER
+            },
+            {
+                situationId: 3,
+                name: "脱出 五分",
+                description: "画面端脱出",
+                cornerState: CornerState.PLAYER_IN_CORNER
+            }
+        ],
         initialDynamicState: {
             resources: [
-                {
-                    resourceType: ResourceType.PLAYER_HEALTH,
-                    value: 4000,
-                },
-                {
-                    resourceType: ResourceType.OPPONENT_HEALTH,
-                    value: 4000,
-                },
-            ],
+                { resourceType: ResourceType.PLAYER_HEALTH, value: 4000 },
+                { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 }
+            ]
         },
-    };
+        rewardComputationMethod: {
+            method: {
+                "oneofKind": 'damageRace',
+                "damageRace": {}
+            }
+        }
+    }
 }
 
 /**
