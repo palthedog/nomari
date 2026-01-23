@@ -1,10 +1,10 @@
-import type {
+import {
     GameDefinition,
     Situation,
     TerminalSituation,
 } from '@nomari/ts-proto';
 import './initial-game-definition';
-import { createJudoGameDefinition } from './initial-game-definition';
+import { createEmptyGameDefinition } from './initial-game-definition';
 
 // Counter for generating unique IDs
 let idCounter = 1;
@@ -71,11 +71,7 @@ export function syncIdCounterWithGameDefinition(gameDefinition: GameDefinition):
  * Create an initial GameDefinition
  */
 export function createInitialGameDefinition(): GameDefinition {
-    //return createJudoGameDefinition();
-    const gameDefinition = createJudoGameDefinition();
-    //const gameDefinition = createHeavyDimachaerusComboGameDefinition();
-    syncIdCounterWithGameDefinition(gameDefinition);
-    return gameDefinition;
+    return createEmptyGameDefinition();
 }
 
 /**

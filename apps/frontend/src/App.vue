@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>Nomari 計算機</h1>
+      <h1>Nomari 起き攻め 計算機</h1>
       <div class="header-content">
         <!-- View mode toggle -->
         <div class="view-mode-toggle">
@@ -15,11 +15,13 @@
           <button type="button" @click="importFile">
             インポート
           </button>
+          <!--
           <button type="button" @click="exportJSON">
             JSONでエクスポート
           </button>
+          -->
           <button type="button" @click="exportProto">
-            Protoでエクスポート
+            エクスポート
           </button>
         </div>
       </div>

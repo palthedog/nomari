@@ -13,7 +13,7 @@
           hide-details />
       </div>
       <div class="form-group">
-        <v-text-field v-model="model.name" label="Name" density="compact" variant="outlined" hide-details />
+        <v-text-field v-model="model.name" label="名前" density="compact" variant="outlined" hide-details />
       </div>
       <div class="form-group">
         <label>説明:</label>

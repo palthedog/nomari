@@ -1,5 +1,7 @@
 import type {
     GameDefinition,
+    Situation,
+    TerminalSituation,
 } from '@nomari/ts-proto';
 import {
     CornerState,
@@ -7,6 +9,56 @@ import {
 } from '@nomari/ts-proto';
 import { generateId } from './game-definition-utils';
 
+function createInitialSituation(): Situation {
+    return {
+        situationId: generateId(),
+        name: "開始状況",
+        playerActions: {
+            actions: [],
+        },
+        opponentActions: {
+            actions: [],
+        },
+        transitions: [],
+    };
+}
+
+function createInitialTerminalSituation(): TerminalSituation {
+    return {
+        situationId: generateId(),
+        name: "起き攻め状況終わり",
+        description: "キャラクター同士の距離が離れて起き攻めが続かない",
+        cornerState: CornerState.NONE,
+    };
+}
+
+export function createEmptyGameDefinition(): GameDefinition {
+    const initialSituation = createInitialSituation();
+    return {
+        gameId: 0,
+        name: "",
+        description: "",
+        rootSituationId: initialSituation.situationId,
+        situations: [
+            initialSituation,
+        ],
+        terminalSituations: [
+            createInitialTerminalSituation(),
+        ],
+        initialDynamicState: {
+            resources: [
+                { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
+                { resourceType: ResourceType.OPPONENT_HEALTH, value: 10000 },
+            ],
+        },
+        rewardComputationMethod: {
+            method: {
+                oneofKind: 'damageRace',
+                damageRace: {},
+            },
+        },
+    };
+}
 
 /**
  * Create a Judo GameDefinition
