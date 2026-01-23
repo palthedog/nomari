@@ -6,7 +6,7 @@
 
 ### 試してみる
 
-[**インポート可能なファイルをダウンロード**](./examples/example_4hp_loop.pb)
+[**インポート可能なファイルをダウンロード**](https://raw.githubusercontent.com/palthedog/nomari/master/documents/ja/examples/example_4hp_loop.pb)
 
 上のファイルをダウンロードしたら、Nomari 上の「インポート」ボタンからインポートしてください。
 
