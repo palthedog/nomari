@@ -24,9 +24,6 @@
             "@/*": [
                 "src/*"
             ],
-            "@nomari/ts-proto": [
-                "../../packages/ts-proto"
-            ],
             "@nomari/game-tree": [
                 "../../packages/game-tree/game-tree"
             ],

@@ -2,6 +2,7 @@ import {
     GameDefinition,
     DynamicState,
     ResourceConsumption,
+    ResourceRequirement,
     ResourceType,
     Situation,
     TerminalSituation,
@@ -49,7 +50,39 @@ function hashDynamicState(state: DynamicState): string {
 }
 
 /**
+ * Check if a resource type is a gauge (OD or SA)
+ * Gauges have special consumption rules: if insufficient, consume all remaining
+ */
+function isGaugeResource(resourceType: ResourceType): boolean {
+    return resourceType === ResourceType.PLAYER_OD_GAUGE ||
+        resourceType === ResourceType.PLAYER_SA_GAUGE ||
+        resourceType === ResourceType.OPPONENT_OD_GAUGE ||
+        resourceType === ResourceType.OPPONENT_SA_GAUGE;
+}
+
+/**
+ * Check if the current state meets all requirements for a transition
+ * Returns true if all requirements are met (or no requirements), false otherwise
+ */
+function canApplyTransition(
+    state: DynamicState,
+    requirements: ResourceRequirement[]
+): boolean {
+    for (const req of requirements) {
+        const currentValue = state.resources.find(
+            r => r.resourceType === req.resourceType
+        )?.value || 0;
+        if (currentValue < req.value) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * Apply resource consumptions to a dynamic state
+ * For gauge resources (OD/SA): if insufficient, consume all remaining (Burnout behavior)
+ * For other resources (HP): consume the fixed value
  */
 function applyResourceConsumptions(
     state: DynamicState,
@@ -65,7 +98,19 @@ function applyResourceConsumptions(
     // Apply consumptions
     for (const consumption of consumptions) {
         const currentValue = newResources.get(consumption.resourceType) || 0;
-        const newValue = Math.max(0, currentValue - consumption.value);
+
+        let actualConsumption: number;
+        if (isGaugeResource(consumption.resourceType)) {
+            // OD/SA gauge: consume all remaining if insufficient (Burnout behavior)
+            actualConsumption = currentValue < consumption.value
+                ? currentValue  // Insufficient: consume all remaining
+                : consumption.value;  // Sufficient: consume fixed value
+        } else {
+            // HP etc: consume fixed value
+            actualConsumption = consumption.value;
+        }
+
+        const newValue = Math.max(0, currentValue - actualConsumption);
         newResources.set(consumption.resourceType, newValue);
     }
 
@@ -140,12 +185,19 @@ function calculateRewardForNeutral(
 /**
  * Calculate reward for neutral terminal situation based on win probability with corner information.
  * Uses HP difference with sigmoid function to calculate win probability.
+ * Also considers OD/SA gauge differences if weights are provided.
  */
 function calculateRewardForWinProbabilityWithCorner(
     playerHealth: number,
     opponentHealth: number,
     cornerState: CornerState | undefined,
-    cornerPenalty: number
+    cornerPenalty: number,
+    playerOd: number = 0,
+    opponentOd: number = 0,
+    playerSa: number = 0,
+    opponentSa: number = 0,
+    odGaugeWeight: number = 0,
+    saGaugeWeight: number = 0
 ): { playerReward: number; opponentReward: number } {
     // 1. Calculate HP difference
     let score = playerHealth - opponentHealth;
@@ -157,7 +209,11 @@ function calculateRewardForWinProbabilityWithCorner(
         score += cornerPenalty;
     }
 
-    // 3. Convert to probability [0, 1] using sigmoid function
+    // 3. Apply OD/SA gauge adjustment
+    score += odGaugeWeight * (playerOd - opponentOd);
+    score += saGaugeWeight * (playerSa - opponentSa);
+
+    // 4. Convert to probability [0, 1] using sigmoid function
     // k = 0.0003: HP difference of 5000 yields approximately 80% win probability
     const k = 0.0003;
     const winProbability = 1 / (1 + Math.exp(-k * score));
@@ -195,7 +251,8 @@ function createTerminalNode(
     opponentHealth: number,
     rewardComputationMethod: RewardComputationMethod | undefined,
     initialPlayerHealth: number,
-    initialOpponentHealth: number
+    initialOpponentHealth: number,
+    state: DynamicState
 ): Node {
     let playerReward: number;
     let opponentReward: number;
@@ -217,12 +274,25 @@ function createTerminalNode(
         // draw: use selected reward computation method
         if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
             if (rewardComputationMethod.method.oneofKind === 'winProbability') {
-                const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
+                const winProb = rewardComputationMethod.method.winProbability;
+                const cornerPenalty = winProb.cornerPenalty || 0;
+                const odGaugeWeight = winProb.odGaugeWeight ?? 0;
+                const saGaugeWeight = winProb.saGaugeWeight ?? 0;
+                const playerOd = getResourceValue(state, ResourceType.PLAYER_OD_GAUGE);
+                const opponentOd = getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE);
+                const playerSa = getResourceValue(state, ResourceType.PLAYER_SA_GAUGE);
+                const opponentSa = getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE);
                 ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
                     playerHealth,
                     opponentHealth,
                     undefined, // No corner state for auto-generated terminal nodes
-                    cornerPenalty
+                    cornerPenalty,
+                    playerOd,
+                    opponentOd,
+                    playerSa,
+                    opponentSa,
+                    odGaugeWeight,
+                    saGaugeWeight
                 ));
             } else {
                 // Fallback to default
@@ -263,7 +333,8 @@ function createTerminalSituationNode(
     opponentHealth: number,
     rewardComputationMethod: RewardComputationMethod | undefined,
     initialPlayerHealth: number,
-    initialOpponentHealth: number
+    initialOpponentHealth: number,
+    state: DynamicState
 ): Node {
     let playerReward: number;
     let opponentReward: number;
@@ -277,12 +348,25 @@ function createTerminalSituationNode(
                 initialOpponentHealth
             ));
         } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
-            const cornerPenalty = rewardComputationMethod.method.winProbability.cornerPenalty || 0;
+            const winProb = rewardComputationMethod.method.winProbability;
+            const cornerPenalty = winProb.cornerPenalty || 0;
+            const odGaugeWeight = winProb.odGaugeWeight ?? 0;
+            const saGaugeWeight = winProb.saGaugeWeight ?? 0;
+            const playerOd = getResourceValue(state, ResourceType.PLAYER_OD_GAUGE);
+            const opponentOd = getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE);
+            const playerSa = getResourceValue(state, ResourceType.PLAYER_SA_GAUGE);
+            const opponentSa = getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE);
             ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
                 playerHealth,
                 opponentHealth,
                 terminalSituation.cornerState,
-                cornerPenalty
+                cornerPenalty,
+                playerOd,
+                opponentOd,
+                playerSa,
+                opponentSa,
+                odGaugeWeight,
+                saGaugeWeight
             ));
         } else {
             // Fallback to default
@@ -393,7 +477,8 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 opponentHealth,
                 rewardComputationMethod,
                 initialPlayerHealth,
-                initialOpponentHealth
+                initialOpponentHealth,
+                state
             );
 
             nodeMap.set(nodeKey, node);
@@ -413,7 +498,8 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 opponentHealth,
                 rewardComputationMethod,
                 initialPlayerHealth,
-                initialOpponentHealth
+                initialOpponentHealth,
+                state
             );
 
             nodeMap.set(nodeKey, node);
@@ -463,6 +549,12 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
 
         // Process transitions
         for (const protoTransition of situation.transitions) {
+            // Check requirements: skip if current state doesn't meet requirements
+            const requirements = protoTransition.resourceRequirements || [];
+            if (!canApplyTransition(state, requirements)) {
+                continue;  // Skip this transition - requirements not met
+            }
+
             // Apply resource consumptions
             const newState = applyResourceConsumptions(state, protoTransition.resourceConsumptions);
 
@@ -488,7 +580,8 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                         terminalOpponentHealth,
                         rewardComputationMethod,
                         initialPlayerHealth,
-                        initialOpponentHealth
+                        initialOpponentHealth,
+                        newState
                     );
                     nodeMap.set(terminalNodeKey, nextNode);
                     nodeStateMap.set(terminalNodeKey, newState);

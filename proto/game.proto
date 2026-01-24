@@ -65,6 +65,14 @@ message RewardComputationMethod {
     // Corner penalty for win probability calculation (HP value)
     // Example: 2000 means HP2000 worth of penalty when in corner (20% of max HP 10000)
     double corner_penalty = 1;
+    // Weight for OD gauge difference in win probability calculation
+    // (player_od - opponent_od) * od_gauge_weight is added to the score
+    // Default: 0 (no effect)
+    optional double od_gauge_weight = 2;
+    // Weight for SA gauge difference in win probability calculation
+    // (player_sa - opponent_sa) * sa_gauge_weight is added to the score
+    // Default: 0 (no effect)
+    optional double sa_gauge_weight = 3;
   }
 
   oneof method {
@@ -78,12 +86,23 @@ enum ResourceType {
 
   RESOURCE_TYPE_PLAYER_HEALTH = 1;
   RESOURCE_TYPE_OPPONENT_HEALTH = 2;
+  RESOURCE_TYPE_PLAYER_OD_GAUGE = 3;
+  RESOURCE_TYPE_PLAYER_SA_GAUGE = 4;
+  RESOURCE_TYPE_OPPONENT_OD_GAUGE = 5;
+  RESOURCE_TYPE_OPPONENT_SA_GAUGE = 6;
 }
 
 // Transition from a game node to another game node might consume resources.
 message ResourceConsumption {
   ResourceType resource_type = 1;
   double value = 2;
+}
+
+// Resource requirement for a transition.
+// If the current state does not meet all requirements, the transition is not available.
+message ResourceRequirement {
+  ResourceType resource_type = 1;
+  double value = 2;  // Must have >= value to take this transition
 }
 
 // Dynamic state of the game like the player and opponent health, etc.
@@ -126,4 +145,9 @@ message Transition {
 
   // Resource consumptions that occur during this transition (e.g., damage dealt)
   repeated ResourceConsumption resource_consumptions = 4;
+
+  // Resource requirements for this transition.
+  // The transition is only available if the current state meets all requirements.
+  // Example: SA attack requires SA >= 3 to be available.
+  repeated ResourceRequirement resource_requirements = 5;
 }

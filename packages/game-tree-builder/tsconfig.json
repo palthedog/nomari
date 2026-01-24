@@ -17,9 +17,6 @@
         "sourceMap": true,
         "baseUrl": ".",
         "paths": {
-            "@nomari/ts-proto": [
-                "../ts-proto"
-            ],
             "@nomari/game-tree/game-tree": [
                 "../game-tree/game-tree"
             ]

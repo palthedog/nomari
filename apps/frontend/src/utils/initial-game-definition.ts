@@ -91,26 +91,28 @@ export function createJudoGameDefinition(): GameDefinition {
                 },
                 transitions: [
                     // All transitions must specify resourceConsumptions even if it's empty
-                    { playerActionId: 4, opponentActionId: 7, nextSituationId: 2, resourceConsumptions: [] },
-                    { playerActionId: 4, opponentActionId: 8, nextSituationId: 2, resourceConsumptions: [] },
+                    { playerActionId: 4, opponentActionId: 7, nextSituationId: 2, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: 4, opponentActionId: 8, nextSituationId: 2, resourceConsumptions: [], resourceRequirements: [] },
                     {
                         playerActionId: 4,
                         opponentActionId: 9,
                         nextSituationId: 2,
                         resourceConsumptions: [
                             { resourceType: 1, value: 1600 }
-                        ]
+                        ],
+                        resourceRequirements: []
                     },
-                    { playerActionId: 4, opponentActionId: 10, nextSituationId: 12, resourceConsumptions: [] },
+                    { playerActionId: 4, opponentActionId: 10, nextSituationId: 12, resourceConsumptions: [], resourceRequirements: [] },
 
-                    { playerActionId: 5, opponentActionId: 7, nextSituationId: 2, resourceConsumptions: [] },
+                    { playerActionId: 5, opponentActionId: 7, nextSituationId: 2, resourceConsumptions: [], resourceRequirements: [] },
                     {
                         playerActionId: 5,
                         opponentActionId: 8,
                         nextSituationId: 1,
                         resourceConsumptions: [
                             { resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }
-                        ]
+                        ],
+                        resourceRequirements: []
                     },
                     {
                         playerActionId: 5,
@@ -118,20 +120,22 @@ export function createJudoGameDefinition(): GameDefinition {
                         nextSituationId: 2,
                         resourceConsumptions: [
                             { resourceType: 1, value: 1600 }
-                        ]
+                        ],
+                        resourceRequirements: []
                     },
-                    { playerActionId: 5, opponentActionId: 10, nextSituationId: 3, resourceConsumptions: [] },
+                    { playerActionId: 5, opponentActionId: 10, nextSituationId: 3, resourceConsumptions: [], resourceRequirements: [] },
 
-                    { playerActionId: 6, opponentActionId: 7, nextSituationId: 13, resourceConsumptions: [] },
-                    { playerActionId: 6, opponentActionId: 8, nextSituationId: 2, resourceConsumptions: [] },
-                    { playerActionId: 6, opponentActionId: 9, nextSituationId: 13, resourceConsumptions: [] },
+                    { playerActionId: 6, opponentActionId: 7, nextSituationId: 13, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: 6, opponentActionId: 8, nextSituationId: 2, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: 6, opponentActionId: 9, nextSituationId: 13, resourceConsumptions: [], resourceRequirements: [] },
                     {
                         playerActionId: 6,
                         opponentActionId: 10,
                         nextSituationId: 3,
                         resourceConsumptions: [
                             { resourceType: ResourceType.OPPONENT_HEALTH, value: 1600 }
-                        ]
+                        ],
+                        resourceRequirements: []
                     }
                 ]
             },
@@ -155,7 +159,8 @@ export function createJudoGameDefinition(): GameDefinition {
                         nextSituationId: 1,
                         resourceConsumptions: [
                             { resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }
-                        ]
+                        ],
+                        resourceRequirements: []
                     }
                 ]
             },
@@ -179,7 +184,8 @@ export function createJudoGameDefinition(): GameDefinition {
                         nextSituationId: 1,
                         resourceConsumptions: [
                             { resourceType: ResourceType.OPPONENT_HEALTH, value: 3000 }
-                        ]
+                        ],
+                        resourceRequirements: []
                     }
                 ]
             }
@@ -285,8 +291,8 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
                     ],
                 },
                 transitions: [
-                    { playerActionId: rootJumpActionId, opponentActionId: rootWaitActionId, nextSituationId: closeRangeSituationId, resourceConsumptions: [] },
-                    { playerActionId: rootDashActionId, opponentActionId: rootWaitActionId, nextSituationId: afterDashSituationId, resourceConsumptions: [] },
+                    { playerActionId: rootJumpActionId, opponentActionId: rootWaitActionId, nextSituationId: closeRangeSituationId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: rootDashActionId, opponentActionId: rootWaitActionId, nextSituationId: afterDashSituationId, resourceConsumptions: [], resourceRequirements: [] },
                 ],
             },
             {
@@ -309,22 +315,22 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
                     ],
                 },
                 transitions: [
-                    { playerActionId: closeTcActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: closeTcActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: closeTcActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2160 }] },
-                    { playerActionId: closeTcActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: closeThrowActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: closeThrowActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }] },
-                    { playerActionId: closeThrowActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
-                    { playerActionId: closeThrowActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }] },
-                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }] },
-                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
-                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: closeGuardActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: closeGuardActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: closeGuardActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }] },
-                    { playerActionId: closeGuardActionId, opponentActionId: closeInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2160 }], resourceRequirements: [] },
+                    { playerActionId: closeTcActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }], resourceRequirements: [] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }], resourceRequirements: [] },
+                    { playerActionId: closeThrowActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }], resourceRequirements: [] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }], resourceRequirements: [] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }], resourceRequirements: [] },
+                    { playerActionId: closeCommandThrowActionId, opponentActionId: closeInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeGuardOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeJumpOppActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }], resourceRequirements: [] },
+                    { playerActionId: closeGuardActionId, opponentActionId: closeInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }], resourceRequirements: [] },
                 ],
             },
             {
@@ -345,15 +351,15 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
                     ],
                 },
                 transitions: [
-                    { playerActionId: throwThrowActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: throwThrowActionId, opponentActionId: throwInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: throwThrowActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
-                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }] },
-                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }] },
-                    { playerActionId: throwShimmyActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3760 }] },
-                    { playerActionId: throwShimmyActionId, opponentActionId: throwInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
-                    { playerActionId: throwShimmyActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }] },
+                    { playerActionId: throwThrowActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: throwThrowActionId, opponentActionId: throwInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: throwThrowActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }], resourceRequirements: [] },
+                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 }], resourceRequirements: [] },
+                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: throwCommandThrowActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1500 }], resourceRequirements: [] },
+                    { playerActionId: throwShimmyActionId, opponentActionId: throwDelayGrapActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3760 }], resourceRequirements: [] },
+                    { playerActionId: throwShimmyActionId, opponentActionId: throwInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }], resourceRequirements: [] },
+                    { playerActionId: throwShimmyActionId, opponentActionId: throwJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }], resourceRequirements: [] },
                 ],
             },
             {
@@ -375,18 +381,18 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
                     ],
                 },
                 transitions: [
-                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashGuardActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }] },
-                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 2500 }] },
-                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: dashKneeActionId, opponentActionId: dashGuardActionId, nextSituationId: throwRangeSituationId, resourceConsumptions: [] },
-                    { playerActionId: dashKneeActionId, opponentActionId: dashJumpActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3560 }] },
-                    { playerActionId: dashKneeActionId, opponentActionId: dashInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }] },
-                    { playerActionId: dashKneeActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3560 }] },
-                    { playerActionId: dashShimmyActionId, opponentActionId: dashGuardActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [] },
-                    { playerActionId: dashShimmyActionId, opponentActionId: dashJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }] },
-                    { playerActionId: dashShimmyActionId, opponentActionId: dashInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
-                    { playerActionId: dashShimmyActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashGuardActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1200 }], resourceRequirements: [] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 2500 }], resourceRequirements: [] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: dashWalkThrowActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashGuardActionId, nextSituationId: throwRangeSituationId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashJumpActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3560 }], resourceRequirements: [] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashInvincibleActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.PLAYER_HEALTH, value: 1600 }], resourceRequirements: [] },
+                    { playerActionId: dashKneeActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3560 }], resourceRequirements: [] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashGuardActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [], resourceRequirements: [] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashJumpActionId, nextSituationId: neutralTerminalId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 1000 }], resourceRequirements: [] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashInvincibleActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }], resourceRequirements: [] },
+                    { playerActionId: dashShimmyActionId, opponentActionId: dashThrowEscapeActionId, nextSituationId: rootSituationId, resourceConsumptions: [{ resourceType: ResourceType.OPPONENT_HEALTH, value: 3910 }], resourceRequirements: [] },
                 ],
             },
         ],
