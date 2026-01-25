@@ -70,6 +70,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             // Cyclic references without any change in DynamicState should return an error
@@ -125,6 +127,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             const result = buildGameTree(gameDefinition);
@@ -211,6 +215,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             const result = buildGameTree(gameDefinition);
@@ -283,6 +289,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             const result = buildGameTree(gameDefinition);
@@ -348,6 +356,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             const result = buildGameTree(gameDefinition);
@@ -417,6 +427,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             const result = buildGameTree(gameDefinition);
@@ -487,6 +499,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             const result = buildGameTree(gameDefinition);
@@ -575,6 +589,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             // Cycle with no DynamicState change should be an error
@@ -657,6 +673,8 @@ describe('gameTreeBuilder', () => {
                         { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
                     ],
                 },
+                playerComboStarters: [],
+                opponentComboStarters: [],
             };
 
             // Cycle with DynamicState change is allowed (health decreases continuously, so it will eventually reach a terminal node)
@@ -735,6 +753,8 @@ describe('gameTreeBuilder', () => {
                             damageRace: {},
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -813,6 +833,8 @@ describe('gameTreeBuilder', () => {
                             damageRace: {},
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -887,6 +909,8 @@ describe('gameTreeBuilder', () => {
                             damageRace: {},
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -961,6 +985,8 @@ describe('gameTreeBuilder', () => {
                             damageRace: {},
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -1041,6 +1067,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -1119,6 +1147,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -1197,6 +1227,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -1276,6 +1308,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const gameDefinitionOpponentInCorner: GameDefinition = {
@@ -1330,6 +1364,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const resultPlayer = buildGameTree(gameDefinitionPlayerInCorner);
@@ -1422,6 +1458,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -1500,6 +1538,8 @@ describe('gameTreeBuilder', () => {
                             },
                         },
                     },
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);
@@ -1571,6 +1611,8 @@ describe('gameTreeBuilder', () => {
                         ],
                     },
                     // rewardComputationMethod is not specified
+                    playerComboStarters: [],
+                    opponentComboStarters: [],
                 };
 
                 const result = buildGameTree(gameDefinition);

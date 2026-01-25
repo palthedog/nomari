@@ -57,6 +57,8 @@ export function createEmptyGameDefinition(): GameDefinition {
                 damageRace: {},
             },
         },
+        playerComboStarters: [],
+        opponentComboStarters: [],
     };
 }
 
@@ -215,7 +217,9 @@ export function createJudoGameDefinition(): GameDefinition {
                 "oneofKind": 'damageRace',
                 "damageRace": {}
             }
-        }
+        },
+        playerComboStarters: [],
+        opponentComboStarters: []
     }
 }
 
@@ -416,5 +420,7 @@ export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
                 damageRace: {},
             },
         },
+        playerComboStarters: [],
+        opponentComboStarters: [],
     };
 }

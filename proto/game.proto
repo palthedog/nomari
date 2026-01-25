@@ -22,6 +22,12 @@ message GameDefinition {
 
   // Reward computation method for terminal nodes
   RewardComputationMethod reward_computation_method = 8;
+
+  // Player's combo library (combos when player hits opponent)
+  repeated ComboStarter player_combo_starters = 9;
+
+  // Opponent's combo library (combos when opponent hits player)
+  repeated ComboStarter opponent_combo_starters = 10;
 }
 
 message Situation {
@@ -140,6 +146,7 @@ message Transition {
   uint32 opponent_action_id = 2;
 
   // Situation would be reached after the action is taken.
+  // Can reference Situation, TerminalSituation, or ComboStarter.
   // In case player/opponent's health becomes 0, the next situation would be overwritten to a terminal situation.
   uint32 next_situation_id = 3;
 
@@ -150,4 +157,35 @@ message Transition {
   // The transition is only available if the current state meets all requirements.
   // Example: SA attack requires SA >= 3 to be available.
   repeated ResourceRequirement resource_requirements = 5;
+}
+
+// A branch route within a combo starter.
+// Each route has different requirements and effects based on gauge state.
+message ComboRoute {
+  string name = 1;  // e.g., "No gauge", "OD confirm", "SA finisher"
+
+  // Requirements to use this route (must have >= these values)
+  repeated ResourceRequirement requirements = 2;
+
+  // Resources consumed by this combo route
+  // For player combos: OPPONENT_HEALTH (damage to opponent), PLAYER_OD_GAUGE, etc.
+  // For opponent combos: PLAYER_HEALTH (damage to player), OPPONENT_OD_GAUGE, etc.
+  repeated ResourceConsumption consumptions = 3;
+
+  // Destination situation after this combo route completes
+  uint32 next_situation_id = 4;
+}
+
+// A combo starter that can be referenced from Transition.next_situation_id.
+// The game-tree-builder will expand this into multiple branches based on
+// which ComboRoutes are available given the current gauge state.
+message ComboStarter {
+  // Unique ID shared with Situation and TerminalSituation
+  uint32 situation_id = 1;
+
+  string name = 2;         // e.g., "Medium punch starter", "Heavy punch starter"
+  string description = 3;
+
+  // Multiple routes that branch from this starter based on gauge requirements
+  repeated ComboRoute routes = 4;
 }
