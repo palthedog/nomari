@@ -35,6 +35,20 @@
             相手 {{ selectedNode.state.opponentHealth }}
           </span>
         </div>
+        <div class="info-row">
+          <span class="label">OD:</span>
+          <span class="value">
+            プレイヤー {{ formatGauge(selectedNode.state.playerOd) }} /
+            相手 {{ formatGauge(selectedNode.state.opponentOd) }}
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="label">SA:</span>
+          <span class="value">
+            プレイヤー {{ formatGauge(selectedNode.state.playerSa) }} /
+            相手 {{ formatGauge(selectedNode.state.opponentSa) }}
+          </span>
+        </div>
       </div>
 
       <!-- Terminal node indicator -->
@@ -173,6 +187,10 @@ function formatExpectedValue(value: number | null): string {
         return '-';
     }
     return Math.round(value).toLocaleString();
+}
+
+function formatGauge(value: number): string {
+    return (value / 1000).toFixed(1);
 }
 </script>
 

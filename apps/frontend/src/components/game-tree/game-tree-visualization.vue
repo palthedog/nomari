@@ -57,12 +57,22 @@
 
           <!-- HP info -->
           <text
-            :y="10"
+            :y="7"
             text-anchor="middle"
             fill="white"
             font-size="9"
           >
             HP: {{ getHpInfo(nodeId) }}
+          </text>
+
+          <!-- OD/SA info -->
+          <text
+            :y="17"
+            text-anchor="middle"
+            fill="white"
+            font-size="8"
+          >
+            OD: {{ getOdInfo(nodeId) }} / SA: {{ getSaInfo(nodeId) }}
           </text>
         </template>
       </v-network-graph>
@@ -86,7 +96,7 @@ const gameTreeStore = useGameTreeStore();
 const selectedNodes = ref<string[]>([]);
 
 const nodeWidth = 140;
-const nodeHeight = 50;
+const nodeHeight = 55;
 const levelGap = 160;
 const nodeGap = 80;
 
@@ -167,14 +177,43 @@ function formatReward(nodeId: string): string {
 }
 
 /**
-     * Get HP info string for a node.
-     */
+ * Get HP info string for a node.
+ */
 function getHpInfo(nodeId: string): string {
     const node = props.gameTree.nodes[nodeId];
     if (!node) {
         return '- / -'; 
     }
     return `${node.state.playerHealth} / ${node.state.opponentHealth}`;
+}
+
+/**
+ * Format gauge value (divide by 1000, 1 decimal place).
+ */
+function formatGauge(value: number): string {
+    return (value / 1000).toFixed(1);
+}
+
+/**
+ * Get OD gauge info string for a node (player/opponent).
+ */
+function getOdInfo(nodeId: string): string {
+    const node = props.gameTree.nodes[nodeId];
+    if (!node) {
+        return '- / -'; 
+    }
+    return `${formatGauge(node.state.playerOd)} / ${formatGauge(node.state.opponentOd)}`;
+}
+
+/**
+ * Get SA gauge info string for a node (player/opponent).
+ */
+function getSaInfo(nodeId: string): string {
+    const node = props.gameTree.nodes[nodeId];
+    if (!node) {
+        return '- / -'; 
+    }
+    return `${formatGauge(node.state.playerSa)} / ${formatGauge(node.state.opponentSa)}`;
 }
 
 /**

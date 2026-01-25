@@ -341,6 +341,10 @@ function createTerminalNode(
         state: {
             playerHealth: playerHealth,
             opponentHealth: opponentHealth,
+            playerOd: getResourceValue(state, ResourceType.PLAYER_OD_GAUGE),
+            opponentOd: getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE),
+            playerSa: getResourceValue(state, ResourceType.PLAYER_SA_GAUGE),
+            opponentSa: getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE),
         },
         transitions: [],
         playerActions: undefined,
@@ -420,6 +424,10 @@ function createTerminalSituationNode(
             situation_id: terminalSituation.situationId,
             playerHealth: playerHealth,
             opponentHealth: opponentHealth,
+            playerOd: getResourceValue(state, ResourceType.PLAYER_OD_GAUGE),
+            opponentOd: getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE),
+            playerSa: getResourceValue(state, ResourceType.PLAYER_SA_GAUGE),
+            opponentSa: getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE),
         },
         transitions: [],
         playerActions: undefined,
@@ -634,6 +642,10 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 situation_id: situationId,
                 playerHealth: playerHealth,
                 opponentHealth: opponentHealth,
+                playerOd: getResourceValue(state, ResourceType.PLAYER_OD_GAUGE),
+                opponentOd: getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE),
+                playerSa: getResourceValue(state, ResourceType.PLAYER_SA_GAUGE),
+                opponentSa: getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE),
             },
             playerActions: {
                 actions: situation.playerActions!.actions.map((a: Action) => ({
@@ -770,6 +782,10 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 situation_id: comboStarter.situationId,
                 playerHealth,
                 opponentHealth,
+                playerOd: getResourceValue(state, ResourceType.PLAYER_OD_GAUGE),
+                opponentOd: getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE),
+                playerSa: getResourceValue(state, ResourceType.PLAYER_SA_GAUGE),
+                opponentSa: getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE),
             },
             playerActions: {
                 actions: playerActions 
