@@ -5,9 +5,21 @@ import { GameTree, Node, PlayerActions, Action, NodeTransition } from '@nomari/g
  * Helper function to create a rock-paper-scissors game tree
  */
 function createRockPaperScissorsGame(): GameTree {
-    const rock: Action = { actionId: 1, name: 'Rock', description: 'Rock' };
-    const paper: Action = { actionId: 2, name: 'Paper', description: 'Paper' };
-    const scissors: Action = { actionId: 3, name: 'Scissors', description: 'Scissors' };
+    const rock: Action = {
+        actionId: 1,
+        name: 'Rock',
+        description: 'Rock' 
+    };
+    const paper: Action = {
+        actionId: 2,
+        name: 'Paper',
+        description: 'Paper' 
+    };
+    const scissors: Action = {
+        actionId: 3,
+        name: 'Scissors',
+        description: 'Scissors' 
+    };
 
     const playerActions: PlayerActions = {
         actions: [rock, paper, scissors]
@@ -28,8 +40,12 @@ function createRockPaperScissorsGame(): GameTree {
                 opponentHealth: 0,
             },
             transitions: [],
-            playerReward: { value: playerReward },
-            opponentReward: { value: opponentReward },
+            playerReward: {
+                value: playerReward 
+            },
+            opponentReward: {
+                value: opponentReward 
+            },
         };
         terminalNodes.set(id, node);
         return node;
@@ -48,15 +64,51 @@ function createRockPaperScissorsGame(): GameTree {
 
     // Create transitions
     const transitions: NodeTransition[] = [
-        { playerActionId: 1, opponentActionId: 1, nextNodeId: 'rock-rock' },
-        { playerActionId: 1, opponentActionId: 2, nextNodeId: 'rock-paper' },
-        { playerActionId: 1, opponentActionId: 3, nextNodeId: 'rock-scissors' },
-        { playerActionId: 2, opponentActionId: 1, nextNodeId: 'paper-rock' },
-        { playerActionId: 2, opponentActionId: 2, nextNodeId: 'paper-paper' },
-        { playerActionId: 2, opponentActionId: 3, nextNodeId: 'paper-scissors' },
-        { playerActionId: 3, opponentActionId: 1, nextNodeId: 'scissors-rock' },
-        { playerActionId: 3, opponentActionId: 2, nextNodeId: 'scissors-paper' },
-        { playerActionId: 3, opponentActionId: 3, nextNodeId: 'scissors-scissors' },
+        {
+            playerActionId: 1,
+            opponentActionId: 1,
+            nextNodeId: 'rock-rock' 
+        },
+        {
+            playerActionId: 1,
+            opponentActionId: 2,
+            nextNodeId: 'rock-paper' 
+        },
+        {
+            playerActionId: 1,
+            opponentActionId: 3,
+            nextNodeId: 'rock-scissors' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 1,
+            nextNodeId: 'paper-rock' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 2,
+            nextNodeId: 'paper-paper' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 3,
+            nextNodeId: 'paper-scissors' 
+        },
+        {
+            playerActionId: 3,
+            opponentActionId: 1,
+            nextNodeId: 'scissors-rock' 
+        },
+        {
+            playerActionId: 3,
+            opponentActionId: 2,
+            nextNodeId: 'scissors-paper' 
+        },
+        {
+            playerActionId: 3,
+            opponentActionId: 3,
+            nextNodeId: 'scissors-scissors' 
+        },
     ];
 
     const root: Node = {
@@ -91,12 +143,32 @@ function createRockPaperScissorsGame(): GameTree {
  * Helper function to create a game with biased rewards
  */
 function createBiasedRewardGame(): GameTree {
-    const strike: Action = { actionId: 1, name: 'Strike', description: 'Strike' };
-    const throwAction: Action = { actionId: 2, name: 'Throw', description: 'Throw' };
+    const strike: Action = {
+        actionId: 1,
+        name: 'Strike',
+        description: 'Strike' 
+    };
+    const throwAction: Action = {
+        actionId: 2,
+        name: 'Throw',
+        description: 'Throw' 
+    };
 
-    const guard: Action = { actionId: 101, name: 'Guard', description: 'Guard' };
-    const throwEscape: Action = { actionId: 102, name: 'Throw Escape', description: 'Throw Escape' };
-    const verticalJump: Action = { actionId: 103, name: 'Vertical Jump', description: 'Vertical Jump' };
+    const guard: Action = {
+        actionId: 101,
+        name: 'Guard',
+        description: 'Guard' 
+    };
+    const throwEscape: Action = {
+        actionId: 102,
+        name: 'Throw Escape',
+        description: 'Throw Escape' 
+    };
+    const verticalJump: Action = {
+        actionId: 103,
+        name: 'Vertical Jump',
+        description: 'Vertical Jump' 
+    };
 
     const playerActions: PlayerActions = {
         actions: [strike, throwAction]
@@ -117,8 +189,12 @@ function createBiasedRewardGame(): GameTree {
                 opponentHealth: 0,
             },
             transitions: [],
-            playerReward: { value: playerReward },
-            opponentReward: { value: opponentReward },
+            playerReward: {
+                value: playerReward 
+            },
+            opponentReward: {
+                value: opponentReward 
+            },
         };
         terminalNodes.set(id, node);
         return node;
@@ -132,12 +208,36 @@ function createBiasedRewardGame(): GameTree {
     createTerminalNode('throw-vertical_jump', -3000, 3000);
 
     const transitions: NodeTransition[] = [
-        { playerActionId: 1, opponentActionId: 101, nextNodeId: 'strike-guard' },
-        { playerActionId: 1, opponentActionId: 102, nextNodeId: 'strike-throw_escape' },
-        { playerActionId: 1, opponentActionId: 103, nextNodeId: 'strike-vertical_jump' },
-        { playerActionId: 2, opponentActionId: 101, nextNodeId: 'throw-guard' },
-        { playerActionId: 2, opponentActionId: 102, nextNodeId: 'throw-throw_escape' },
-        { playerActionId: 2, opponentActionId: 103, nextNodeId: 'throw-vertical_jump' },
+        {
+            playerActionId: 1,
+            opponentActionId: 101,
+            nextNodeId: 'strike-guard' 
+        },
+        {
+            playerActionId: 1,
+            opponentActionId: 102,
+            nextNodeId: 'strike-throw_escape' 
+        },
+        {
+            playerActionId: 1,
+            opponentActionId: 103,
+            nextNodeId: 'strike-vertical_jump' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 101,
+            nextNodeId: 'throw-guard' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 102,
+            nextNodeId: 'throw-throw_escape' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 103,
+            nextNodeId: 'throw-vertical_jump' 
+        },
     ];
 
     const root: Node = {
@@ -172,9 +272,21 @@ function createBiasedRewardGame(): GameTree {
  * Helper function to create Guriko Janken
  */
 function createGurikoJanken(): GameTree {
-    const rock: Action = { actionId: 1, name: 'Rock', description: 'Rock' };
-    const paper: Action = { actionId: 2, name: 'Paper', description: 'Paper' };
-    const scissors: Action = { actionId: 3, name: 'Scissors', description: 'Scissors' };
+    const rock: Action = {
+        actionId: 1,
+        name: 'Rock',
+        description: 'Rock' 
+    };
+    const paper: Action = {
+        actionId: 2,
+        name: 'Paper',
+        description: 'Paper' 
+    };
+    const scissors: Action = {
+        actionId: 3,
+        name: 'Scissors',
+        description: 'Scissors' 
+    };
 
     const playerActions: PlayerActions = {
         actions: [rock, paper, scissors],
@@ -193,20 +305,60 @@ function createGurikoJanken(): GameTree {
             opponentHealth: 0,
         },
         transitions: [],
-        playerReward: { value: playerReward },
-        opponentReward: { value: opponentReward },
+        playerReward: {
+            value: playerReward 
+        },
+        opponentReward: {
+            value: opponentReward 
+        },
     });
 
     const transitions: NodeTransition[] = [
-        { playerActionId: 1, opponentActionId: 1, nextNodeId: 'rock-rock' },
-        { playerActionId: 1, opponentActionId: 2, nextNodeId: 'rock-paper' },
-        { playerActionId: 1, opponentActionId: 3, nextNodeId: 'rock-scissors' },
-        { playerActionId: 2, opponentActionId: 1, nextNodeId: 'paper-rock' },
-        { playerActionId: 2, opponentActionId: 2, nextNodeId: 'paper-paper' },
-        { playerActionId: 2, opponentActionId: 3, nextNodeId: 'paper-scissors' },
-        { playerActionId: 3, opponentActionId: 1, nextNodeId: 'scissors-rock' },
-        { playerActionId: 3, opponentActionId: 2, nextNodeId: 'scissors-paper' },
-        { playerActionId: 3, opponentActionId: 3, nextNodeId: 'scissors-scissors' },
+        {
+            playerActionId: 1,
+            opponentActionId: 1,
+            nextNodeId: 'rock-rock' 
+        },
+        {
+            playerActionId: 1,
+            opponentActionId: 2,
+            nextNodeId: 'rock-paper' 
+        },
+        {
+            playerActionId: 1,
+            opponentActionId: 3,
+            nextNodeId: 'rock-scissors' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 1,
+            nextNodeId: 'paper-rock' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 2,
+            nextNodeId: 'paper-paper' 
+        },
+        {
+            playerActionId: 2,
+            opponentActionId: 3,
+            nextNodeId: 'paper-scissors' 
+        },
+        {
+            playerActionId: 3,
+            opponentActionId: 1,
+            nextNodeId: 'scissors-rock' 
+        },
+        {
+            playerActionId: 3,
+            opponentActionId: 2,
+            nextNodeId: 'scissors-paper' 
+        },
+        {
+            playerActionId: 3,
+            opponentActionId: 3,
+            nextNodeId: 'scissors-scissors' 
+        },
     ];
 
     const root: Node = {
@@ -239,7 +391,11 @@ function createGurikoJanken(): GameTree {
         ...terminalNodes,
     };
 
-    return { id: 3, root: 'root', nodes };
+    return {
+        id: 3,
+        root: 'root',
+        nodes 
+    };
 }
 
 describe('LPSolver', () => {
@@ -354,10 +510,22 @@ describe('LPSolver', () => {
 
     describe('Single action node', () => {
         function createSinglePlayerActionGame(): GameTree {
-            const attack: Action = { actionId: 1, name: 'Attack', description: 'Attack' };
+            const attack: Action = {
+                actionId: 1,
+                name: 'Attack',
+                description: 'Attack' 
+            };
 
-            const block: Action = { actionId: 101, name: 'Block', description: 'Block' };
-            const dodge: Action = { actionId: 102, name: 'Dodge', description: 'Dodge' };
+            const block: Action = {
+                actionId: 101,
+                name: 'Block',
+                description: 'Block' 
+            };
+            const dodge: Action = {
+                actionId: 102,
+                name: 'Dodge',
+                description: 'Dodge' 
+            };
 
             const playerActions: PlayerActions = {
                 actions: [attack]
@@ -370,21 +538,39 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 transitions: [],
-                playerReward: { value: playerReward },
-                opponentReward: { value: opponentReward },
+                playerReward: {
+                    value: playerReward 
+                },
+                opponentReward: {
+                    value: opponentReward 
+                },
             });
 
             const transitions: NodeTransition[] = [
-                { playerActionId: 1, opponentActionId: 101, nextNodeId: 'attack-block' },
-                { playerActionId: 1, opponentActionId: 102, nextNodeId: 'attack-dodge' },
+                {
+                    playerActionId: 1,
+                    opponentActionId: 101,
+                    nextNodeId: 'attack-block' 
+                },
+                {
+                    playerActionId: 1,
+                    opponentActionId: 102,
+                    nextNodeId: 'attack-dodge' 
+                },
             ];
 
             const root: Node = {
                 nodeId: 'root',
                 description: 'Single Player Action Game',
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 playerActions,
                 opponentActions,
                 transitions,
@@ -396,14 +582,30 @@ describe('LPSolver', () => {
                 'attack-dodge': createTerminalNode('attack-dodge', 100, -100),
             };
 
-            return { id: 4, root: 'root', nodes };
+            return {
+                id: 4,
+                root: 'root',
+                nodes 
+            };
         }
 
         function createSingleOpponentActionGame(): GameTree {
-            const strike: Action = { actionId: 1, name: 'Strike', description: 'Strike' };
-            const defend: Action = { actionId: 2, name: 'Defend', description: 'Defend' };
+            const strike: Action = {
+                actionId: 1,
+                name: 'Strike',
+                description: 'Strike' 
+            };
+            const defend: Action = {
+                actionId: 2,
+                name: 'Defend',
+                description: 'Defend' 
+            };
 
-            const wait: Action = { actionId: 101, name: 'Wait', description: 'Wait' };
+            const wait: Action = {
+                actionId: 101,
+                name: 'Wait',
+                description: 'Wait' 
+            };
 
             const playerActions: PlayerActions = {
                 actions: [strike, defend]
@@ -416,21 +618,39 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 transitions: [],
-                playerReward: { value: playerReward },
-                opponentReward: { value: opponentReward },
+                playerReward: {
+                    value: playerReward 
+                },
+                opponentReward: {
+                    value: opponentReward 
+                },
             });
 
             const transitions: NodeTransition[] = [
-                { playerActionId: 1, opponentActionId: 101, nextNodeId: 'strike-wait' },
-                { playerActionId: 2, opponentActionId: 101, nextNodeId: 'defend-wait' },
+                {
+                    playerActionId: 1,
+                    opponentActionId: 101,
+                    nextNodeId: 'strike-wait' 
+                },
+                {
+                    playerActionId: 2,
+                    opponentActionId: 101,
+                    nextNodeId: 'defend-wait' 
+                },
             ];
 
             const root: Node = {
                 nodeId: 'root',
                 description: 'Single Opponent Action Game',
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 playerActions,
                 opponentActions,
                 transitions,
@@ -442,7 +662,11 @@ describe('LPSolver', () => {
                 'defend-wait': createTerminalNode('defend-wait', -100, 100),
             };
 
-            return { id: 5, root: 'root', nodes };
+            return {
+                id: 5,
+                root: 'root',
+                nodes 
+            };
         }
 
         it('should compute correct minimax value when player has one action', () => {
@@ -466,32 +690,78 @@ describe('LPSolver', () => {
         });
 
         function createGameWithSingleActionChild(): GameTree {
-            const pathA: Action = { actionId: 1, name: 'Path A', description: 'Path A' };
-            const pathB: Action = { actionId: 2, name: 'Path B', description: 'Path B' };
-            const attack: Action = { actionId: 3, name: 'Attack', description: 'Attack' };
-            const block: Action = { actionId: 101, name: 'Block', description: 'Block' };
-            const dodge: Action = { actionId: 102, name: 'Dodge', description: 'Dodge' };
-            const pass: Action = { actionId: 103, name: 'Pass', description: 'Pass' };
+            const pathA: Action = {
+                actionId: 1,
+                name: 'Path A',
+                description: 'Path A' 
+            };
+            const pathB: Action = {
+                actionId: 2,
+                name: 'Path B',
+                description: 'Path B' 
+            };
+            const attack: Action = {
+                actionId: 3,
+                name: 'Attack',
+                description: 'Attack' 
+            };
+            const block: Action = {
+                actionId: 101,
+                name: 'Block',
+                description: 'Block' 
+            };
+            const dodge: Action = {
+                actionId: 102,
+                name: 'Dodge',
+                description: 'Dodge' 
+            };
+            const pass: Action = {
+                actionId: 103,
+                name: 'Pass',
+                description: 'Pass' 
+            };
 
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 transitions: [],
-                playerReward: { value: playerReward },
-                opponentReward: { value: opponentReward },
+                playerReward: {
+                    value: playerReward 
+                },
+                opponentReward: {
+                    value: opponentReward 
+                },
             });
 
             // Single-action child node
             const childNode: Node = {
                 nodeId: 'child_a',
                 description: 'Single Action Child',
-                state: { playerHealth: 0, opponentHealth: 0 },
-                playerActions: { actions: [attack] },
-                opponentActions: { actions: [block, dodge] },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
+                playerActions: {
+                    actions: [attack] 
+                },
+                opponentActions: {
+                    actions: [block, dodge] 
+                },
                 transitions: [
-                    { playerActionId: 3, opponentActionId: 101, nextNodeId: 'attack-block' },
-                    { playerActionId: 3, opponentActionId: 102, nextNodeId: 'attack-dodge' },
+                    {
+                        playerActionId: 3,
+                        opponentActionId: 101,
+                        nextNodeId: 'attack-block' 
+                    },
+                    {
+                        playerActionId: 3,
+                        opponentActionId: 102,
+                        nextNodeId: 'attack-dodge' 
+                    },
                 ],
             };
 
@@ -499,12 +769,27 @@ describe('LPSolver', () => {
             const root: Node = {
                 nodeId: 'root',
                 description: 'Root',
-                state: { playerHealth: 0, opponentHealth: 0 },
-                playerActions: { actions: [pathA, pathB] },
-                opponentActions: { actions: [pass] },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
+                playerActions: {
+                    actions: [pathA, pathB] 
+                },
+                opponentActions: {
+                    actions: [pass] 
+                },
                 transitions: [
-                    { playerActionId: 1, opponentActionId: 103, nextNodeId: 'child_a' },
-                    { playerActionId: 2, opponentActionId: 103, nextNodeId: 'terminal_b' },
+                    {
+                        playerActionId: 1,
+                        opponentActionId: 103,
+                        nextNodeId: 'child_a' 
+                    },
+                    {
+                        playerActionId: 2,
+                        opponentActionId: 103,
+                        nextNodeId: 'terminal_b' 
+                    },
                 ],
             };
 
@@ -516,7 +801,11 @@ describe('LPSolver', () => {
                 'terminal_b': createTerminalNode('terminal_b', 0, 0),
             };
 
-            return { id: 6, root: 'root', nodes };
+            return {
+                id: 6,
+                root: 'root',
+                nodes 
+            };
         }
 
         it('should propagate correct minimax value from single-action child to parent', () => {
@@ -561,11 +850,27 @@ describe('LPSolver', () => {
     describe('Action ID collision with reserved variable names', () => {
         // Using numeric IDs, so collision test is less relevant but kept for coverage
         function createGameWithSmallActionId(): GameTree {
-            const v: Action = { actionId: 1, name: 'V', description: 'Action V' };
-            const w: Action = { actionId: 2, name: 'W', description: 'Action W' };
+            const v: Action = {
+                actionId: 1,
+                name: 'V',
+                description: 'Action V' 
+            };
+            const w: Action = {
+                actionId: 2,
+                name: 'W',
+                description: 'Action W' 
+            };
 
-            const x: Action = { actionId: 101, name: 'X', description: 'Action X' };
-            const y: Action = { actionId: 102, name: 'Y', description: 'Action Y' };
+            const x: Action = {
+                actionId: 101,
+                name: 'X',
+                description: 'Action X' 
+            };
+            const y: Action = {
+                actionId: 102,
+                name: 'Y',
+                description: 'Action Y' 
+            };
 
             const playerActions: PlayerActions = {
                 actions: [v, w]
@@ -578,23 +883,49 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 transitions: [],
-                playerReward: { value: playerReward },
-                opponentReward: { value: opponentReward },
+                playerReward: {
+                    value: playerReward 
+                },
+                opponentReward: {
+                    value: opponentReward 
+                },
             });
 
             const transitions: NodeTransition[] = [
-                { playerActionId: 1, opponentActionId: 101, nextNodeId: 'v-x' },
-                { playerActionId: 1, opponentActionId: 102, nextNodeId: 'v-y' },
-                { playerActionId: 2, opponentActionId: 101, nextNodeId: 'w-x' },
-                { playerActionId: 2, opponentActionId: 102, nextNodeId: 'w-y' },
+                {
+                    playerActionId: 1,
+                    opponentActionId: 101,
+                    nextNodeId: 'v-x' 
+                },
+                {
+                    playerActionId: 1,
+                    opponentActionId: 102,
+                    nextNodeId: 'v-y' 
+                },
+                {
+                    playerActionId: 2,
+                    opponentActionId: 101,
+                    nextNodeId: 'w-x' 
+                },
+                {
+                    playerActionId: 2,
+                    opponentActionId: 102,
+                    nextNodeId: 'w-y' 
+                },
             ];
 
             const root: Node = {
                 nodeId: 'root',
                 description: 'Small Action ID Game',
-                state: { playerHealth: 0, opponentHealth: 0 },
+                state: {
+                    playerHealth: 0,
+                    opponentHealth: 0 
+                },
                 playerActions,
                 opponentActions,
                 transitions,
@@ -608,7 +939,11 @@ describe('LPSolver', () => {
                 'w-y': createTerminalNode('w-y', 2, -2),
             };
 
-            return { id: 7, root: 'root', nodes };
+            return {
+                id: 7,
+                root: 'root',
+                nodes 
+            };
         }
 
         it('should handle small action IDs correctly', () => {

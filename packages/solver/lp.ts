@@ -29,11 +29,17 @@ const OPPONENT_ACTION_PREFIX = 'o_';
 /**
  * LP model structure for javascript-lp-solver
  */
+interface LPConstraint {
+    min?: number;
+    max?: number;
+    equal?: number;
+}
+
 interface LPModel {
     optimize: string;
     opType: 'max' | 'min';
-    constraints: Record<string, any>;
-    variables: Record<string, any>;
+    constraints: Record<string, LPConstraint>;
+    variables: Record<string, Record<string, number>>;
 }
 
 /**
@@ -43,7 +49,7 @@ interface LPResult {
     feasible: boolean;
     result?: number;
     v?: number;
-    [key: string]: any;
+    [key: string]: boolean | number | undefined;
 }
 
 /**
@@ -299,7 +305,7 @@ export class LPSolver {
             // Extract strategy (use prefixed variable names)
             for (const action of node.playerActions) {
                 const varName = `${PLAYER_ACTION_PREFIX}${action}`;
-                const prob = result[varName] ?? 0;
+                const prob = (result[varName] as number) ?? 0;
                 node.playerStrategy.set(action, prob);
             }
             // Unshift the value
@@ -326,13 +332,19 @@ export class LPSolver {
         };
 
         // Add constraints
-        model.constraints.prob_sum = { equal: 1 };
+        model.constraints.prob_sum = {
+            equal: 1 
+        };
         for (let j = 0; j < node.opponentActions.length; j++) {
-            model.constraints[`opp_${j}`] = { min: 0 };
+            model.constraints[`opp_${j}`] = {
+                min: 0 
+            };
         }
 
         // Add value variable
-        model.variables.v = { v: 1 };
+        model.variables.v = {
+            v: 1 
+        };
         for (let j = 0; j < node.opponentActions.length; j++) {
             model.variables.v[`opp_${j}`] = -1;
         }
@@ -341,7 +353,9 @@ export class LPSolver {
         for (let i = 0; i < node.playerActions.length; i++) {
             const action = node.playerActions[i];
             const varName = `${PLAYER_ACTION_PREFIX}${action}`;
-            model.variables[varName] = { prob_sum: 1 };
+            model.variables[varName] = {
+                prob_sum: 1 
+            };
 
             for (let j = 0; j < node.opponentActions.length; j++) {
                 const payoff = payoffMatrix[i][j] + shift;
@@ -408,7 +422,7 @@ export class LPSolver {
             // Extract strategy (use prefixed variable names)
             for (const action of node.opponentActions) {
                 const varName = `${OPPONENT_ACTION_PREFIX}${action}`;
-                const prob = result[varName] ?? 0;
+                const prob = (result[varName] as number) ?? 0;
                 node.opponentStrategy.set(action, prob);
             }
             node.opponentValue = (result.v ?? 0) - shift;
@@ -434,13 +448,19 @@ export class LPSolver {
         };
 
         // Add constraints
-        model.constraints.prob_sum = { equal: 1 };
+        model.constraints.prob_sum = {
+            equal: 1 
+        };
         for (let i = 0; i < node.playerActions.length; i++) {
-            model.constraints[`player_${i}`] = { min: 0 };
+            model.constraints[`player_${i}`] = {
+                min: 0 
+            };
         }
 
         // Add value variable
-        model.variables.v = { v: 1 };
+        model.variables.v = {
+            v: 1 
+        };
         for (let i = 0; i < node.playerActions.length; i++) {
             model.variables.v[`player_${i}`] = -1;
         }
@@ -449,7 +469,9 @@ export class LPSolver {
         for (let j = 0; j < node.opponentActions.length; j++) {
             const action = node.opponentActions[j];
             const varName = `${OPPONENT_ACTION_PREFIX}${action}`;
-            model.variables[varName] = { prob_sum: 1 };
+            model.variables[varName] = {
+                prob_sum: 1 
+            };
 
             for (let i = 0; i < node.playerActions.length; i++) {
                 const payoff = payoffMatrix[i][j] + shift;
