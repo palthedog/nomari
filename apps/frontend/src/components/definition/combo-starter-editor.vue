@@ -74,72 +74,78 @@
           </button>
         </div>
 
+        <!-- Consumptions (fixed 4 items: damage, OD damage, OD cost, SA cost) -->
+        <div class="route-subsection">
+          <div class="consumption-row">
+            <v-text-field
+              type="number"
+              label="ダメージ"
+              :model-value="getConsumptionValue(routeIndex, damageResourceType)"
+              placeholder="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="setConsumptionValue(routeIndex, damageResourceType, parseFloat($event) || 0)"
+            />
+            <v-text-field
+              type="number"
+              label="Dゲージ削り"
+              :model-value="getConsumptionValue(routeIndex, odDamageResourceType)"
+              placeholder="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="setConsumptionValue(routeIndex, odDamageResourceType, parseFloat($event) || 0)"
+            />
+            <v-text-field
+              type="number"
+              label="OD消費"
+              :model-value="getConsumptionValue(routeIndex, odResourceType)"
+              placeholder="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="setConsumptionValue(routeIndex, odResourceType, parseFloat($event) || 0)"
+            />
+            <v-text-field
+              type="number"
+              label="SA消費"
+              :model-value="getConsumptionValue(routeIndex, saResourceType)"
+              placeholder="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="setConsumptionValue(routeIndex, saResourceType, parseFloat($event) || 0)"
+            />
+          </div>
+        </div>
+
         <!-- Requirements (fixed 2 items: OD, SA) -->
         <div class="route-subsection">
           <div class="subsection-header">
             必要ゲージ
           </div>
           <div class="consumption-row">
-            <div class="consumption-item">
-              <label>OD</label>
-              <input
-                type="number"
-                :value="getRequirementValue(routeIndex, odResourceType)"
-                placeholder="0"
-                @input="setRequirementValue(routeIndex, odResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-              >
-            </div>
-            <div class="consumption-item">
-              <label>SA</label>
-              <input
-                type="number"
-                :value="getRequirementValue(routeIndex, saResourceType)"
-                placeholder="0"
-                @input="setRequirementValue(routeIndex, saResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Consumptions (fixed 4 items: damage, OD damage, OD cost, SA cost) -->
-        <div class="route-subsection">
-          <div class="consumption-row">
-            <div class="consumption-item">
-              <label>ダメージ</label>
-              <input
-                type="number"
-                :value="getConsumptionValue(routeIndex, damageResourceType)"
-                placeholder="0"
-                @input="setConsumptionValue(routeIndex, damageResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-              >
-            </div>
-            <div class="consumption-item">
-              <label>Dゲージ削り</label>
-              <input
-                type="number"
-                :value="getConsumptionValue(routeIndex, odDamageResourceType)"
-                placeholder="0"
-                @input="setConsumptionValue(routeIndex, odDamageResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-              >
-            </div>
-            <div class="consumption-item">
-              <label>OD消費</label>
-              <input
-                type="number"
-                :value="getConsumptionValue(routeIndex, odResourceType)"
-                placeholder="0"
-                @input="setConsumptionValue(routeIndex, odResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-              >
-            </div>
-            <div class="consumption-item">
-              <label>SA消費</label>
-              <input
-                type="number"
-                :value="getConsumptionValue(routeIndex, saResourceType)"
-                placeholder="0"
-                @input="setConsumptionValue(routeIndex, saResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-              >
-            </div>
+            <v-text-field
+              type="number"
+              label="OD"
+              :model-value="getRequirementValue(routeIndex, odResourceType)"
+              placeholder="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="setRequirementValue(routeIndex, odResourceType, parseFloat($event) || 0)"
+            />
+            <v-text-field
+              type="number"
+              label="SA"
+              :model-value="getRequirementValue(routeIndex, saResourceType)"
+              placeholder="0"
+              density="compact"
+              variant="outlined"
+              hide-details
+              @update:model-value="setRequirementValue(routeIndex, saResourceType, parseFloat($event) || 0)"
+            />
           </div>
         </div>
 
@@ -461,27 +467,6 @@ function handleDelete() {
 .consumption-row {
   display: flex;
   gap: 12px;
-}
-
-.consumption-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.consumption-item label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.consumption-item input {
-  padding: 8px;
-  border: 1px solid var(--border-input);
-  border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 button {
