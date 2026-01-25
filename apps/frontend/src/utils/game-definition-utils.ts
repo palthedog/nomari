@@ -2,6 +2,7 @@ import {
     GameDefinition,
     Situation,
     TerminalSituation,
+    ComboStarter,
 } from '@nomari/ts-proto';
 import './initial-game-definition';
 import { createEmptyGameDefinition } from './initial-game-definition';
@@ -55,6 +56,14 @@ export function findMaxIdInGameDefinition(gameDefinition: GameDefinition): numbe
         maxId = Math.max(maxId, terminal.situationId);
     }
 
+    for (const comboStarter of gameDefinition.playerComboStarters) {
+        maxId = Math.max(maxId, comboStarter.situationId);
+    }
+
+    for (const comboStarter of gameDefinition.opponentComboStarters) {
+        maxId = Math.max(maxId, comboStarter.situationId);
+    }
+
     return maxId;
 }
 
@@ -99,5 +108,17 @@ export function createEmptyTerminalSituation(): TerminalSituation {
         situationId: generateId(),
         name: '',
         description: '',
+    };
+}
+
+/**
+ * Create an empty ComboStarter
+ */
+export function createEmptyComboStarter(): ComboStarter {
+    return {
+        situationId: generateId(),
+        name: '',
+        description: '',
+        routes: [],
     };
 }

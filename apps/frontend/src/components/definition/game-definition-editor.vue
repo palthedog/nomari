@@ -3,54 +3,27 @@
     <div class="header">
       <div class="header-controls">
         <!-- Game ID-->
-        <div
-          v-show="false"
-          class="form-group"
-        >
-          <v-text-field
-            v-model="gameDefinition.gameId"
-            label="Game ID"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
+        <div v-show="false" class="form-group">
+          <v-text-field v-model="gameDefinition.gameId" label="Game ID" density="compact" variant="outlined"
+            hide-details />
         </div>
 
         <!-- Name-->
         <div class="form-group">
-          <v-text-field
-            v-model="gameDefinition.name"
-            label="名前"
-            placeholder="例:"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
+          <v-text-field v-model="gameDefinition.name" label="名前" placeholder="例:" density="compact" variant="outlined"
+            hide-details />
         </div>
 
         <!-- Root Situation-->
         <div class="form-group">
-          <v-select
-            v-model="gameDefinition.rootSituationId"
-            :items="situationItems"
-            item-title="title"
-            item-value="value"
-            label="初期状況"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
+          <v-select v-model="gameDefinition.rootSituationId" :items="situationItems" item-title="title"
+            item-value="value" label="初期状況" density="compact" variant="outlined" hide-details />
         </div>
 
         <!-- Description-->
         <div class="form-group form-description">
-          <v-text-field
-            v-model="gameDefinition.description"
-            label="説明"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
+          <v-text-field v-model="gameDefinition.description" label="説明" density="compact" variant="outlined"
+            hide-details />
         </div>
       </div>
     </div>
@@ -64,19 +37,12 @@
               <h4>状況</h4>
             </div>
             <ul class="section-list">
-              <li
-                v-for="situation in gameDefinition.situations"
-                :key="situation.situationId"
-                class="section-item situation-item"
-                :class="{ active: selectedSituationId === situation.situationId }"
-                @click="selectSituation(situation.situationId)"
-              >
+              <li v-for="situation in gameDefinition.situations" :key="situation.situationId"
+                class="section-item situation-item" :class="{ active: selectedSituationId === situation.situationId }"
+                @click="selectSituation(situation.situationId)">
                 {{ situation.name || '(説明なし)' }}
               </li>
-              <li
-                class="section-item add-button"
-                @click="addSituation"
-              >
+              <li class="section-item add-button" @click="addSituation">
                 <span class="add-icon">+</span>
                 追加
               </li>
@@ -89,19 +55,50 @@
               <h4>終了条件</h4>
             </div>
             <ul class="section-list">
-              <li
-                v-for="terminal in gameDefinition.terminalSituations"
-                :key="terminal.situationId"
+              <li v-for="terminal in gameDefinition.terminalSituations" :key="terminal.situationId"
                 class="section-item terminal-situation-item"
                 :class="{ active: selectedTerminalSituationId === terminal.situationId }"
-                @click="selectTerminalSituation(terminal.situationId)"
-              >
+                @click="selectTerminalSituation(terminal.situationId)">
                 {{ terminal.name || '(名前なし)' }}
               </li>
-              <li
-                class="section-item add-button"
-                @click="addTerminalSituation"
-              >
+              <li class="section-item add-button" @click="addTerminalSituation">
+                <span class="add-icon">+</span>
+                追加
+              </li>
+            </ul>
+          </div>
+
+          <!-- プレイヤーコンボ -->
+          <div class="section-group">
+            <div class="section-header">
+              <h4>プレイヤーコンボ</h4>
+            </div>
+            <ul class="section-list">
+              <li v-for="combo in gameDefinition.playerComboStarters" :key="combo.situationId"
+                class="section-item player-combo-item" :class="{ active: selectedPlayerComboId === combo.situationId }"
+                @click="selectPlayerCombo(combo.situationId)">
+                {{ combo.name || '(名前なし)' }}
+              </li>
+              <li class="section-item add-button" @click="addPlayerCombo">
+                <span class="add-icon">+</span>
+                追加
+              </li>
+            </ul>
+          </div>
+
+          <!-- 相手コンボ -->
+          <div class="section-group">
+            <div class="section-header">
+              <h4>相手コンボ</h4>
+            </div>
+            <ul class="section-list">
+              <li v-for="combo in gameDefinition.opponentComboStarters" :key="combo.situationId"
+                class="section-item opponent-combo-item"
+                :class="{ active: selectedOpponentComboId === combo.situationId }"
+                @click="selectOpponentCombo(combo.situationId)">
+                {{ combo.name || '(名前なし)' }}
+              </li>
+              <li class="section-item add-button" @click="addOpponentCombo">
                 <span class="add-icon">+</span>
                 追加
               </li>
@@ -112,24 +109,21 @@
 
       <div class="right-panel">
         <div class="panel-content">
-          <SituationEditor
-            v-if="selectedSituation"
-            :model-value="selectedSituation"
+          <SituationEditor v-if="selectedSituation" :model-value="selectedSituation"
+            :available-situations="availableSituationsForTransition"
+            :available-terminal-situations="gameDefinition.terminalSituations" @update:model-value="updateSituation"
+            @delete="deleteSituation" />
+          <TerminalSituationEditor v-else-if="selectedTerminalSituation" :model-value="selectedTerminalSituation"
+            @update:model-value="updateTerminalSituation" @delete="deleteTerminalSituation" />
+          <ComboStarterEditor v-else-if="selectedPlayerCombo" :model-value="selectedPlayerCombo"
             :available-situations="gameDefinition.situations"
-            :available-terminal-situations="gameDefinition.terminalSituations"
-            @update:model-value="updateSituation"
-            @delete="deleteSituation"
-          />
-          <TerminalSituationEditor
-            v-else-if="selectedTerminalSituation"
-            :model-value="selectedTerminalSituation"
-            @update:model-value="updateTerminalSituation"
-            @delete="deleteTerminalSituation"
-          />
-          <div
-            v-else
-            class="no-selection"
-          >
+            :available-terminal-situations="gameDefinition.terminalSituations" :is-player-combo="true"
+            @update:model-value="updatePlayerCombo" @delete="deletePlayerCombo" />
+          <ComboStarterEditor v-else-if="selectedOpponentCombo" :model-value="selectedOpponentCombo"
+            :available-situations="gameDefinition.situations"
+            :available-terminal-situations="gameDefinition.terminalSituations" :is-player-combo="false"
+            @update:model-value="updateOpponentCombo" @delete="deleteOpponentCombo" />
+          <div v-else class="no-selection">
             <p>編集する要素を選択してください</p>
           </div>
         </div>
@@ -139,34 +133,20 @@
     <v-bottom-sheet v-model="showValidationErrors">
       <v-card class="validation-errors-sheet">
         <v-card-title class="validation-errors-header">
-          <v-icon
-            color="error"
-            class="mr-2"
-          >
+          <v-icon color="error" class="mr-2">
             mdi-alert-circle
           </v-icon>
           バリデーションエラー
           <v-spacer />
-          <v-btn
-            icon
-            variant="text"
-            @click="closeValidationErrors"
-          >
+          <v-btn icon variant="text" @click="closeValidationErrors">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text class="validation-errors-content">
           <v-list density="compact">
-            <v-list-item
-              v-for="(error, index) in validationErrors"
-              :key="index"
-              class="validation-error-item"
-            >
+            <v-list-item v-for="(error, index) in validationErrors" :key="index" class="validation-error-item">
               <template #prepend>
-                <v-icon
-                  color="error"
-                  size="small"
-                >
+                <v-icon color="error" size="small">
                   mdi-alert
                 </v-icon>
               </template>
@@ -190,22 +170,28 @@ import { storeToRefs } from 'pinia';
 import type {
   Situation,
   TerminalSituation,
+  ComboStarter,
 } from '@nomari/ts-proto';
 import {
   createEmptySituation,
   createEmptyTerminalSituation,
+  createEmptyComboStarter,
 } from '@/utils/game-definition-utils';
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
+import ComboStarterEditor from './combo-starter-editor.vue';
 import { useDefinitionStore } from '@/stores/definition-store';
 
 const definitionStore = useDefinitionStore();
 const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
 const { closeValidationErrors } = definitionStore;
 
-const selectedItemType = ref<'situation' | 'terminal-situation' | null>(null);
+type SelectionType = 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
+const selectedItemType = ref<SelectionType>(null);
 const selectedSituationId = ref<number | null>(null);
 const selectedTerminalSituationId = ref<number | null>(null);
+const selectedPlayerComboId = ref<number | null>(null);
+const selectedOpponentComboId = ref<number | null>(null);
 
 const situationItems = computed(() => {
   return [
@@ -218,7 +204,7 @@ const situationItems = computed(() => {
 });
 
 const selectedSituation = computed(() => {
-  if (!selectedSituationId.value) {return null;}
+  if (!selectedSituationId.value) { return null; }
   return (
     gameDefinition.value.situations.find(
       (s) => s.situationId === selectedSituationId.value
@@ -227,7 +213,7 @@ const selectedSituation = computed(() => {
 });
 
 const selectedTerminalSituation = computed(() => {
-  if (!selectedTerminalSituationId.value) {return null;}
+  if (!selectedTerminalSituationId.value) { return null; }
   return (
     gameDefinition.value.terminalSituations.find(
       (t) => t.situationId === selectedTerminalSituationId.value
@@ -235,16 +221,78 @@ const selectedTerminalSituation = computed(() => {
   );
 });
 
+const selectedPlayerCombo = computed(() => {
+  if (!selectedPlayerComboId.value) { return null; }
+  return (
+    gameDefinition.value.playerComboStarters.find(
+      (c) => c.situationId === selectedPlayerComboId.value
+    ) || null
+  );
+});
+
+const selectedOpponentCombo = computed(() => {
+  if (!selectedOpponentComboId.value) { return null; }
+  return (
+    gameDefinition.value.opponentComboStarters.find(
+      (c) => c.situationId === selectedOpponentComboId.value
+    ) || null
+  );
+});
+
+// Available situations for transition includes situations and combo starters
+const availableSituationsForTransition = computed(() => {
+  const situations = [...gameDefinition.value.situations];
+  // Add combo starters as virtual situations (they share the same ID space)
+  for (const combo of gameDefinition.value.playerComboStarters) {
+    situations.push({
+      situationId: combo.situationId,
+      name: `[コンボ] ${combo.name || '(名前なし)'}`,
+      playerActions: { actions: [] },
+      opponentActions: { actions: [] },
+      transitions: [],
+    });
+  }
+  for (const combo of gameDefinition.value.opponentComboStarters) {
+    situations.push({
+      situationId: combo.situationId,
+      name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
+      playerActions: { actions: [] },
+      opponentActions: { actions: [] },
+      transitions: [],
+    });
+  }
+  return situations;
+});
+
+function clearSelection() {
+  selectedSituationId.value = null;
+  selectedTerminalSituationId.value = null;
+  selectedPlayerComboId.value = null;
+  selectedOpponentComboId.value = null;
+}
+
 function selectSituation(situationId: number) {
+  clearSelection();
   selectedItemType.value = 'situation';
   selectedSituationId.value = situationId;
-  selectedTerminalSituationId.value = null;
 }
 
 function selectTerminalSituation(terminalSituationId: number) {
+  clearSelection();
   selectedItemType.value = 'terminal-situation';
   selectedTerminalSituationId.value = terminalSituationId;
-  selectedSituationId.value = null;
+}
+
+function selectPlayerCombo(comboId: number) {
+  clearSelection();
+  selectedItemType.value = 'player-combo';
+  selectedPlayerComboId.value = comboId;
+}
+
+function selectOpponentCombo(comboId: number) {
+  clearSelection();
+  selectedItemType.value = 'opponent-combo';
+  selectedOpponentComboId.value = comboId;
 }
 
 function addSituation() {
@@ -263,7 +311,7 @@ function updateSituation(updatedSituation: Situation) {
 }
 
 function deleteSituation() {
-  if (!selectedSituationId.value) {return;}
+  if (!selectedSituationId.value) { return; }
 
   const situationId = selectedSituationId.value;
   const index = gameDefinition.value.situations.findIndex((s) => s.situationId === situationId);
@@ -318,7 +366,7 @@ function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
 }
 
 function deleteTerminalSituation() {
-  if (!selectedTerminalSituationId.value) {return;}
+  if (!selectedTerminalSituationId.value) { return; }
 
   const terminalSituationId = selectedTerminalSituationId.value;
   const index = gameDefinition.value.terminalSituations.findIndex(
@@ -352,14 +400,101 @@ function deleteTerminalSituation() {
     } else if (gameDefinition.value.situations.length > 0) {
       selectSituation(gameDefinition.value.situations[0].situationId);
     } else {
+      clearSelection();
       selectedItemType.value = null;
-      selectedSituationId.value = null;
-      selectedTerminalSituationId.value = null;
     }
   }
 }
 
-// updateInitialDynamicState is no longer needed - v-model handles it automatically
+// Player Combo functions
+function addPlayerCombo() {
+  const newCombo = createEmptyComboStarter();
+  gameDefinition.value.playerComboStarters.push(newCombo);
+  selectPlayerCombo(newCombo.situationId);
+}
+
+function updatePlayerCombo(updatedCombo: ComboStarter) {
+  const index = gameDefinition.value.playerComboStarters.findIndex(
+    (c) => c.situationId === updatedCombo.situationId
+  );
+  if (index !== -1) {
+    gameDefinition.value.playerComboStarters.splice(index, 1, updatedCombo);
+  }
+}
+
+function deletePlayerCombo() {
+  if (!selectedPlayerComboId.value) { return; }
+
+  const comboId = selectedPlayerComboId.value;
+  const index = gameDefinition.value.playerComboStarters.findIndex(
+    (c) => c.situationId === comboId
+  );
+  if (index !== -1) {
+    gameDefinition.value.playerComboStarters.splice(index, 1);
+
+    // Remove references from transitions
+    for (const situation of gameDefinition.value.situations) {
+      situation.transitions = situation.transitions.filter(
+        (t) => t.nextSituationId !== comboId
+      );
+    }
+
+    // Select next item
+    if (gameDefinition.value.playerComboStarters.length > 0) {
+      selectPlayerCombo(gameDefinition.value.playerComboStarters[0].situationId);
+    } else if (gameDefinition.value.situations.length > 0) {
+      selectSituation(gameDefinition.value.situations[0].situationId);
+    } else {
+      clearSelection();
+      selectedItemType.value = null;
+    }
+  }
+}
+
+// Opponent Combo functions
+function addOpponentCombo() {
+  const newCombo = createEmptyComboStarter();
+  gameDefinition.value.opponentComboStarters.push(newCombo);
+  selectOpponentCombo(newCombo.situationId);
+}
+
+function updateOpponentCombo(updatedCombo: ComboStarter) {
+  const index = gameDefinition.value.opponentComboStarters.findIndex(
+    (c) => c.situationId === updatedCombo.situationId
+  );
+  if (index !== -1) {
+    gameDefinition.value.opponentComboStarters.splice(index, 1, updatedCombo);
+  }
+}
+
+function deleteOpponentCombo() {
+  if (!selectedOpponentComboId.value) { return; }
+
+  const comboId = selectedOpponentComboId.value;
+  const index = gameDefinition.value.opponentComboStarters.findIndex(
+    (c) => c.situationId === comboId
+  );
+  if (index !== -1) {
+    gameDefinition.value.opponentComboStarters.splice(index, 1);
+
+    // Remove references from transitions
+    for (const situation of gameDefinition.value.situations) {
+      situation.transitions = situation.transitions.filter(
+        (t) => t.nextSituationId !== comboId
+      );
+    }
+
+    // Select next item
+    if (gameDefinition.value.opponentComboStarters.length > 0) {
+      selectOpponentCombo(gameDefinition.value.opponentComboStarters[0].situationId);
+    } else if (gameDefinition.value.situations.length > 0) {
+      selectSituation(gameDefinition.value.situations[0].situationId);
+    } else {
+      clearSelection();
+      selectedItemType.value = null;
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -583,6 +718,36 @@ function deleteTerminalSituation() {
 
 .terminal-situation-item.active .terminal-badge {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.player-combo-item {
+  background-color: var(--bg-success);
+  border-left: 4px solid var(--color-success);
+}
+
+.player-combo-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.player-combo-item.active {
+  background-color: var(--color-success);
+  color: white;
+  border-left-color: var(--color-success);
+}
+
+.opponent-combo-item {
+  background-color: var(--bg-error);
+  border-left: 4px solid var(--color-error);
+}
+
+.opponent-combo-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.opponent-combo-item.active {
+  background-color: var(--color-error);
+  color: white;
+  border-left-color: var(--color-error);
 }
 
 .add-button {

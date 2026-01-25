@@ -15,6 +15,18 @@
           <template v-else-if="resource.resourceType === ResourceType.OPPONENT_HEALTH">
             相手の体力
           </template>
+          <template v-else-if="resource.resourceType === ResourceType.PLAYER_OD_GAUGE">
+            プレイヤーのODゲージ
+          </template>
+          <template v-else-if="resource.resourceType === ResourceType.OPPONENT_OD_GAUGE">
+            相手のODゲージ
+          </template>
+          <template v-else-if="resource.resourceType === ResourceType.PLAYER_SA_GAUGE">
+            プレイヤーのSAゲージ
+          </template>
+          <template v-else-if="resource.resourceType === ResourceType.OPPONENT_SA_GAUGE">
+            相手のSAゲージ
+          </template>
         </div>
 
         <div class="resource-value">
@@ -40,17 +52,14 @@ fillDefaultResources();
 
 function fillDefaultResources(): void {
   const defaultResources: DynamicState_Resource[] = [
-    {
-      resourceType: ResourceType.PLAYER_HEALTH,
-      value: 5000,
-    },
-    {
-      resourceType: ResourceType.OPPONENT_HEALTH,
-      value: 5000,
-    },
+    { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
+    { resourceType: ResourceType.OPPONENT_HEALTH, value: 10000 },
+    { resourceType: ResourceType.PLAYER_OD_GAUGE, value: 6000 },
+    { resourceType: ResourceType.OPPONENT_OD_GAUGE, value: 6000 },
+    { resourceType: ResourceType.PLAYER_SA_GAUGE, value: 0 },
+    { resourceType: ResourceType.OPPONENT_SA_GAUGE, value: 0 },
   ];
-  for (let i = 0; i < defaultResources.length; i++) {
-    const defResource = defaultResources[i];
+  for (const defResource of defaultResources) {
     if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
       continue;
     }

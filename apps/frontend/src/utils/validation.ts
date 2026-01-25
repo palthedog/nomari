@@ -13,10 +13,12 @@ export interface ValidationError {
 export function validateGameDefinition(gameDefinition: GameDefinition): ValidationError[] {
     const errors: ValidationError[] = [];
 
-    // Validate rootSituationId exists
+    // Collect all valid situation IDs (situations, terminals, and combo starters share the same ID space)
     const allSituationIds = new Set<number>();
     gameDefinition.situations.forEach((s) => allSituationIds.add(s.situationId));
     gameDefinition.terminalSituations.forEach((t) => allSituationIds.add(t.situationId));
+    gameDefinition.playerComboStarters.forEach((c) => allSituationIds.add(c.situationId));
+    gameDefinition.opponentComboStarters.forEach((c) => allSituationIds.add(c.situationId));
 
     if (!gameDefinition.rootSituationId) {
         errors.push({

@@ -1,6 +1,7 @@
 import {
     createInitialGameDefinition,
     syncIdCounterWithGameDefinition,
+    createEmptyComboStarter,
 } from "@/utils/game-definition-utils";
 import { validateGameDefinition, type ValidationError } from "@/utils/validation";
 import type { GameDefinition } from "@nomari/ts-proto";
@@ -40,6 +41,44 @@ export const useDefinitionStore = defineStore('definition', {
          */
         closeValidationErrors() {
             this.showValidationErrors = false;
+        },
+        /**
+         * Add a new player combo starter
+         */
+        addPlayerComboStarter() {
+            const comboStarter = createEmptyComboStarter();
+            this.gameDefinition.playerComboStarters.push(comboStarter);
+            return comboStarter;
+        },
+        /**
+         * Remove a player combo starter by situation ID
+         */
+        removePlayerComboStarter(situationId: number) {
+            const index = this.gameDefinition.playerComboStarters.findIndex(
+                cs => cs.situationId === situationId
+            );
+            if (index !== -1) {
+                this.gameDefinition.playerComboStarters.splice(index, 1);
+            }
+        },
+        /**
+         * Add a new opponent combo starter
+         */
+        addOpponentComboStarter() {
+            const comboStarter = createEmptyComboStarter();
+            this.gameDefinition.opponentComboStarters.push(comboStarter);
+            return comboStarter;
+        },
+        /**
+         * Remove an opponent combo starter by situation ID
+         */
+        removeOpponentComboStarter(situationId: number) {
+            const index = this.gameDefinition.opponentComboStarters.findIndex(
+                cs => cs.situationId === situationId
+            );
+            if (index !== -1) {
+                this.gameDefinition.opponentComboStarters.splice(index, 1);
+            }
         },
     },
 });

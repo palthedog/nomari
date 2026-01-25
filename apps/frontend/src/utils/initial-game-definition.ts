@@ -49,6 +49,10 @@ export function createEmptyGameDefinition(): GameDefinition {
             resources: [
                 { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
                 { resourceType: ResourceType.OPPONENT_HEALTH, value: 10000 },
+                { resourceType: ResourceType.PLAYER_OD_GAUGE, value: 6000 },
+                { resourceType: ResourceType.OPPONENT_OD_GAUGE, value: 6000 },
+                { resourceType: ResourceType.PLAYER_SA_GAUGE, value: 0 },
+                { resourceType: ResourceType.OPPONENT_SA_GAUGE, value: 0 },
             ],
         },
         rewardComputationMethod: {

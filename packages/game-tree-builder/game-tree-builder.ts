@@ -9,6 +9,7 @@ import {
     Action,
     RewardComputationMethod,
     CornerState,
+    ComboStarter,
 } from '@nomari/ts-proto';
 import {
     GameTree,
@@ -399,6 +400,50 @@ function createTerminalSituationNode(
 }
 
 /**
+ * Type guard to check if a value is a GameTreeBuildError
+ */
+function isGameTreeBuildError<T>(result: T | GameTreeBuildError): result is GameTreeBuildError {
+    return typeof result === 'object' && result !== null && 'code' in result;
+}
+
+/**
+ * Get or create a terminal node for auto-detected terminal state (HP <= 0)
+ */
+function getOrCreateTerminalNode(
+    nodeMap: Map<string, Node>,
+    nodeStateMap: Map<string, DynamicState>,
+    state: DynamicState,
+    terminalType: 'win' | 'lose' | 'draw',
+    rewardComputationMethod: RewardComputationMethod | undefined,
+    initialPlayerHealth: number,
+    initialOpponentHealth: number
+): Node {
+    const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
+    const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
+    const stateHash = hashDynamicState(state);
+    const nodeKey = `terminal_${terminalType}_${stateHash}`;
+
+    const cached = nodeMap.get(nodeKey);
+    if (cached) {
+        return cached;
+    }
+
+    const node = createTerminalNode(
+        nodeKey,
+        terminalType,
+        playerHealth,
+        opponentHealth,
+        rewardComputationMethod,
+        initialPlayerHealth,
+        initialOpponentHealth,
+        state
+    );
+    nodeMap.set(nodeKey, node);
+    nodeStateMap.set(nodeKey, state);
+    return node;
+}
+
+/**
  * Build a GameTree from a GameDefinition
  * Returns a result object with either the game tree or an error
  */
@@ -427,11 +472,15 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         terminalSituationMap.set(terminalSituation.situationId, terminalSituation);
     }
 
-    /**
-     * Type guard to check if a value is a GameTreeBuildError
-     */
-    function isError(result: Node | GameTreeBuildError): result is GameTreeBuildError {
-        return 'code' in result;
+    // Map ComboStarters by situation_id (player and opponent separately)
+    const playerComboStarterMap = new Map<number, ComboStarter>();
+    for (const comboStarter of gameDefinition.playerComboStarters) {
+        playerComboStarterMap.set(comboStarter.situationId, comboStarter);
+    }
+
+    const opponentComboStarterMap = new Map<number, ComboStarter>();
+    for (const comboStarter of gameDefinition.opponentComboStarters) {
+        opponentComboStarterMap.set(comboStarter.situationId, comboStarter);
     }
 
     /**
@@ -508,6 +557,26 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             return node;
         }
 
+        // Check if this is a ComboStarter
+        const comboStarter = playerComboStarterMap.get(situationId)
+            || opponentComboStarterMap.get(situationId);
+        if (comboStarter) {
+            const comboNodeResult = createComboStarterNode(
+                nodeKey,
+                comboStarter,
+                state
+            );
+            if (isGameTreeBuildError(comboNodeResult)) {
+                creatingNodes.delete(nodeKey);
+                return comboNodeResult;
+            }
+
+            nodeMap.set(nodeKey, comboNodeResult);
+            nodeStateMap.set(nodeKey, state);
+            creatingNodes.delete(nodeKey);
+            return comboNodeResult;
+        }
+
         // Get the situation definition
         const situation = situationMap.get(situationId);
         if (!situation) {
@@ -547,86 +616,55 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
             transitions: [],
         };
 
-        // Process transitions
         for (const protoTransition of situation.transitions) {
-            // Check requirements: skip if current state doesn't meet requirements
             const requirements = protoTransition.resourceRequirements || [];
             if (!canApplyTransition(state, requirements)) {
-                continue;  // Skip this transition - requirements not met
-            }
-
-            // Apply resource consumptions
-            const newState = applyResourceConsumptions(state, protoTransition.resourceConsumptions);
-
-            // Check if the new state is terminal
-            const newTerminalCheck = isTerminalState(newState);
-            let nextNode: Node;
-
-            if (newTerminalCheck.isTerminal) {
-                // Create terminal node directly (not via getOrCreateNode)
-                const terminalPlayerHealth = getResourceValue(newState, ResourceType.PLAYER_HEALTH);
-                const terminalOpponentHealth = getResourceValue(newState, ResourceType.OPPONENT_HEALTH);
-                const newStateHash = hashDynamicState(newState);
-                const terminalNodeKey = `terminal_${newTerminalCheck.type}_${newStateHash}`;
-
-                // Check if terminal node already exists in cache
-                if (nodeMap.has(terminalNodeKey)) {
-                    nextNode = nodeMap.get(terminalNodeKey)!;
-                } else {
-                    nextNode = createTerminalNode(
-                        terminalNodeKey,
-                        newTerminalCheck.type!,
-                        terminalPlayerHealth,
-                        terminalOpponentHealth,
-                        rewardComputationMethod,
-                        initialPlayerHealth,
-                        initialOpponentHealth,
-                        newState
-                    );
-                    nodeMap.set(terminalNodeKey, nextNode);
-                    nodeStateMap.set(terminalNodeKey, newState);
-                }
-
-                const transition: NodeTransition = {
-                    playerActionId: protoTransition.playerActionId,
-                    opponentActionId: protoTransition.opponentActionId,
-                    nextNodeId: nextNode.nodeId,
-                };
-                node.transitions.push(transition);
                 continue;
             }
 
-            // Check if next situation is a terminal situation
-            const nextTerminalSituation = terminalSituationMap.get(protoTransition.nextSituationId);
-            if (nextTerminalSituation) {
-                // Use the situationId directly, not a pre-computed nodeKey
-                const terminalNodeResult = getOrCreateNode(protoTransition.nextSituationId, newState);
-                if (isError(terminalNodeResult)) {
-                    return terminalNodeResult; // Return error to propagate
-                }
-                nextNode = terminalNodeResult;
+            const newState = applyResourceConsumptions(state, protoTransition.resourceConsumptions);
+            const terminalCheck = isTerminalState(newState);
 
-                // Rewards are already set on the terminal node by createTerminalSituationNode
-                const transition: NodeTransition = {
+            if (terminalCheck.isTerminal) {
+                const nextNode = getOrCreateTerminalNode(
+                    nodeMap,
+                    nodeStateMap,
+                    newState,
+                    terminalCheck.type!,
+                    rewardComputationMethod,
+                    initialPlayerHealth,
+                    initialOpponentHealth
+                );
+                node.transitions.push({
                     playerActionId: protoTransition.playerActionId,
                     opponentActionId: protoTransition.opponentActionId,
                     nextNodeId: nextNode.nodeId,
-                };
-                node.transitions.push(transition);
-            } else {
-                // Regular transition to next situation
-                const regularNodeResult = getOrCreateNode(protoTransition.nextSituationId, newState);
-                if (isError(regularNodeResult)) {
-                    return regularNodeResult; // Return error to propagate
-                }
-                nextNode = regularNodeResult;
-                const transition: NodeTransition = {
-                    playerActionId: protoTransition.playerActionId,
-                    opponentActionId: protoTransition.opponentActionId,
-                    nextNodeId: nextNode.nodeId,
-                };
-                node.transitions.push(transition);
+                });
+                continue;
             }
+
+            if (terminalSituationMap.has(protoTransition.nextSituationId)) {
+                const nodeResult = getOrCreateNode(protoTransition.nextSituationId, newState);
+                if (isGameTreeBuildError(nodeResult)) {
+                    return nodeResult;
+                }
+                node.transitions.push({
+                    playerActionId: protoTransition.playerActionId,
+                    opponentActionId: protoTransition.opponentActionId,
+                    nextNodeId: nodeResult.nodeId,
+                });
+                continue;
+            }
+
+            const nodeResult = getOrCreateNode(protoTransition.nextSituationId, newState);
+            if (isGameTreeBuildError(nodeResult)) {
+                return nodeResult;
+            }
+            node.transitions.push({
+                playerActionId: protoTransition.playerActionId,
+                opponentActionId: protoTransition.opponentActionId,
+                nextNodeId: nodeResult.nodeId,
+            });
         }
 
         nodeMap.set(nodeKey, node);
@@ -635,13 +673,81 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         return node;
     }
 
+    /**
+     * Create a ComboStarter node with routes as player actions
+     */
+    function createComboStarterNode(
+        nodeKey: string,
+        comboStarter: ComboStarter,
+        state: DynamicState
+    ): Node | GameTreeBuildError {
+        const playerHealth = getResourceValue(state, ResourceType.PLAYER_HEALTH);
+        const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
+
+        // Filter routes based on requirements
+        const availableRoutes = comboStarter.routes.filter(
+            route => canApplyTransition(state, route.requirements)
+        );
+
+        // Create player actions from available routes (use route index as action ID)
+        const playerActions = availableRoutes.map((route, index) => ({
+            actionId: index + 1,
+            name: route.name,
+            description: '',
+        }));
+
+        // Single opponent action (opponent cannot choose during combo)
+        const opponentActionId = 0;
+        const opponentActions = [{
+            actionId: opponentActionId,
+            name: '被コンボ',
+            description: '',
+        }];
+
+        // Create transitions for each route
+        const transitions: NodeTransition[] = [];
+        for (let i = 0; i < availableRoutes.length; i++) {
+            const route = availableRoutes[i];
+            const routeActionId = i + 1;
+
+            // Apply route consumptions
+            const stateAfterCombo = applyResourceConsumptions(state, route.consumptions);
+
+            // Get or create the destination node
+            const nextNodeResult = getOrCreateNode(route.nextSituationId, stateAfterCombo);
+            if (isGameTreeBuildError(nextNodeResult)) {
+                return nextNodeResult;
+            }
+
+            transitions.push({
+                playerActionId: routeActionId,
+                opponentActionId: opponentActionId,
+                nextNodeId: nextNodeResult.nodeId,
+            });
+        }
+
+        return {
+            nodeId: nodeKey,
+            name: comboStarter.name,
+            description: comboStarter.description || comboStarter.name,
+            state: {
+                situation_id: comboStarter.situationId,
+                playerHealth,
+                opponentHealth,
+            },
+            playerActions: { actions: playerActions },
+            opponentActions: { actions: opponentActions },
+            transitions,
+        };
+    }
+
     // Build the tree starting from root
     const rootNodeResult = getOrCreateNode(
         gameDefinition.rootSituationId,
         initialDynamicState
     );
 
-    if (isError(rootNodeResult)) {
+    if (isGameTreeBuildError(rootNodeResult)) {
         const error: GameTreeBuildError = rootNodeResult;
         return { success: false, error };
     }
