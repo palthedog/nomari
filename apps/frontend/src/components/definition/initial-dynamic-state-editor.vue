@@ -43,41 +43,59 @@
 </template>
 
 <script setup lang="ts">
-    import type { DynamicState, DynamicState_Resource } from '@nomari/ts-proto';
-    import { ResourceType } from '@nomari/ts-proto';
+import type { DynamicState, DynamicState_Resource } from '@nomari/ts-proto';
+import { ResourceType } from '@nomari/ts-proto';
 
-    const model = defineModel<DynamicState>({ required: true });
+const model = defineModel<DynamicState>({ required: true });
 
-    fillDefaultResources();
+fillDefaultResources();
 
-    function fillDefaultResources(): void {
-        const defaultResources: DynamicState_Resource[] = [
-            { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
-            { resourceType: ResourceType.OPPONENT_HEALTH, value: 10000 },
-            { resourceType: ResourceType.PLAYER_OD_GAUGE, value: 6000 },
-            { resourceType: ResourceType.OPPONENT_OD_GAUGE, value: 6000 },
-            { resourceType: ResourceType.PLAYER_SA_GAUGE, value: 0 },
-            { resourceType: ResourceType.OPPONENT_SA_GAUGE, value: 0 },
-        ];
-        for (const defResource of defaultResources) {
-            if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
-                continue;
-            }
-            model.value.resources.push(defResource);
+function fillDefaultResources(): void {
+    const defaultResources: DynamicState_Resource[] = [
+        {
+            resourceType: ResourceType.PLAYER_HEALTH,
+            value: 10000 
+        },
+        {
+            resourceType: ResourceType.OPPONENT_HEALTH,
+            value: 10000 
+        },
+        {
+            resourceType: ResourceType.PLAYER_OD_GAUGE,
+            value: 6000 
+        },
+        {
+            resourceType: ResourceType.OPPONENT_OD_GAUGE,
+            value: 6000 
+        },
+        {
+            resourceType: ResourceType.PLAYER_SA_GAUGE,
+            value: 0 
+        },
+        {
+            resourceType: ResourceType.OPPONENT_SA_GAUGE,
+            value: 0 
+        },
+    ];
+    for (const defResource of defaultResources) {
+        if (model.value.resources.some(r => r.resourceType === defResource.resourceType)) {
+            continue;
         }
+        model.value.resources.push(defResource);
     }
+}
 
-    /**
+/**
      * Update the value of a resource at the specified index.
      * @param {number} index - The index of the resource in the array.
      * @param {number} value - The new value for the resource.
      */
-    function updateResourceValue(index: number, value: number) {
-        if (!model.value.resources[index]) {
-            return;
-        }
-        model.value.resources[index].value = value;
+function updateResourceValue(index: number, value: number) {
+    if (!model.value.resources[index]) {
+        return;
     }
+    model.value.resources[index].value = value;
+}
 </script>
 
 <style scoped>

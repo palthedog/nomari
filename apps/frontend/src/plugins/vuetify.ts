@@ -11,11 +11,7 @@ export default createVuetify({
     icons: {
         defaultSet: 'mdi',
         aliases,
-        sets: {
-            mdi,
-        },
+        sets: {mdi,},
     },
-    theme: {
-        defaultTheme: 'light',
-    },
+    theme: {defaultTheme: 'light',},
 })

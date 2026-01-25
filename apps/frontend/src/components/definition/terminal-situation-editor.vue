@@ -58,24 +58,33 @@
 </template>
 
 <script setup lang="ts">
-    import type { TerminalSituation } from '@nomari/ts-proto';
-    import { CornerState } from '@nomari/ts-proto';
+import type { TerminalSituation } from '@nomari/ts-proto';
+import { CornerState } from '@nomari/ts-proto';
 
-    const model = defineModel<TerminalSituation>({ required: true });
+const model = defineModel<TerminalSituation>({ required: true });
 
-    const cornerStateItems = [
-        { title: 'どちらも画面端にいない', value: CornerState.NONE },
-        { title: 'プレイヤーが画面端にいる', value: CornerState.PLAYER_IN_CORNER },
-        { title: '相手が画面端にいる', value: CornerState.OPPONENT_IN_CORNER },
-    ];
+const cornerStateItems = [
+    {
+        title: 'どちらも画面端にいない',
+        value: CornerState.NONE 
+    },
+    {
+        title: 'プレイヤーが画面端にいる',
+        value: CornerState.PLAYER_IN_CORNER 
+    },
+    {
+        title: '相手が画面端にいる',
+        value: CornerState.OPPONENT_IN_CORNER 
+    },
+];
 
-    const emit = defineEmits<{
-        (e: 'delete'): void;
-    }>();
+const emit = defineEmits<{
+    (e: 'delete'): void;
+}>();
 
-    function handleDelete() {
-        emit('delete');
-    }
+function handleDelete() {
+    emit('delete');
+}
 </script>
 
 <style scoped>

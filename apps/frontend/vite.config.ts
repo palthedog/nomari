@@ -18,7 +18,5 @@ export default defineConfig({
             '@nomari/game-tree-builder': path.resolve(__dirname, '../../packages/game-tree-builder/game-tree-builder.ts'),
         },
     },
-    worker: {
-        format: 'es',
-    },
+    worker: {format: 'es',},
 })

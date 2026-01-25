@@ -253,352 +253,355 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, computed } from 'vue';
-    import { storeToRefs } from 'pinia';
-    import type {
-        Situation,
-        TerminalSituation,
-        ComboStarter,
-    } from '@nomari/ts-proto';
-    import {
-        createEmptySituation,
-        createEmptyTerminalSituation,
-        createEmptyComboStarter,
-    } from '@/utils/game-definition-utils';
-    import SituationEditor from './situation-editor.vue';
-    import TerminalSituationEditor from './terminal-situation-editor.vue';
-    import ComboStarterEditor from './combo-starter-editor.vue';
-    import { useDefinitionStore } from '@/stores/definition-store';
+import { ref, computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import type {
+    Situation,
+    TerminalSituation,
+    ComboStarter,
+} from '@nomari/ts-proto';
+import {
+    createEmptySituation,
+    createEmptyTerminalSituation,
+    createEmptyComboStarter,
+} from '@/utils/game-definition-utils';
+import SituationEditor from './situation-editor.vue';
+import TerminalSituationEditor from './terminal-situation-editor.vue';
+import ComboStarterEditor from './combo-starter-editor.vue';
+import { useDefinitionStore } from '@/stores/definition-store';
 
-    const definitionStore = useDefinitionStore();
-    const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
-    const { closeValidationErrors } = definitionStore;
+const definitionStore = useDefinitionStore();
+const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
+const { closeValidationErrors } = definitionStore;
 
-    type SelectionType = 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
-    const selectedItemType = ref<SelectionType>(null);
-    const selectedSituationId = ref<number | null>(null);
-    const selectedTerminalSituationId = ref<number | null>(null);
-    const selectedPlayerComboId = ref<number | null>(null);
-    const selectedOpponentComboId = ref<number | null>(null);
+type SelectionType = 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
+const selectedItemType = ref<SelectionType>(null);
+const selectedSituationId = ref<number | null>(null);
+const selectedTerminalSituationId = ref<number | null>(null);
+const selectedPlayerComboId = ref<number | null>(null);
+const selectedOpponentComboId = ref<number | null>(null);
 
-    const situationItems = computed(() => {
-        return [
-            { title: '選択してください', value: 0 },
-            ...gameDefinition.value.situations.map((s) => ({
-                title: s.name || '(説明なし)',
-                value: s.situationId,
-            })),
-        ];
-    });
+const situationItems = computed(() => {
+    return [
+        {
+            title: '選択してください',
+            value: 0 
+        },
+        ...gameDefinition.value.situations.map((s) => ({
+            title: s.name || '(説明なし)',
+            value: s.situationId,
+        })),
+    ];
+});
 
-    const selectedSituation = computed(() => {
-        if (!selectedSituationId.value) {
-            return null;
-        }
-        return (
-            gameDefinition.value.situations.find(
-                (s) => s.situationId === selectedSituationId.value
-            ) || null
-        );
-    });
+const selectedSituation = computed(() => {
+    if (!selectedSituationId.value) {
+        return null;
+    }
+    return (
+        gameDefinition.value.situations.find(
+            (s) => s.situationId === selectedSituationId.value
+        ) || null
+    );
+});
 
-    const selectedTerminalSituation = computed(() => {
-        if (!selectedTerminalSituationId.value) {
-            return null;
-        }
-        return (
-            gameDefinition.value.terminalSituations.find(
-                (t) => t.situationId === selectedTerminalSituationId.value
-            ) || null
-        );
-    });
+const selectedTerminalSituation = computed(() => {
+    if (!selectedTerminalSituationId.value) {
+        return null;
+    }
+    return (
+        gameDefinition.value.terminalSituations.find(
+            (t) => t.situationId === selectedTerminalSituationId.value
+        ) || null
+    );
+});
 
-    const selectedPlayerCombo = computed(() => {
-        if (!selectedPlayerComboId.value) {
-            return null;
-        }
-        return (
-            gameDefinition.value.playerComboStarters.find(
-                (c) => c.situationId === selectedPlayerComboId.value
-            ) || null
-        );
-    });
+const selectedPlayerCombo = computed(() => {
+    if (!selectedPlayerComboId.value) {
+        return null;
+    }
+    return (
+        gameDefinition.value.playerComboStarters.find(
+            (c) => c.situationId === selectedPlayerComboId.value
+        ) || null
+    );
+});
 
-    const selectedOpponentCombo = computed(() => {
-        if (!selectedOpponentComboId.value) {
-            return null;
-        }
-        return (
-            gameDefinition.value.opponentComboStarters.find(
-                (c) => c.situationId === selectedOpponentComboId.value
-            ) || null
-        );
-    });
+const selectedOpponentCombo = computed(() => {
+    if (!selectedOpponentComboId.value) {
+        return null;
+    }
+    return (
+        gameDefinition.value.opponentComboStarters.find(
+            (c) => c.situationId === selectedOpponentComboId.value
+        ) || null
+    );
+});
 
-    // Available situations for transition includes situations and combo starters
-    const availableSituationsForTransition = computed(() => {
-        const situations = [...gameDefinition.value.situations];
-        // Add combo starters as virtual situations (they share the same ID space)
-        for (const combo of gameDefinition.value.playerComboStarters) {
-            situations.push({
-                situationId: combo.situationId,
-                name: `[コンボ] ${combo.name || '(名前なし)'}`,
-                playerActions: { actions: [] },
-                opponentActions: { actions: [] },
-                transitions: [],
-            });
-        }
-        for (const combo of gameDefinition.value.opponentComboStarters) {
-            situations.push({
-                situationId: combo.situationId,
-                name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
-                playerActions: { actions: [] },
-                opponentActions: { actions: [] },
-                transitions: [],
-            });
-        }
-        return situations;
-    });
+// Available situations for transition includes situations and combo starters
+const availableSituationsForTransition = computed(() => {
+    const situations = [...gameDefinition.value.situations];
+    // Add combo starters as virtual situations (they share the same ID space)
+    for (const combo of gameDefinition.value.playerComboStarters) {
+        situations.push({
+            situationId: combo.situationId,
+            name: `[コンボ] ${combo.name || '(名前なし)'}`,
+            playerActions: { actions: [] },
+            opponentActions: { actions: [] },
+            transitions: [],
+        });
+    }
+    for (const combo of gameDefinition.value.opponentComboStarters) {
+        situations.push({
+            situationId: combo.situationId,
+            name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
+            playerActions: { actions: [] },
+            opponentActions: { actions: [] },
+            transitions: [],
+        });
+    }
+    return situations;
+});
 
-    function clearSelection() {
-        selectedSituationId.value = null;
-        selectedTerminalSituationId.value = null;
-        selectedPlayerComboId.value = null;
-        selectedOpponentComboId.value = null;
+function clearSelection() {
+    selectedSituationId.value = null;
+    selectedTerminalSituationId.value = null;
+    selectedPlayerComboId.value = null;
+    selectedOpponentComboId.value = null;
+}
+
+function selectSituation(situationId: number) {
+    clearSelection();
+    selectedItemType.value = 'situation';
+    selectedSituationId.value = situationId;
+}
+
+function selectTerminalSituation(terminalSituationId: number) {
+    clearSelection();
+    selectedItemType.value = 'terminal-situation';
+    selectedTerminalSituationId.value = terminalSituationId;
+}
+
+function selectPlayerCombo(comboId: number) {
+    clearSelection();
+    selectedItemType.value = 'player-combo';
+    selectedPlayerComboId.value = comboId;
+}
+
+function selectOpponentCombo(comboId: number) {
+    clearSelection();
+    selectedItemType.value = 'opponent-combo';
+    selectedOpponentComboId.value = comboId;
+}
+
+function addSituation() {
+    const newSituation = createEmptySituation();
+    gameDefinition.value.situations.push(newSituation);
+    selectSituation(newSituation.situationId);
+}
+
+function updateSituation(updatedSituation: Situation) {
+    const index = gameDefinition.value.situations.findIndex(
+        (s) => s.situationId === updatedSituation.situationId
+    );
+    if (index !== -1) {
+        gameDefinition.value.situations.splice(index, 1, updatedSituation);
+    }
+}
+
+function deleteSituation() {
+    if (!selectedSituationId.value) {
+        return;
     }
 
-    function selectSituation(situationId: number) {
-        clearSelection();
-        selectedItemType.value = 'situation';
-        selectedSituationId.value = situationId;
-    }
+    const situationId = selectedSituationId.value;
+    const index = gameDefinition.value.situations.findIndex((s) => s.situationId === situationId);
+    if (index !== -1) {
+        gameDefinition.value.situations.splice(index, 1);
 
-    function selectTerminalSituation(terminalSituationId: number) {
-        clearSelection();
-        selectedItemType.value = 'terminal-situation';
-        selectedTerminalSituationId.value = terminalSituationId;
-    }
-
-    function selectPlayerCombo(comboId: number) {
-        clearSelection();
-        selectedItemType.value = 'player-combo';
-        selectedPlayerComboId.value = comboId;
-    }
-
-    function selectOpponentCombo(comboId: number) {
-        clearSelection();
-        selectedItemType.value = 'opponent-combo';
-        selectedOpponentComboId.value = comboId;
-    }
-
-    function addSituation() {
-        const newSituation = createEmptySituation();
-        gameDefinition.value.situations.push(newSituation);
-        selectSituation(newSituation.situationId);
-    }
-
-    function updateSituation(updatedSituation: Situation) {
-        const index = gameDefinition.value.situations.findIndex(
-            (s) => s.situationId === updatedSituation.situationId
-        );
-        if (index !== -1) {
-            gameDefinition.value.situations.splice(index, 1, updatedSituation);
-        }
-    }
-
-    function deleteSituation() {
-        if (!selectedSituationId.value) {
-            return;
+        // Remove references from transitions
+        for (const situation of gameDefinition.value.situations) {
+            situation.transitions = situation.transitions.filter(
+                (t) => t.nextSituationId !== situationId
+            );
         }
 
-        const situationId = selectedSituationId.value;
-        const index = gameDefinition.value.situations.findIndex((s) => s.situationId === situationId);
-        if (index !== -1) {
-            gameDefinition.value.situations.splice(index, 1);
-
-            // Remove references from transitions
-            for (const situation of gameDefinition.value.situations) {
-                situation.transitions = situation.transitions.filter(
-                    (t) => t.nextSituationId !== situationId
-                );
-            }
-
-            // Update rootSituationId if it was deleted
-            if (gameDefinition.value.rootSituationId === situationId) {
-                if (gameDefinition.value.situations.length > 0) {
-                    gameDefinition.value.rootSituationId = gameDefinition.value.situations[0].situationId;
-                } else if (gameDefinition.value.terminalSituations.length > 0) {
-                    gameDefinition.value.rootSituationId =
-                        gameDefinition.value.terminalSituations[0].situationId;
-                } else {
-                    gameDefinition.value.rootSituationId = 0;
-                }
-            }
-
-            // Select next situation
+        // Update rootSituationId if it was deleted
+        if (gameDefinition.value.rootSituationId === situationId) {
             if (gameDefinition.value.situations.length > 0) {
-                selectSituation(gameDefinition.value.situations[0].situationId);
+                gameDefinition.value.rootSituationId = gameDefinition.value.situations[0].situationId;
             } else if (gameDefinition.value.terminalSituations.length > 0) {
-                selectTerminalSituation(gameDefinition.value.terminalSituations[0].situationId);
+                gameDefinition.value.rootSituationId =
+                    gameDefinition.value.terminalSituations[0].situationId;
             } else {
-                selectedItemType.value = null;
-                selectedSituationId.value = null;
-                selectedTerminalSituationId.value = null;
+                gameDefinition.value.rootSituationId = 0;
             }
         }
-    }
 
-    function addTerminalSituation() {
-        const newTerminalSituation = createEmptyTerminalSituation();
-        gameDefinition.value.terminalSituations.push(newTerminalSituation);
-        selectTerminalSituation(newTerminalSituation.situationId);
-    }
-
-    function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
-        const index = gameDefinition.value.terminalSituations.findIndex(
-            (t) => t.situationId === updatedTerminalSituation.situationId
-        );
-        if (index !== -1) {
-            gameDefinition.value.terminalSituations.splice(index, 1, updatedTerminalSituation);
+        // Select next situation
+        if (gameDefinition.value.situations.length > 0) {
+            selectSituation(gameDefinition.value.situations[0].situationId);
+        } else if (gameDefinition.value.terminalSituations.length > 0) {
+            selectTerminalSituation(gameDefinition.value.terminalSituations[0].situationId);
+        } else {
+            selectedItemType.value = null;
+            selectedSituationId.value = null;
+            selectedTerminalSituationId.value = null;
         }
     }
+}
 
-    function deleteTerminalSituation() {
-        if (!selectedTerminalSituationId.value) {
-            return;
+function addTerminalSituation() {
+    const newTerminalSituation = createEmptyTerminalSituation();
+    gameDefinition.value.terminalSituations.push(newTerminalSituation);
+    selectTerminalSituation(newTerminalSituation.situationId);
+}
+
+function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
+    const index = gameDefinition.value.terminalSituations.findIndex(
+        (t) => t.situationId === updatedTerminalSituation.situationId
+    );
+    if (index !== -1) {
+        gameDefinition.value.terminalSituations.splice(index, 1, updatedTerminalSituation);
+    }
+}
+
+function deleteTerminalSituation() {
+    if (!selectedTerminalSituationId.value) {
+        return;
+    }
+
+    const terminalSituationId = selectedTerminalSituationId.value;
+    const index = gameDefinition.value.terminalSituations.findIndex(
+        (t) => t.situationId === terminalSituationId
+    );
+    if (index !== -1) {
+        gameDefinition.value.terminalSituations.splice(index, 1);
+
+        // Remove references from transitions
+        for (const situation of gameDefinition.value.situations) {
+            situation.transitions = situation.transitions.filter(
+                (t) => t.nextSituationId !== terminalSituationId
+            );
         }
 
-        const terminalSituationId = selectedTerminalSituationId.value;
-        const index = gameDefinition.value.terminalSituations.findIndex(
-            (t) => t.situationId === terminalSituationId
-        );
-        if (index !== -1) {
-            gameDefinition.value.terminalSituations.splice(index, 1);
-
-            // Remove references from transitions
-            for (const situation of gameDefinition.value.situations) {
-                situation.transitions = situation.transitions.filter(
-                    (t) => t.nextSituationId !== terminalSituationId
-                );
-            }
-
-            // Update rootSituationId if it was deleted
-            if (gameDefinition.value.rootSituationId === terminalSituationId) {
-                if (gameDefinition.value.situations.length > 0) {
-                    gameDefinition.value.rootSituationId = gameDefinition.value.situations[0].situationId;
-                } else if (gameDefinition.value.terminalSituations.length > 0) {
-                    gameDefinition.value.rootSituationId =
-                        gameDefinition.value.terminalSituations[0].situationId;
-                } else {
-                    gameDefinition.value.rootSituationId = 0;
-                }
-            }
-
-            // Select next terminal situation
-            if (gameDefinition.value.terminalSituations.length > 0) {
-                selectTerminalSituation(gameDefinition.value.terminalSituations[0].situationId);
-            } else if (gameDefinition.value.situations.length > 0) {
-                selectSituation(gameDefinition.value.situations[0].situationId);
+        // Update rootSituationId if it was deleted
+        if (gameDefinition.value.rootSituationId === terminalSituationId) {
+            if (gameDefinition.value.situations.length > 0) {
+                gameDefinition.value.rootSituationId = gameDefinition.value.situations[0].situationId;
+            } else if (gameDefinition.value.terminalSituations.length > 0) {
+                gameDefinition.value.rootSituationId =
+                    gameDefinition.value.terminalSituations[0].situationId;
             } else {
-                clearSelection();
-                selectedItemType.value = null;
+                gameDefinition.value.rootSituationId = 0;
             }
         }
-    }
 
-    // Player Combo functions
-    function addPlayerCombo() {
-        const newCombo = createEmptyComboStarter();
-        gameDefinition.value.playerComboStarters.push(newCombo);
-        selectPlayerCombo(newCombo.situationId);
-    }
-
-    function updatePlayerCombo(updatedCombo: ComboStarter) {
-        const index = gameDefinition.value.playerComboStarters.findIndex(
-            (c) => c.situationId === updatedCombo.situationId
-        );
-        if (index !== -1) {
-            gameDefinition.value.playerComboStarters.splice(index, 1, updatedCombo);
+        // Select next terminal situation
+        if (gameDefinition.value.terminalSituations.length > 0) {
+            selectTerminalSituation(gameDefinition.value.terminalSituations[0].situationId);
+        } else if (gameDefinition.value.situations.length > 0) {
+            selectSituation(gameDefinition.value.situations[0].situationId);
+        } else {
+            clearSelection();
+            selectedItemType.value = null;
         }
     }
+}
 
-    function deletePlayerCombo() {
-        if (!selectedPlayerComboId.value) {
-            return;
-        }
+// Player Combo functions
+function addPlayerCombo() {
+    const newCombo = createEmptyComboStarter();
+    gameDefinition.value.playerComboStarters.push(newCombo);
+    selectPlayerCombo(newCombo.situationId);
+}
 
-        const comboId = selectedPlayerComboId.value;
-        const index = gameDefinition.value.playerComboStarters.findIndex(
-            (c) => c.situationId === comboId
-        );
-        if (index !== -1) {
-            gameDefinition.value.playerComboStarters.splice(index, 1);
+function updatePlayerCombo(updatedCombo: ComboStarter) {
+    const index = gameDefinition.value.playerComboStarters.findIndex(
+        (c) => c.situationId === updatedCombo.situationId
+    );
+    if (index !== -1) {
+        gameDefinition.value.playerComboStarters.splice(index, 1, updatedCombo);
+    }
+}
 
-            // Remove references from transitions
-            for (const situation of gameDefinition.value.situations) {
-                situation.transitions = situation.transitions.filter(
-                    (t) => t.nextSituationId !== comboId
-                );
-            }
-
-            // Select next item
-            if (gameDefinition.value.playerComboStarters.length > 0) {
-                selectPlayerCombo(gameDefinition.value.playerComboStarters[0].situationId);
-            } else if (gameDefinition.value.situations.length > 0) {
-                selectSituation(gameDefinition.value.situations[0].situationId);
-            } else {
-                clearSelection();
-                selectedItemType.value = null;
-            }
-        }
+function deletePlayerCombo() {
+    if (!selectedPlayerComboId.value) {
+        return;
     }
 
-    // Opponent Combo functions
-    function addOpponentCombo() {
-        const newCombo = createEmptyComboStarter();
-        gameDefinition.value.opponentComboStarters.push(newCombo);
-        selectOpponentCombo(newCombo.situationId);
-    }
+    const comboId = selectedPlayerComboId.value;
+    const index = gameDefinition.value.playerComboStarters.findIndex(
+        (c) => c.situationId === comboId
+    );
+    if (index !== -1) {
+        gameDefinition.value.playerComboStarters.splice(index, 1);
 
-    function updateOpponentCombo(updatedCombo: ComboStarter) {
-        const index = gameDefinition.value.opponentComboStarters.findIndex(
-            (c) => c.situationId === updatedCombo.situationId
-        );
-        if (index !== -1) {
-            gameDefinition.value.opponentComboStarters.splice(index, 1, updatedCombo);
-        }
-    }
-
-    function deleteOpponentCombo() {
-        if (!selectedOpponentComboId.value) {
-            return;
+        // Remove references from transitions
+        for (const situation of gameDefinition.value.situations) {
+            situation.transitions = situation.transitions.filter(
+                (t) => t.nextSituationId !== comboId
+            );
         }
 
-        const comboId = selectedOpponentComboId.value;
-        const index = gameDefinition.value.opponentComboStarters.findIndex(
-            (c) => c.situationId === comboId
-        );
-        if (index !== -1) {
-            gameDefinition.value.opponentComboStarters.splice(index, 1);
-
-            // Remove references from transitions
-            for (const situation of gameDefinition.value.situations) {
-                situation.transitions = situation.transitions.filter(
-                    (t) => t.nextSituationId !== comboId
-                );
-            }
-
-            // Select next item
-            if (gameDefinition.value.opponentComboStarters.length > 0) {
-                selectOpponentCombo(gameDefinition.value.opponentComboStarters[0].situationId);
-            } else if (gameDefinition.value.situations.length > 0) {
-                selectSituation(gameDefinition.value.situations[0].situationId);
-            } else {
-                clearSelection();
-                selectedItemType.value = null;
-            }
+        // Select next item
+        if (gameDefinition.value.playerComboStarters.length > 0) {
+            selectPlayerCombo(gameDefinition.value.playerComboStarters[0].situationId);
+        } else if (gameDefinition.value.situations.length > 0) {
+            selectSituation(gameDefinition.value.situations[0].situationId);
+        } else {
+            clearSelection();
+            selectedItemType.value = null;
         }
     }
+}
+
+// Opponent Combo functions
+function addOpponentCombo() {
+    const newCombo = createEmptyComboStarter();
+    gameDefinition.value.opponentComboStarters.push(newCombo);
+    selectOpponentCombo(newCombo.situationId);
+}
+
+function updateOpponentCombo(updatedCombo: ComboStarter) {
+    const index = gameDefinition.value.opponentComboStarters.findIndex(
+        (c) => c.situationId === updatedCombo.situationId
+    );
+    if (index !== -1) {
+        gameDefinition.value.opponentComboStarters.splice(index, 1, updatedCombo);
+    }
+}
+
+function deleteOpponentCombo() {
+    if (!selectedOpponentComboId.value) {
+        return;
+    }
+
+    const comboId = selectedOpponentComboId.value;
+    const index = gameDefinition.value.opponentComboStarters.findIndex(
+        (c) => c.situationId === comboId
+    );
+    if (index !== -1) {
+        gameDefinition.value.opponentComboStarters.splice(index, 1);
+
+        // Remove references from transitions
+        for (const situation of gameDefinition.value.situations) {
+            situation.transitions = situation.transitions.filter(
+                (t) => t.nextSituationId !== comboId
+            );
+        }
+
+        // Select next item
+        if (gameDefinition.value.opponentComboStarters.length > 0) {
+            selectOpponentCombo(gameDefinition.value.opponentComboStarters[0].situationId);
+        } else if (gameDefinition.value.situations.length > 0) {
+            selectSituation(gameDefinition.value.situations[0].situationId);
+        } else {
+            clearSelection();
+            selectedItemType.value = null;
+        }
+    }
+}
 </script>
 
 <style scoped>

@@ -80,107 +80,107 @@
 </template>
 
 <script setup lang="ts">
-    import { computed } from 'vue';
-    import type { Node } from '@nomari/game-tree/game-tree';
-    import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
-    import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
-    import { useGameTreeStore } from '@/stores/game-tree-store';
-    import { useSolverStore } from '@/stores/solver-store';
-    import { useViewStore, VIEW_MODES } from '@/stores/view-store';
-    import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
-    import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
-    import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
-    import { useDefinitionStore } from './stores/definition-store';
-    import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
-    import log from 'loglevel';
+import { computed } from 'vue';
+import type { Node } from '@nomari/game-tree/game-tree';
+import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
+import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
+import { useGameTreeStore } from '@/stores/game-tree-store';
+import { useSolverStore } from '@/stores/solver-store';
+import { useViewStore, VIEW_MODES } from '@/stores/view-store';
+import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
+import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
+import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
+import { useDefinitionStore } from './stores/definition-store';
+import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
+import log from 'loglevel';
 
-    // View store
-    const viewStore = useViewStore();
-    const viewMode = computed(() => viewStore.viewMode);
-    const viewModes = VIEW_MODES;
+// View store
+const viewStore = useViewStore();
+const viewMode = computed(() => viewStore.viewMode);
+const viewModes = VIEW_MODES;
 
-    // Game definition and tree state
-    const definitionStore = useDefinitionStore();
-    const gameDefinition = computed(() => definitionStore.gameDefinition);
+// Game definition and tree state
+const definitionStore = useDefinitionStore();
+const gameDefinition = computed(() => definitionStore.gameDefinition);
 
-    const gameTree = computed(() => gameTreeStore.gameTree);
+const gameTree = computed(() => gameTreeStore.gameTree);
 
-    // Game tree store
-    const gameTreeStore = useGameTreeStore();
+// Game tree store
+const gameTreeStore = useGameTreeStore();
 
-    // Solver store
-    const solverStore = useSolverStore();
-    const solverStrategies = computed(() => solverStore.strategies);
+// Solver store
+const solverStore = useSolverStore();
+const solverStrategies = computed(() => solverStore.strategies);
 
-    // Computed properties
-    const selectedNode = computed<Node | null>(() => {
-        if (!gameTree.value || !gameTreeStore.selectedNodeId) {
-            return null;
-        }
-        return gameTree.value.nodes[gameTreeStore.selectedNodeId] ?? null;
-    });
-
-    const selectedNodeStrategy = computed(() => {
-        log.info('selectedNodeId', gameTreeStore.selectedNodeId);
-        if (!gameTreeStore.selectedNodeId) {
-            return null;
-        }
-        log.info('solverStrategies', solverStrategies.value);
-        log.info('solverStrategies[gameTreeStore.selectedNodeId]', solverStrategies.value[gameTreeStore.selectedNodeId]);
-        return solverStrategies.value[gameTreeStore.selectedNodeId] ?? null;
-    });
-
-    // Calculate expected values for all nodes
-    const expectedValues = computed<ExpectedValuesMap | null>(() => {
-        if (!gameTree.value || Object.keys(solverStrategies.value).length === 0) {
-            return null;
-        }
-        try {
-            return calculateExpectedValues(gameTree.value, solverStrategies.value);
-        } catch (error) {
-            console.error('Error calculating expected values:', error);
-            return null;
-        }
-    });
-
-    function _exportJSON() {
-        exportAsJSON(definitionStore.gameDefinition,
-                     `gamedefinition_${definitionStore.gameDefinition.name}.json`);
+// Computed properties
+const selectedNode = computed<Node | null>(() => {
+    if (!gameTree.value || !gameTreeStore.selectedNodeId) {
+        return null;
     }
+    return gameTree.value.nodes[gameTreeStore.selectedNodeId] ?? null;
+});
 
-    function exportProto() {
-        exportAsProto(definitionStore.gameDefinition,
-                      `gamedefinition_${definitionStore.gameDefinition.name}.pb`);
+const selectedNodeStrategy = computed(() => {
+    log.info('selectedNodeId', gameTreeStore.selectedNodeId);
+    if (!gameTreeStore.selectedNodeId) {
+        return null;
     }
+    log.info('solverStrategies', solverStrategies.value);
+    log.info('solverStrategies[gameTreeStore.selectedNodeId]', solverStrategies.value[gameTreeStore.selectedNodeId]);
+    return solverStrategies.value[gameTreeStore.selectedNodeId] ?? null;
+});
 
-    async function importFile() {
-        try {
-            const gameDefinition = await importGameDefinition();
-            if (gameDefinition) {
-                definitionStore.loadGameDefinition(gameDefinition);
-            }
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            alert(`Failed to import file: ${message}`);
+// Calculate expected values for all nodes
+const expectedValues = computed<ExpectedValuesMap | null>(() => {
+    if (!gameTree.value || Object.keys(solverStrategies.value).length === 0) {
+        return null;
+    }
+    try {
+        return calculateExpectedValues(gameTree.value, solverStrategies.value);
+    } catch (error) {
+        console.error('Error calculating expected values:', error);
+        return null;
+    }
+});
+
+function _exportJSON() {
+    exportAsJSON(definitionStore.gameDefinition,
+        `gamedefinition_${definitionStore.gameDefinition.name}.json`);
+}
+
+function exportProto() {
+    exportAsProto(definitionStore.gameDefinition,
+        `gamedefinition_${definitionStore.gameDefinition.name}.pb`);
+}
+
+async function importFile() {
+    try {
+        const gameDefinition = await importGameDefinition();
+        if (gameDefinition) {
+            definitionStore.loadGameDefinition(gameDefinition);
         }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        alert(`Failed to import file: ${message}`);
     }
+}
 
-    function updateGameTreeOnly() {
-        // Validate first. If there are errors, show them and don't update the tree.
-        if (!definitionStore.validateAndShowErrors()) {
-            return;
-        }
-        gameTreeStore.updateGameTree();
+function updateGameTreeOnly() {
+    // Validate first. If there are errors, show them and don't update the tree.
+    if (!definitionStore.validateAndShowErrors()) {
+        return;
     }
+    gameTreeStore.updateGameTree();
+}
 
-    function updateGameTree() {
-        // Validate first. If there are errors, show them and don't update the tree.
-        if (!definitionStore.validateAndShowErrors()) {
-            return;
-        }
-        gameTreeStore.updateGameTree();
-        viewStore.switchToGameTree();
+function updateGameTree() {
+    // Validate first. If there are errors, show them and don't update the tree.
+    if (!definitionStore.validateAndShowErrors()) {
+        return;
     }
+    gameTreeStore.updateGameTree();
+    viewStore.switchToGameTree();
+}
 
 </script>
 

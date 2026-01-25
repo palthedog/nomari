@@ -81,151 +81,152 @@
 </template>
 
 <script setup lang="ts">
-    import { computed } from 'vue';
-    import type { Node } from '@nomari/game-tree/game-tree';
-    import type { StrategyData } from '@/workers/solver-types';
-    import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
-    import { useGameTreeStore } from '@/stores/game-tree-store';
+import { computed } from 'vue';
+import type { Node } from '@nomari/game-tree/game-tree';
+import type { StrategyData } from '@/workers/solver-types';
+import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
+import { useGameTreeStore } from '@/stores/game-tree-store';
 
-    interface CalculationRow {
-        actionName: string;
-        probability: number;
-        nextNodeValue: number;
-        product: number;
-        nextNodeId: string;
+interface CalculationRow {
+    actionName: string;
+    probability: number;
+    nextNodeValue: number;
+    product: number;
+    nextNodeId: string;
+}
+
+const props = defineProps<{
+    strategy: Array<{ actionId: number;
+        probability: number }>;
+    playerType: 'player' | 'opponent';
+    selectedNode: Node | null;
+    expectedValues: ExpectedValuesMap | null;
+    strategyData: StrategyData | null;
+}>();
+
+const gameTreeStore = useGameTreeStore();
+
+const nodeExpectedValues = computed(() => {
+    if (!props.selectedNode || !props.expectedValues) {
+        return null;
+    }
+    return props.expectedValues[props.selectedNode.nodeId] ?? null;
+});
+
+function formatPercent(value: number): string {
+    return (value * 100).toFixed(1) + '%';
+}
+
+function formatExpectedValue(value: number | null): string {
+    if (value === null) {
+        return '-';
+    }
+    return Math.round(value).toLocaleString();
+}
+
+function getActionExpectedValue(actionId: number): number | null {
+    if (!nodeExpectedValues.value) {
+        return null;
     }
 
-    const props = defineProps<{
-        strategy: Array<{ actionId: number; probability: number }>;
-        playerType: 'player' | 'opponent';
-        selectedNode: Node | null;
-        expectedValues: ExpectedValuesMap | null;
-        strategyData: StrategyData | null;
-    }>();
-
-    const gameTreeStore = useGameTreeStore();
-
-    const nodeExpectedValues = computed(() => {
-        if (!props.selectedNode || !props.expectedValues) {
+    if (props.playerType === 'player') {
+        const actionValue = nodeExpectedValues.value.actionExpectedValues.find(
+            (a) => a.actionId === actionId
+        );
+        return actionValue?.expectedValue ?? null;
+    } else {
+        if (!nodeExpectedValues.value.opponentActionExpectedValues) {
             return null;
         }
-        return props.expectedValues[props.selectedNode.nodeId] ?? null;
-    });
+        const actionValue = nodeExpectedValues.value.opponentActionExpectedValues.find(
+            (a) => a.actionId === actionId
+        );
+        return actionValue?.expectedValue ?? null;
+    }
+}
 
-    function formatPercent(value: number): string {
-        return (value * 100).toFixed(1) + '%';
+function getActionCalculation(actionId: number): CalculationRow[] {
+    if (!props.selectedNode || !props.strategyData || !props.expectedValues) {
+        return [];
     }
 
-    function formatExpectedValue(value: number | null): string {
-        if (value === null) {
-            return '-';
-        }
-        return Math.round(value).toLocaleString();
-    }
+    const rows: CalculationRow[] = [];
+    const node = props.selectedNode;
 
-    function getActionExpectedValue(actionId: number): number | null {
-        if (!nodeExpectedValues.value) {
-            return null;
+    // Share logic between player and opponent branches as much as possible
+    const isPlayer = props.playerType === 'player';
+    const strategy = isPlayer
+        ? props.strategyData.opponentStrategy
+        : props.strategyData.playerStrategy;
+
+    for (const transition of node.transitions) {
+        // Identify actionId type depending on playerType
+        const matchesAction = isPlayer
+            ? transition.playerActionId === actionId
+            : transition.opponentActionId === actionId;
+        if (!matchesAction) {
+            continue;
         }
 
-        if (props.playerType === 'player') {
-            const actionValue = nodeExpectedValues.value.actionExpectedValues.find(
-                (a) => a.actionId === actionId
-            );
-            return actionValue?.expectedValue ?? null;
+        // Get strategyActionId and type for lookup
+        const strategyActionId = isPlayer
+            ? transition.opponentActionId
+            : transition.playerActionId;
+        const actionType: 'player' | 'opponent' = isPlayer ? 'opponent' : 'player';
+
+        const strategyAction = strategy.find(
+            (a) => a.actionId === strategyActionId
+        );
+        const probability = strategyAction?.probability ?? 0;
+
+        const nextNodeValues = props.expectedValues[transition.nextNodeId];
+        if (!nextNodeValues) {
+            continue;
+        }
+
+        // Figure out the correct expected value and skip if it's undefined only for opponent branch
+        let nextNodeValue: number | undefined;
+        if (isPlayer) {
+            nextNodeValue = nextNodeValues.nodeExpectedValue;
         } else {
-            if (!nodeExpectedValues.value.opponentActionExpectedValues) {
-                return null;
-            }
-            const actionValue = nodeExpectedValues.value.opponentActionExpectedValues.find(
-                (a) => a.actionId === actionId
-            );
-            return actionValue?.expectedValue ?? null;
-        }
-    }
-
-    function getActionCalculation(actionId: number): CalculationRow[] {
-        if (!props.selectedNode || !props.strategyData || !props.expectedValues) {
-            return [];
-        }
-
-        const rows: CalculationRow[] = [];
-        const node = props.selectedNode;
-
-        // Share logic between player and opponent branches as much as possible
-        const isPlayer = props.playerType === 'player';
-        const strategy = isPlayer
-            ? props.strategyData.opponentStrategy
-            : props.strategyData.playerStrategy;
-
-        for (const transition of node.transitions) {
-            // Identify actionId type depending on playerType
-            const matchesAction = isPlayer
-                ? transition.playerActionId === actionId
-                : transition.opponentActionId === actionId;
-            if (!matchesAction) {
+            nextNodeValue = nextNodeValues.opponentNodeExpectedValue;
+            if (nextNodeValue === undefined) {
                 continue;
             }
-
-            // Get strategyActionId and type for lookup
-            const strategyActionId = isPlayer
-                ? transition.opponentActionId
-                : transition.playerActionId;
-            const actionType: 'player' | 'opponent' = isPlayer ? 'opponent' : 'player';
-
-            const strategyAction = strategy.find(
-                (a) => a.actionId === strategyActionId
-            );
-            const probability = strategyAction?.probability ?? 0;
-
-            const nextNodeValues = props.expectedValues[transition.nextNodeId];
-            if (!nextNodeValues) {
-                continue;
-            }
-
-            // Figure out the correct expected value and skip if it's undefined only for opponent branch
-            let nextNodeValue: number | undefined;
-            if (isPlayer) {
-                nextNodeValue = nextNodeValues.nodeExpectedValue;
-            } else {
-                nextNodeValue = nextNodeValues.opponentNodeExpectedValue;
-                if (nextNodeValue === undefined) {
-                    continue;
-                }
-            }
-
-            const product = probability * nextNodeValue;
-            const actionName = getActionNameForType(strategyActionId, actionType);
-
-            rows.push({
-                actionName,
-                probability,
-                nextNodeValue,
-                product,
-                nextNodeId: transition.nextNodeId,
-            });
         }
 
-        return rows;
+        const product = probability * nextNodeValue;
+        const actionName = getActionNameForType(strategyActionId, actionType);
+
+        rows.push({
+            actionName,
+            probability,
+            nextNodeValue,
+            product,
+            nextNodeId: transition.nextNodeId,
+        });
     }
 
-    function getActionName(actionId: number): string {
-        return getActionNameForType(actionId, props.playerType);
+    return rows;
+}
+
+function getActionName(actionId: number): string {
+    return getActionNameForType(actionId, props.playerType);
+}
+
+function getActionNameForType(actionId: number, type: 'player' | 'opponent'): string {
+    if (!props.selectedNode) {
+        return String(actionId);
     }
 
-    function getActionNameForType(actionId: number, type: 'player' | 'opponent'): string {
-        if (!props.selectedNode) {
-            return String(actionId);
-        }
+    const actions =
+        type === 'player'
+            ? props.selectedNode.playerActions?.actions
+            : props.selectedNode.opponentActions?.actions;
 
-        const actions =
-            type === 'player'
-                ? props.selectedNode.playerActions?.actions
-                : props.selectedNode.opponentActions?.actions;
-
-        const action = actions?.find((a) => a.actionId === actionId);
-        return action?.name || '(名前なし)';
-    }
+    const action = actions?.find((a) => a.actionId === actionId);
+    return action?.name || '(名前なし)';
+}
 </script>
 
 <style scoped>

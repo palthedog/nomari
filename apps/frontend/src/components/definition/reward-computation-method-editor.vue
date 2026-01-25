@@ -58,81 +58,77 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, onMounted } from 'vue';
-    import type { RewardComputationMethod } from '@nomari/ts-proto';
+import { computed, onMounted } from 'vue';
+import type { RewardComputationMethod } from '@nomari/ts-proto';
 
-    const model = defineModel<RewardComputationMethod | undefined>({ required: false });
+const model = defineModel<RewardComputationMethod | undefined>({ required: false });
 
-    // Initialize with win probability if not set
-    onMounted(() => {
-        if (!model.value || !model.value.method.oneofKind) {
-            model.value = {
-                method: {
-                    oneofKind: 'damageRace',
-                    damageRace: {}
-                },
-            };
-        }
-    });
+// Initialize with win probability if not set
+onMounted(() => {
+    if (!model.value || !model.value.method.oneofKind) {
+        model.value = {
+            method: {
+                oneofKind: 'damageRace',
+                damageRace: {}
+            },
+        };
+    }
+});
 
-    type MethodType = 'winProbability' | 'damageRace';
+type MethodType = 'winProbability' | 'damageRace';
 
-    const selectedMethod = computed<MethodType>(() => {
-        if (!model.value || !model.value.method.oneofKind) {
-            return 'damageRace'; // Default to damage race
-        }
-        if (model.value.method.oneofKind === 'damageRace') {
-            return 'damageRace';
-        }
-        if (model.value.method.oneofKind === 'winProbability') {
-            return 'winProbability';
-        }
+const selectedMethod = computed<MethodType>(() => {
+    if (!model.value || !model.value.method.oneofKind) {
         return 'damageRace'; // Default to damage race
-    });
+    }
+    if (model.value.method.oneofKind === 'damageRace') {
+        return 'damageRace';
+    }
+    if (model.value.method.oneofKind === 'winProbability') {
+        return 'winProbability';
+    }
+    return 'damageRace'; // Default to damage race
+});
 
-    const cornerPenalty = computed(() => {
-        if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
-            return model.value.method.winProbability.cornerPenalty || 1000;
-        }
-        return 1000;
-    });
+const cornerPenalty = computed(() => {
+    if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
+        return model.value.method.winProbability.cornerPenalty || 1000;
+    }
+    return 1000;
+});
 
-    function selectMethod(method: MethodType) {
-        if (method === 'damageRace') {
-            model.value = {
-                method: {
-                    oneofKind: 'damageRace',
-                    damageRace: {},
-                },
-            };
-        } else if (method === 'winProbability') {
+function selectMethod(method: MethodType) {
+    if (method === 'damageRace') {
+        model.value = {
+            method: {
+                oneofKind: 'damageRace',
+                damageRace: {},
+            },
+        };
+    } else if (method === 'winProbability') {
+        model.value = {
+            method: {
+                oneofKind: 'winProbability',
+                winProbability: {cornerPenalty: cornerPenalty.value,},
+            },
+        };
+    }
+}
+
+function updateCornerPenalty(value: number) {
+    if (selectedMethod.value === 'winProbability') {
+        if (!model.value) {
             model.value = {
                 method: {
                     oneofKind: 'winProbability',
-                    winProbability: {
-                        cornerPenalty: cornerPenalty.value,
-                    },
+                    winProbability: {cornerPenalty: value,},
                 },
             };
+        } else if (model.value.method.oneofKind === 'winProbability') {
+            model.value.method.winProbability.cornerPenalty = value;
         }
     }
-
-    function updateCornerPenalty(value: number) {
-        if (selectedMethod.value === 'winProbability') {
-            if (!model.value) {
-                model.value = {
-                    method: {
-                        oneofKind: 'winProbability',
-                        winProbability: {
-                            cornerPenalty: value,
-                        },
-                    },
-                };
-            } else if (model.value.method.oneofKind === 'winProbability') {
-                model.value.method.winProbability.cornerPenalty = value;
-            }
-        }
-    }
+}
 </script>
 
 <style scoped>

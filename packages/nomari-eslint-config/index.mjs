@@ -32,12 +32,27 @@ export default [
             'prefer-const': 'warn',
             'no-var': 'warn',
             'curly': ['error', 'all'],
-            // Stylistic rules (moved from core ESLint in v9)
             '@stylistic/brace-style': [
                 'error',
                 '1tbs',
                 {
                     allowSingleLine: false,
+                },
+            ],
+            '@stylistic/indent': ['error', 4],
+            '@stylistic/object-curly-newline': [
+                'error',
+                {
+                    ObjectExpression: { multiline: true, minProperties: 2 },
+                    ObjectPattern: { multiline: true },
+                    ImportDeclaration: { multiline: true },
+                    ExportDeclaration: { multiline: true },
+                },
+            ],
+            '@stylistic/object-property-newline': [
+                'error',
+                {
+                    allowAllPropertiesOnSameLine: false,
                 },
             ],
         },

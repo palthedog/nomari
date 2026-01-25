@@ -1,6 +1,4 @@
-import type {
-    GameDefinition,
-} from '@nomari/ts-proto';
+import type {GameDefinition,} from '@nomari/ts-proto';
 
 export interface ValidationError {
     field: string;

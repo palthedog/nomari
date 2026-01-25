@@ -26,6 +26,7 @@ export function exportAsJSON(gameDefinition: GameDefinition, filename: string): 
 export function exportAsProto(gameDefinition: GameDefinition, filename: string): void {
     const encodedProto: Uint8Array = GameDefinition.toBinary(gameDefinition);
     const blob = new Blob([encodedProto as Uint8Array<ArrayBuffer>]);
+
     exportAsFile(blob, filename);
 }
 

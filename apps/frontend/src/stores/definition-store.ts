@@ -13,9 +13,7 @@ export const useDefinitionStore = defineStore('definition', {
         validationErrors: [] as ValidationError[],
         showValidationErrors: false,
     }),
-    getters: {
-        hasValidationErrors: (state) => state.validationErrors.length > 0,
-    },
+    getters: {hasValidationErrors: (state) => state.validationErrors.length > 0,},
     actions: {
         /**
          * Load a GameDefinition (e.g., from JSON import)

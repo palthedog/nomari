@@ -17,14 +17,14 @@
 </template>
 
 <script setup lang="ts">
-    import GameTreeVisualization from '@/components/game-tree/game-tree-visualization.vue';
-    import SolverControlPanel from '@/components/solver/solver-control-panel.vue';
-    import { useGameTreeStore } from '@/stores/game-tree-store';
-    import { computed } from 'vue';
+import GameTreeVisualization from '@/components/game-tree/game-tree-visualization.vue';
+import SolverControlPanel from '@/components/solver/solver-control-panel.vue';
+import { useGameTreeStore } from '@/stores/game-tree-store';
+import { computed } from 'vue';
 
-    const gameTreeStore = useGameTreeStore();
+const gameTreeStore = useGameTreeStore();
 
-    const gameTree = computed(() => gameTreeStore.gameTree);
+const gameTree = computed(() => gameTreeStore.gameTree);
 </script>
 
 <style scoped></style>

@@ -90,12 +90,8 @@ export function createEmptySituation(): Situation {
     return {
         situationId: generateId(),
         name: '',
-        playerActions: {
-            actions: [],
-        },
-        opponentActions: {
-            actions: [],
-        },
+        playerActions: {actions: [],},
+        opponentActions: {actions: [],},
         transitions: [],
     };
 }

@@ -208,198 +208,208 @@
 </template>
 
 <script setup lang="ts">
-    import { computed } from 'vue';
-    import type {
-        Situation,
-        Transition,
-        TerminalSituation,
-    } from '@nomari/ts-proto';
-    import { ResourceType } from '@nomari/ts-proto';
-    import { generateId } from '@/utils/game-definition-utils';
+import { computed } from 'vue';
+import type {
+    Situation,
+    Transition,
+    TerminalSituation,
+} from '@nomari/ts-proto';
+import { ResourceType } from '@nomari/ts-proto';
+import { generateId } from '@/utils/game-definition-utils';
 
-    const model = defineModel<Situation>({ required: true });
+const model = defineModel<Situation>({ required: true });
 
-    const props = defineProps<{
-        availableSituations: Situation[];
-        availableTerminalSituations: TerminalSituation[];
-    }>();
+const props = defineProps<{
+    availableSituations: Situation[];
+    availableTerminalSituations: TerminalSituation[];
+}>();
 
-    const emit = defineEmits<{
-        (e: 'delete'): void;
-    }>();
+const emit = defineEmits<{
+    (e: 'delete'): void;
+}>();
 
-    const nextSituationItems = computed(() => {
-        const items: Array<{ title: string; value: number }> = [
-            { title: '次の状況を選択してください', value: 0 },
-        ];
+const nextSituationItems = computed(() => {
+    const items: Array<{ title: string;
+        value: number }> = [
+        {
+            title: '次の状況を選択してください',
+            value: 0 
+        },
+    ];
 
-        if (props.availableSituations.length > 0) {
-            items.push(...props.availableSituations.map((s) => ({
-                title: `${s.name || '(説明なし)'}`,
-                value: s.situationId,
-            })));
-        }
+    if (props.availableSituations.length > 0) {
+        items.push(...props.availableSituations.map((s) => ({
+            title: `${s.name || '(説明なし)'}`,
+            value: s.situationId,
+        })));
+    }
 
-        if (props.availableTerminalSituations.length > 0) {
-            items.push(...props.availableTerminalSituations.map((t) => ({
-                title: `${t.name || '(名前なし)'}`,
-                value: t.situationId,
-            })));
-        }
+    if (props.availableTerminalSituations.length > 0) {
+        items.push(...props.availableTerminalSituations.map((t) => ({
+            title: `${t.name || '(名前なし)'}`,
+            value: t.situationId,
+        })));
+    }
 
-        return items;
+    return items;
+});
+
+const resourceTypeItems = computed(() => [
+    {
+        title: 'プレイヤーのダメージ',
+        value: ResourceType.PLAYER_HEALTH 
+    },
+    {
+        title: '相手のダメージ',
+        value: ResourceType.OPPONENT_HEALTH 
+    },
+]);
+
+function addPlayerAction() {
+    if (!model.value.playerActions) {
+        return;
+    }
+    model.value.playerActions.actions.push({
+        actionId: generateId(),
+        name: '',
+        description: '',
+    });
+    updateTransitions();
+}
+
+function removePlayerAction(index: number) {
+    if (!model.value.playerActions) {
+        return;
+    }
+    const actionId = model.value.playerActions.actions[index].actionId;
+    model.value.playerActions.actions.splice(index, 1);
+    // Remove transitions for this action
+    model.value.transitions = model.value.transitions.filter(
+        (t) => t.playerActionId !== actionId
+    );
+    updateTransitions();
+}
+
+function addOpponentAction() {
+    if (!model.value.opponentActions) {
+        return;
+    }
+    model.value.opponentActions.actions.push({
+        actionId: generateId(),
+        name: '',
+        description: '',
+    });
+    updateTransitions();
+}
+
+function removeOpponentAction(index: number) {
+    if (!model.value.opponentActions) {
+        return;
+    }
+    const actionId = model.value.opponentActions.actions[index].actionId;
+    model.value.opponentActions.actions.splice(index, 1);
+    // Remove transitions for this action
+    model.value.transitions = model.value.transitions.filter(
+        (t) => t.opponentActionId !== actionId
+    );
+    updateTransitions();
+}
+
+function updateTransitions() {
+    if (!model.value.playerActions || !model.value.opponentActions) {
+        return;
+    }
+    const existingTransitions = new Map<string, Transition>();
+    model.value.transitions.forEach((t) => {
+        existingTransitions.set(`${t.playerActionId}-${t.opponentActionId}`, t);
     });
 
-    const resourceTypeItems = computed(() => [
-        { title: 'プレイヤーのダメージ', value: ResourceType.PLAYER_HEALTH },
-        { title: '相手のダメージ', value: ResourceType.OPPONENT_HEALTH },
-    ]);
-
-    function addPlayerAction() {
-        if (!model.value.playerActions) {
-            return;
-        }
-        model.value.playerActions.actions.push({
-            actionId: generateId(),
-            name: '',
-            description: '',
-        });
-        updateTransitions();
-    }
-
-    function removePlayerAction(index: number) {
-        if (!model.value.playerActions) {
-            return;
-        }
-        const actionId = model.value.playerActions.actions[index].actionId;
-        model.value.playerActions.actions.splice(index, 1);
-        // Remove transitions for this action
-        model.value.transitions = model.value.transitions.filter(
-            (t) => t.playerActionId !== actionId
-        );
-        updateTransitions();
-    }
-
-    function addOpponentAction() {
-        if (!model.value.opponentActions) {
-            return;
-        }
-        model.value.opponentActions.actions.push({
-            actionId: generateId(),
-            name: '',
-            description: '',
-        });
-        updateTransitions();
-    }
-
-    function removeOpponentAction(index: number) {
-        if (!model.value.opponentActions) {
-            return;
-        }
-        const actionId = model.value.opponentActions.actions[index].actionId;
-        model.value.opponentActions.actions.splice(index, 1);
-        // Remove transitions for this action
-        model.value.transitions = model.value.transitions.filter(
-            (t) => t.opponentActionId !== actionId
-        );
-        updateTransitions();
-    }
-
-    function updateTransitions() {
-        if (!model.value.playerActions || !model.value.opponentActions) {
-            return;
-        }
-        const existingTransitions = new Map<string, Transition>();
-        model.value.transitions.forEach((t) => {
-            existingTransitions.set(`${t.playerActionId}-${t.opponentActionId}`, t);
-        });
-
-        const newTransitions: Transition[] = [];
-        for (const playerAction of model.value.playerActions.actions) {
-            for (const oppAction of model.value.opponentActions.actions) {
-                const key = `${playerAction.actionId}-${oppAction.actionId}`;
-                const existing = existingTransitions.get(key);
-                if (existing) {
-                    newTransitions.push(existing);
-                } else {
-                    newTransitions.push({
-                        playerActionId: playerAction.actionId,
-                        opponentActionId: oppAction.actionId,
-                        nextSituationId: 0,
-                        resourceConsumptions: [],
-                        resourceRequirements: [],
-                    });
-                }
-            }
-        }
-        model.value.transitions = newTransitions;
-    }
-
-    function getTransition(
-        playerActionId: number,
-        opponentActionId: number
-    ): Transition | undefined {
-        return model.value.transitions.find(
-            (t) => t.playerActionId === playerActionId && t.opponentActionId === opponentActionId
-        );
-    }
-
-    function updateNextSituationId(
-        playerActionId: number,
-        opponentActionId: number,
-        nextSituationId: number
-    ) {
-        const transition = getTransition(playerActionId, opponentActionId);
-        if (transition) {
-            transition.nextSituationId = nextSituationId;
-        }
-    }
-
-    function addResourceConsumption(playerActionId: number, opponentActionId: number) {
-        const transition = getTransition(playerActionId, opponentActionId);
-        if (transition) {
-            if (!transition.resourceConsumptions) {
-                transition.resourceConsumptions = [];
-            }
-            transition.resourceConsumptions.push({
-                resourceType: ResourceType.OPPONENT_HEALTH,
-                value: 1000,
-            });
-        }
-    }
-
-    function removeResourceConsumption(
-        playerActionId: number,
-        opponentActionId: number,
-        index: number
-    ) {
-        const transition = getTransition(playerActionId, opponentActionId);
-        if (transition && transition.resourceConsumptions) {
-            transition.resourceConsumptions.splice(index, 1);
-        }
-    }
-
-    function updateResourceConsumption(
-        playerActionId: number,
-        opponentActionId: number,
-        index: number,
-        field: 'type' | 'value',
-        value: number
-    ) {
-        const transition = getTransition(playerActionId, opponentActionId);
-        if (transition && transition.resourceConsumptions && transition.resourceConsumptions[index]) {
-            const consumption = transition.resourceConsumptions[index];
-            if (field === 'type') {
-                consumption.resourceType = value as ResourceType;
+    const newTransitions: Transition[] = [];
+    for (const playerAction of model.value.playerActions.actions) {
+        for (const oppAction of model.value.opponentActions.actions) {
+            const key = `${playerAction.actionId}-${oppAction.actionId}`;
+            const existing = existingTransitions.get(key);
+            if (existing) {
+                newTransitions.push(existing);
             } else {
-                consumption.value = value;
+                newTransitions.push({
+                    playerActionId: playerAction.actionId,
+                    opponentActionId: oppAction.actionId,
+                    nextSituationId: 0,
+                    resourceConsumptions: [],
+                    resourceRequirements: [],
+                });
             }
         }
     }
+    model.value.transitions = newTransitions;
+}
 
-    function handleDelete() {
-        emit('delete');
+function getTransition(
+    playerActionId: number,
+    opponentActionId: number
+): Transition | undefined {
+    return model.value.transitions.find(
+        (t) => t.playerActionId === playerActionId && t.opponentActionId === opponentActionId
+    );
+}
+
+function updateNextSituationId(
+    playerActionId: number,
+    opponentActionId: number,
+    nextSituationId: number
+) {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (transition) {
+        transition.nextSituationId = nextSituationId;
     }
+}
+
+function addResourceConsumption(playerActionId: number, opponentActionId: number) {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (transition) {
+        if (!transition.resourceConsumptions) {
+            transition.resourceConsumptions = [];
+        }
+        transition.resourceConsumptions.push({
+            resourceType: ResourceType.OPPONENT_HEALTH,
+            value: 1000,
+        });
+    }
+}
+
+function removeResourceConsumption(
+    playerActionId: number,
+    opponentActionId: number,
+    index: number
+) {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (transition && transition.resourceConsumptions) {
+        transition.resourceConsumptions.splice(index, 1);
+    }
+}
+
+function updateResourceConsumption(
+    playerActionId: number,
+    opponentActionId: number,
+    index: number,
+    field: 'type' | 'value',
+    value: number
+) {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (transition && transition.resourceConsumptions && transition.resourceConsumptions[index]) {
+        const consumption = transition.resourceConsumptions[index];
+        if (field === 'type') {
+            consumption.resourceType = value as ResourceType;
+        } else {
+            consumption.value = value;
+        }
+    }
+}
+
+function handleDelete() {
+    emit('delete');
+}
 </script>
 
 <style scoped>

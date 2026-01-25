@@ -191,176 +191,210 @@
 </template>
 
 <script setup lang="ts">
-    import { computed } from 'vue';
-    import type {
-        ComboStarter,
-        Situation,
-        TerminalSituation,
-    } from '@nomari/ts-proto';
-    import { ResourceType } from '@nomari/ts-proto';
+import { computed } from 'vue';
+import type {
+    ComboStarter,
+    Situation,
+    TerminalSituation,
+} from '@nomari/ts-proto';
+import { ResourceType } from '@nomari/ts-proto';
 
-    const model = defineModel<ComboStarter>({ required: true });
+const model = defineModel<ComboStarter>({ required: true });
 
-    const props = defineProps<{
-        availableSituations: Situation[];
-        availableTerminalSituations: TerminalSituation[];
-        isPlayerCombo: boolean;
-    }>();
+const props = defineProps<{
+    availableSituations: Situation[];
+    availableTerminalSituations: TerminalSituation[];
+    isPlayerCombo: boolean;
+}>();
 
-    const emit = defineEmits<{
-        (e: 'delete'): void;
-    }>();
+const emit = defineEmits<{
+    (e: 'delete'): void;
+}>();
 
-    // Gauge types for requirements
-    const gaugeTypeItems = computed(() => {
-        if (props.isPlayerCombo) {
-            return [
-                { title: 'プレイヤーODゲージ', value: ResourceType.PLAYER_OD_GAUGE },
-                { title: 'プレイヤーSAゲージ', value: ResourceType.PLAYER_SA_GAUGE },
-            ];
-        } else {
-            return [
-                { title: '相手ODゲージ', value: ResourceType.OPPONENT_OD_GAUGE },
-                { title: '相手SAゲージ', value: ResourceType.OPPONENT_SA_GAUGE },
-            ];
-        }
-    });
-
-    // Resource types for consumptions (damage and gauge)
-    const consumptionTypeItems = computed(() => {
-        if (props.isPlayerCombo) {
-            // Player combo: damage to opponent, consume player's gauge
-            return [
-                { title: '相手へのダメージ', value: ResourceType.OPPONENT_HEALTH },
-                { title: 'プレイヤーODゲージ消費', value: ResourceType.PLAYER_OD_GAUGE },
-                { title: 'プレイヤーSAゲージ消費', value: ResourceType.PLAYER_SA_GAUGE },
-            ];
-        } else {
-            // Opponent combo: damage to player, consume opponent's gauge
-            return [
-                { title: 'プレイヤーへのダメージ', value: ResourceType.PLAYER_HEALTH },
-                { title: '相手ODゲージ消費', value: ResourceType.OPPONENT_OD_GAUGE },
-                { title: '相手SAゲージ消費', value: ResourceType.OPPONENT_SA_GAUGE },
-            ];
-        }
-    });
-
-    const nextSituationItems = computed(() => {
-        const items: Array<{ title: string; value: number }> = [
-            { title: '次の状況を選択してください', value: 0 },
+// Gauge types for requirements
+const gaugeTypeItems = computed(() => {
+    if (props.isPlayerCombo) {
+        return [
+            {
+                title: 'プレイヤーODゲージ',
+                value: ResourceType.PLAYER_OD_GAUGE 
+            },
+            {
+                title: 'プレイヤーSAゲージ',
+                value: ResourceType.PLAYER_SA_GAUGE 
+            },
         ];
+    } else {
+        return [
+            {
+                title: '相手ODゲージ',
+                value: ResourceType.OPPONENT_OD_GAUGE 
+            },
+            {
+                title: '相手SAゲージ',
+                value: ResourceType.OPPONENT_SA_GAUGE 
+            },
+        ];
+    }
+});
 
-        if (props.availableSituations.length > 0) {
-            items.push(...props.availableSituations.map((s) => ({
-                title: `${s.name || '(説明なし)'}`,
-                value: s.situationId,
-            })));
-        }
+// Resource types for consumptions (damage and gauge)
+const consumptionTypeItems = computed(() => {
+    if (props.isPlayerCombo) {
+        // Player combo: damage to opponent, consume player's gauge
+        return [
+            {
+                title: '相手へのダメージ',
+                value: ResourceType.OPPONENT_HEALTH 
+            },
+            {
+                title: 'プレイヤーODゲージ消費',
+                value: ResourceType.PLAYER_OD_GAUGE 
+            },
+            {
+                title: 'プレイヤーSAゲージ消費',
+                value: ResourceType.PLAYER_SA_GAUGE 
+            },
+        ];
+    } else {
+        // Opponent combo: damage to player, consume opponent's gauge
+        return [
+            {
+                title: 'プレイヤーへのダメージ',
+                value: ResourceType.PLAYER_HEALTH 
+            },
+            {
+                title: '相手ODゲージ消費',
+                value: ResourceType.OPPONENT_OD_GAUGE 
+            },
+            {
+                title: '相手SAゲージ消費',
+                value: ResourceType.OPPONENT_SA_GAUGE 
+            },
+        ];
+    }
+});
 
-        if (props.availableTerminalSituations.length > 0) {
-            items.push(...props.availableTerminalSituations.map((t) => ({
-                title: `${t.name || '(名前なし)'}`,
-                value: t.situationId,
-            })));
-        }
+const nextSituationItems = computed(() => {
+    const items: Array<{ title: string;
+        value: number }> = [
+        {
+            title: '次の状況を選択してください',
+            value: 0 
+        },
+    ];
 
-        return items;
+    if (props.availableSituations.length > 0) {
+        items.push(...props.availableSituations.map((s) => ({
+            title: `${s.name || '(説明なし)'}`,
+            value: s.situationId,
+        })));
+    }
+
+    if (props.availableTerminalSituations.length > 0) {
+        items.push(...props.availableTerminalSituations.map((t) => ({
+            title: `${t.name || '(名前なし)'}`,
+            value: t.situationId,
+        })));
+    }
+
+    return items;
+});
+
+function addRoute() {
+    model.value.routes.push({
+        name: '',
+        requirements: [],
+        consumptions: [],
+        nextSituationId: 0,
     });
+}
 
-    function addRoute() {
-        model.value.routes.push({
-            name: '',
-            requirements: [],
-            consumptions: [],
-            nextSituationId: 0,
-        });
+function removeRoute(index: number) {
+    model.value.routes.splice(index, 1);
+}
+
+function addRequirement(routeIndex: number) {
+    const route = model.value.routes[routeIndex];
+    if (!route.requirements) {
+        route.requirements = [];
     }
+    const defaultType = props.isPlayerCombo
+        ? ResourceType.PLAYER_OD_GAUGE
+        : ResourceType.OPPONENT_OD_GAUGE;
+    route.requirements.push({
+        resourceType: defaultType,
+        value: 2000,
+    });
+}
 
-    function removeRoute(index: number) {
-        model.value.routes.splice(index, 1);
+function removeRequirement(routeIndex: number, reqIndex: number) {
+    const route = model.value.routes[routeIndex];
+    if (route.requirements) {
+        route.requirements.splice(reqIndex, 1);
     }
+}
 
-    function addRequirement(routeIndex: number) {
-        const route = model.value.routes[routeIndex];
-        if (!route.requirements) {
-            route.requirements = [];
-        }
-        const defaultType = props.isPlayerCombo
-            ? ResourceType.PLAYER_OD_GAUGE
-            : ResourceType.OPPONENT_OD_GAUGE;
-        route.requirements.push({
-            resourceType: defaultType,
-            value: 2000,
-        });
-    }
-
-    function removeRequirement(routeIndex: number, reqIndex: number) {
-        const route = model.value.routes[routeIndex];
-        if (route.requirements) {
-            route.requirements.splice(reqIndex, 1);
-        }
-    }
-
-    function updateRequirement(
-        routeIndex: number,
-        reqIndex: number,
-        field: 'type' | 'value',
-        value: number
-    ) {
-        const route = model.value.routes[routeIndex];
-        if (route.requirements && route.requirements[reqIndex]) {
-            if (field === 'type') {
-                route.requirements[reqIndex].resourceType = value as ResourceType;
-            } else {
-                route.requirements[reqIndex].value = value;
-            }
+function updateRequirement(
+    routeIndex: number,
+    reqIndex: number,
+    field: 'type' | 'value',
+    value: number
+) {
+    const route = model.value.routes[routeIndex];
+    if (route.requirements && route.requirements[reqIndex]) {
+        if (field === 'type') {
+            route.requirements[reqIndex].resourceType = value as ResourceType;
+        } else {
+            route.requirements[reqIndex].value = value;
         }
     }
+}
 
-    function addConsumption(routeIndex: number) {
-        const route = model.value.routes[routeIndex];
-        if (!route.consumptions) {
-            route.consumptions = [];
+function addConsumption(routeIndex: number) {
+    const route = model.value.routes[routeIndex];
+    if (!route.consumptions) {
+        route.consumptions = [];
+    }
+    const defaultType = props.isPlayerCombo
+        ? ResourceType.OPPONENT_HEALTH
+        : ResourceType.PLAYER_HEALTH;
+    route.consumptions.push({
+        resourceType: defaultType,
+        value: 1000,
+    });
+}
+
+function removeConsumption(routeIndex: number, consIndex: number) {
+    const route = model.value.routes[routeIndex];
+    if (route.consumptions) {
+        route.consumptions.splice(consIndex, 1);
+    }
+}
+
+function updateConsumption(
+    routeIndex: number,
+    consIndex: number,
+    field: 'type' | 'value',
+    value: number
+) {
+    const route = model.value.routes[routeIndex];
+    if (route.consumptions && route.consumptions[consIndex]) {
+        if (field === 'type') {
+            route.consumptions[consIndex].resourceType = value as ResourceType;
+        } else {
+            route.consumptions[consIndex].value = value;
         }
-        const defaultType = props.isPlayerCombo
-            ? ResourceType.OPPONENT_HEALTH
-            : ResourceType.PLAYER_HEALTH;
-        route.consumptions.push({
-            resourceType: defaultType,
-            value: 1000,
-        });
     }
+}
 
-    function removeConsumption(routeIndex: number, consIndex: number) {
-        const route = model.value.routes[routeIndex];
-        if (route.consumptions) {
-            route.consumptions.splice(consIndex, 1);
-        }
-    }
+function updateNextSituation(routeIndex: number, value: number) {
+    model.value.routes[routeIndex].nextSituationId = value;
+}
 
-    function updateConsumption(
-        routeIndex: number,
-        consIndex: number,
-        field: 'type' | 'value',
-        value: number
-    ) {
-        const route = model.value.routes[routeIndex];
-        if (route.consumptions && route.consumptions[consIndex]) {
-            if (field === 'type') {
-                route.consumptions[consIndex].resourceType = value as ResourceType;
-            } else {
-                route.consumptions[consIndex].value = value;
-            }
-        }
-    }
-
-    function updateNextSituation(routeIndex: number, value: number) {
-        model.value.routes[routeIndex].nextSituationId = value;
-    }
-
-    function handleDelete() {
-        emit('delete');
-    }
+function handleDelete() {
+    emit('delete');
+}
 </script>
 
 <style scoped>

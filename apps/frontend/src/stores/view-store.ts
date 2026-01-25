@@ -9,9 +9,18 @@ export interface ViewModeConfig {
 }
 
 export const VIEW_MODES: ViewModeConfig[] = [
-    { id: 'edit', label: '編集' },
-    { id: 'game-tree', label: 'ゲーム木' },
-    { id: 'strategy', label: '戦略' },
+    {
+        id: 'edit',
+        label: '編集' 
+    },
+    {
+        id: 'game-tree',
+        label: 'ゲーム木' 
+    },
+    {
+        id: 'strategy',
+        label: '戦略' 
+    },
 ];
 
 export const useViewStore = defineStore('view', () => {

@@ -2,7 +2,6 @@ import { buildGameTree, GameTreeBuildErrorCode } from './game-tree-builder';
 import {
     GameDefinition,
     ResourceType,
-    RewardComputationMethod,
     CornerState,
 } from '@nomari/ts-proto';
 import type { NodeTransition } from '@nomari/game-tree/game-tree';

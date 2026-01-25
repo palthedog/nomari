@@ -6,29 +6,38 @@ import type { GameTree } from '@nomari/game-tree/game-tree';
  * Strategy data for a single node
  */
 export interface StrategyData {
-  nodeId: string;
-  playerStrategy: Array<{ actionId: number; probability: number }>;
-  opponentStrategy: Array<{ actionId: number; probability: number }>;
+    nodeId: string;
+    playerStrategy: Array<{ actionId: number;
+        probability: number }>;
+    opponentStrategy: Array<{ actionId: number;
+        probability: number }>;
 }
 
 /**
  * Commands sent to the worker
  */
 export type SolverCommand =
-  | { type: 'start'; gameTree: GameTree }
+  | { type: 'start';
+      gameTree: GameTree }
   | { type: 'pause' }
   | { type: 'resume' }
-  | { type: 'getStrategy'; nodeId: string }
+  | { type: 'getStrategy';
+      nodeId: string }
   | { type: 'getAllStrategies' };
 
 /**
  * Results returned from the worker
  */
 export type SolverResult =
-  | { type: 'complete'; strategies: Record<string, StrategyData> }
-  | { type: 'strategy'; nodeId: string; data: StrategyData | null }
-  | { type: 'allStrategies'; strategies: Record<string, StrategyData> }
-  | { type: 'error'; message: string };
+  | { type: 'complete';
+      strategies: Record<string, StrategyData> }
+  | { type: 'strategy';
+      nodeId: string;
+      data: StrategyData | null }
+  | { type: 'allStrategies';
+      strategies: Record<string, StrategyData> }
+  | { type: 'error';
+      message: string };
 
 /**
  * Solver status
