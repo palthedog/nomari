@@ -23,32 +23,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useGameTreeStore } from '@/stores/game-tree-store';
-import { useSolverStore } from '@/stores/solver-store';
-import { useViewStore } from '@/stores/view-store';
+    import { computed } from 'vue';
+    import { useGameTreeStore } from '@/stores/game-tree-store';
+    import { useSolverStore } from '@/stores/solver-store';
+    import { useViewStore } from '@/stores/view-store';
 
-const gameTreeStore = useGameTreeStore();
-const solverStore = useSolverStore();
-const viewStore = useViewStore();
+    const gameTreeStore = useGameTreeStore();
+    const solverStore = useSolverStore();
+    const viewStore = useViewStore();
 
-// Computed properties
-const isRunning = computed(() => solverStore.status === 'running');
-const canStart = computed(() => gameTreeStore.gameTree !== null && !isRunning.value);
-const error = computed(() => solverStore.error);
+    // Computed properties
+    const isRunning = computed(() => solverStore.status === 'running');
+    const canStart = computed(() => gameTreeStore.gameTree !== null && !isRunning.value);
+    const error = computed(() => solverStore.error);
 
-// Event handlers
-function handleStart() {
-  // Rebuild game tree before starting strategy computation
-  gameTreeStore.updateGameTree();
+    // Event handlers
+    function handleStart() {
+        // Rebuild game tree before starting strategy computation
+        gameTreeStore.updateGameTree();
 
-  // Start solving with the newly built tree
-  if (gameTreeStore.gameTree) {
-    solverStore.startSolving(gameTreeStore.gameTree, () => {
-      viewStore.switchToStrategy();
-    });
-  }
-}
+        // Start solving with the newly built tree
+        if (gameTreeStore.gameTree) {
+            solverStore.startSolving(gameTreeStore.gameTree, () => {
+                viewStore.switchToStrategy();
+            });
+        }
+    }
 </script>
 
 <style scoped>

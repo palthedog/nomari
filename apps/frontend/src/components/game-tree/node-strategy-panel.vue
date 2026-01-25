@@ -117,57 +117,63 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { Node } from '@nomari/game-tree/game-tree';
-import type { StrategyData } from '@/workers/solver-types';
-import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
-import StrategyActionList from './strategy-action-list.vue';
+    import { computed } from 'vue';
+    import type { Node } from '@nomari/game-tree/game-tree';
+    import type { StrategyData } from '@/workers/solver-types';
+    import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
+    import StrategyActionList from './strategy-action-list.vue';
 
-const props = defineProps<{
-    selectedNode: Node | null;
-    strategyData: StrategyData | null;
-    expectedValues: ExpectedValuesMap | null;
-}>();
+    const props = defineProps<{
+        selectedNode: Node | null;
+        strategyData: StrategyData | null;
+        expectedValues: ExpectedValuesMap | null;
+    }>();
 
-// Computed properties
-const isTerminal = computed(() => {
-    if (!props.selectedNode) {return false;}
-    return (
-        props.selectedNode.playerReward !== undefined ||
-        props.selectedNode.opponentReward !== undefined
-    );
-});
+    // Computed properties
+    const isTerminal = computed(() => {
+        if (!props.selectedNode) {
+            return false;
+        }
+        return (
+            props.selectedNode.playerReward !== undefined ||
+            props.selectedNode.opponentReward !== undefined
+        );
+    });
 
-const hasStrategy = computed(() => {
-    return props.strategyData !== null;
-});
+    const hasStrategy = computed(() => {
+        return props.strategyData !== null;
+    });
 
-const playerStrategy = computed(() => {
-    return props.strategyData?.playerStrategy ?? [];
-});
+    const playerStrategy = computed(() => {
+        return props.strategyData?.playerStrategy ?? [];
+    });
 
-const opponentStrategy = computed(() => {
-    return props.strategyData?.opponentStrategy ?? [];
-});
+    const opponentStrategy = computed(() => {
+        return props.strategyData?.opponentStrategy ?? [];
+    });
 
-// Get expected values for the selected node
-const nodeExpectedValues = computed(() => {
-    if (!props.selectedNode || !props.expectedValues) {
-        return null;
+    // Get expected values for the selected node
+    const nodeExpectedValues = computed(() => {
+        if (!props.selectedNode || !props.expectedValues) {
+            return null;
+        }
+        return props.expectedValues[props.selectedNode.nodeId] ?? null;
+    });
+
+    // Helper functions
+    function formatReward(value: number | undefined): string {
+        if (value === undefined) {
+            return '-';
+        }
+        return Math.round(value).toLocaleString();
     }
-    return props.expectedValues[props.selectedNode.nodeId] ?? null;
-});
 
-// Helper functions
-function formatReward(value: number | undefined): string {
-    if (value === undefined) {return '-';}
-    return Math.round(value).toLocaleString();
-}
-
-function formatExpectedValue(value: number | null): string {
-    if (value === null) {return '-';}
-    return Math.round(value).toLocaleString();
-}
+    function formatExpectedValue(value: number | null): string {
+        if (value === null) {
+            return '-';
+        }
+        return Math.round(value).toLocaleString();
+    }
 </script>
 
 <style scoped>

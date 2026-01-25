@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
+import stylistic from '@stylistic/eslint-plugin';
 
 export default [
     js.configs.recommended,
@@ -15,6 +16,7 @@ export default [
         },
         plugins: {
             '@typescript-eslint': tseslint,
+            '@stylistic': stylistic,
         },
         rules: {
             // Google Style Guide aligned rules
@@ -30,12 +32,13 @@ export default [
             'prefer-const': 'warn',
             'no-var': 'warn',
             'curly': ['error', 'all'],
-            'brace-style': [
+            // Stylistic rules (moved from core ESLint in v9)
+            '@stylistic/brace-style': [
                 'error',
                 '1tbs',
                 {
-                    allowSingleLine: false
-                }
+                    allowSingleLine: false,
+                },
             ],
         },
     },

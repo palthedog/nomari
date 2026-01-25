@@ -1,51 +1,81 @@
 <template>
   <div class="terminal-situation-editor">
     <div class="header-actions">
-      <button type="button" class="delete-btn" @click="handleDelete">
+      <button
+        type="button"
+        class="delete-btn"
+        @click="handleDelete"
+      >
         この終了条件を削除
       </button>
     </div>
 
     <!-- 基本情報 -->
     <div class="section">
-      <div class="form-group" hidden>
-        <v-text-field v-model="model.situationId" label="Situation ID" readonly density="compact" variant="outlined"
-          hide-details />
+      <div
+        class="form-group"
+        hidden
+      >
+        <v-text-field
+          v-model="model.situationId"
+          label="Situation ID"
+          readonly
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
       </div>
       <div class="form-group">
-        <v-text-field v-model="model.name" label="名前" density="compact" variant="outlined" hide-details />
+        <v-text-field
+          v-model="model.name"
+          label="名前"
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
       </div>
       <div class="form-group">
         <label>説明:</label>
-        <textarea v-model="model.description" rows="3" />
+        <textarea
+          v-model="model.description"
+          rows="3"
+        />
       </div>
       <div class="form-group">
-        <v-select v-model="model.cornerState" :items="cornerStateItems" item-title="title" item-value="value"
-          label="画面端の状態" density="compact" variant="outlined" hide-details />
+        <v-select
+          v-model="model.cornerState"
+          :items="cornerStateItems"
+          item-title="title"
+          item-value="value"
+          label="画面端の状態"
+          density="compact"
+          variant="outlined"
+          hide-details
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { TerminalSituation } from '@nomari/ts-proto';
-import { CornerState } from '@nomari/ts-proto';
+    import type { TerminalSituation } from '@nomari/ts-proto';
+    import { CornerState } from '@nomari/ts-proto';
 
-const model = defineModel<TerminalSituation>({ required: true });
+    const model = defineModel<TerminalSituation>({ required: true });
 
-const cornerStateItems = [
-  { title: 'どちらも画面端にいない', value: CornerState.NONE },
-  { title: 'プレイヤーが画面端にいる', value: CornerState.PLAYER_IN_CORNER },
-  { title: '相手が画面端にいる', value: CornerState.OPPONENT_IN_CORNER },
-];
+    const cornerStateItems = [
+        { title: 'どちらも画面端にいない', value: CornerState.NONE },
+        { title: 'プレイヤーが画面端にいる', value: CornerState.PLAYER_IN_CORNER },
+        { title: '相手が画面端にいる', value: CornerState.OPPONENT_IN_CORNER },
+    ];
 
-const emit = defineEmits<{
-  (e: 'delete'): void;
-}>();
+    const emit = defineEmits<{
+        (e: 'delete'): void;
+    }>();
 
-function handleDelete() {
-  emit('delete');
-}
+    function handleDelete() {
+        emit('delete');
+    }
 </script>
 
 <style scoped>

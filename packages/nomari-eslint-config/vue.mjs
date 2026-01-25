@@ -19,6 +19,7 @@ export default [
         rules: {
             // Vue specific rules
             'vue/multi-word-component-names': 'off',
+            'vue/script-indent': ['error', 4, { baseIndent: 1 }],
         },
     },
 ];
