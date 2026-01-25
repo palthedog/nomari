@@ -74,92 +74,73 @@
           </button>
         </div>
 
-        <!-- Requirements -->
+        <!-- Requirements (fixed 2 items: OD, SA) -->
         <div class="route-subsection">
           <div class="subsection-header">
             必要ゲージ
           </div>
-          <div
-            v-for="(req, reqIndex) in route.requirements"
-            :key="reqIndex"
-            class="resource-row"
-          >
-            <v-select
-              :model-value="req.resourceType"
-              :items="gaugeTypeItems"
-              item-title="title"
-              item-value="value"
-              density="compact"
-              variant="outlined"
-              hide-details
-              class="resource-select"
-              @update:model-value="(value: number) => updateRequirement(routeIndex, reqIndex, 'type', value)"
-            />
-            <input
-              type="number"
-              :value="req.value"
-              placeholder="必要量"
-              @input="updateRequirement(routeIndex, reqIndex, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)"
-            >
-            <button
-              type="button"
-              class="delete-row-btn"
-              @click="removeRequirement(routeIndex, reqIndex)"
-            >
-              削除
-            </button>
+          <div class="consumption-row">
+            <div class="consumption-item">
+              <label>OD</label>
+              <input
+                type="number"
+                :value="getRequirementValue(routeIndex, odResourceType)"
+                placeholder="0"
+                @input="setRequirementValue(routeIndex, odResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+              >
+            </div>
+            <div class="consumption-item">
+              <label>SA</label>
+              <input
+                type="number"
+                :value="getRequirementValue(routeIndex, saResourceType)"
+                placeholder="0"
+                @input="setRequirementValue(routeIndex, saResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+              >
+            </div>
           </div>
-          <button
-            type="button"
-            class="add-row-btn"
-            @click="addRequirement(routeIndex)"
-          >
-            必要ゲージを追加
-          </button>
         </div>
 
-        <!-- Consumptions -->
+        <!-- Consumptions (fixed 4 items: damage, OD damage, OD cost, SA cost) -->
         <div class="route-subsection">
-          <div class="subsection-header">
-            消費リソース
+          <div class="consumption-row">
+            <div class="consumption-item">
+              <label>ダメージ</label>
+              <input
+                type="number"
+                :value="getConsumptionValue(routeIndex, damageResourceType)"
+                placeholder="0"
+                @input="setConsumptionValue(routeIndex, damageResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+              >
+            </div>
+            <div class="consumption-item">
+              <label>Dゲージ削り</label>
+              <input
+                type="number"
+                :value="getConsumptionValue(routeIndex, odDamageResourceType)"
+                placeholder="0"
+                @input="setConsumptionValue(routeIndex, odDamageResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+              >
+            </div>
+            <div class="consumption-item">
+              <label>OD消費</label>
+              <input
+                type="number"
+                :value="getConsumptionValue(routeIndex, odResourceType)"
+                placeholder="0"
+                @input="setConsumptionValue(routeIndex, odResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+              >
+            </div>
+            <div class="consumption-item">
+              <label>SA消費</label>
+              <input
+                type="number"
+                :value="getConsumptionValue(routeIndex, saResourceType)"
+                placeholder="0"
+                @input="setConsumptionValue(routeIndex, saResourceType, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+              >
+            </div>
           </div>
-          <div
-            v-for="(cons, consIndex) in route.consumptions"
-            :key="consIndex"
-            class="resource-row"
-          >
-            <v-select
-              :model-value="cons.resourceType"
-              :items="consumptionTypeItems"
-              item-title="title"
-              item-value="value"
-              density="compact"
-              variant="outlined"
-              hide-details
-              class="resource-select"
-              @update:model-value="(value: number) => updateConsumption(routeIndex, consIndex, 'type', value)"
-            />
-            <input
-              type="number"
-              :value="cons.value"
-              placeholder="消費量"
-              @input="updateConsumption(routeIndex, consIndex, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)"
-            >
-            <button
-              type="button"
-              class="delete-row-btn"
-              @click="removeConsumption(routeIndex, consIndex)"
-            >
-              削除
-            </button>
-          </div>
-          <button
-            type="button"
-            class="add-row-btn"
-            @click="addConsumption(routeIndex)"
-          >
-            消費リソースを追加
-          </button>
         </div>
 
         <!-- Next Situation -->
@@ -199,7 +180,9 @@ import type {
 } from '@nomari/ts-proto';
 import { ResourceType } from '@nomari/ts-proto';
 
-const model = defineModel<ComboStarter>({ required: true });
+const model = defineModel<ComboStarter>({
+    required: true 
+});
 
 const props = defineProps<{
     availableSituations: Situation[];
@@ -211,69 +194,96 @@ const emit = defineEmits<{
     (e: 'delete'): void;
 }>();
 
-// Gauge types for requirements
-const gaugeTypeItems = computed(() => {
-    if (props.isPlayerCombo) {
-        return [
-            {
-                title: 'プレイヤーODゲージ',
-                value: ResourceType.PLAYER_OD_GAUGE 
-            },
-            {
-                title: 'プレイヤーSAゲージ',
-                value: ResourceType.PLAYER_SA_GAUGE 
-            },
-        ];
-    } else {
-        return [
-            {
-                title: '相手ODゲージ',
-                value: ResourceType.OPPONENT_OD_GAUGE 
-            },
-            {
-                title: '相手SAゲージ',
-                value: ResourceType.OPPONENT_SA_GAUGE 
-            },
-        ];
-    }
-});
+// Fixed resource types for requirements and consumptions
+const damageResourceType = computed(() =>
+    props.isPlayerCombo ? ResourceType.OPPONENT_HEALTH : ResourceType.PLAYER_HEALTH
+);
 
-// Resource types for consumptions (damage and gauge)
-const consumptionTypeItems = computed(() => {
-    if (props.isPlayerCombo) {
-        // Player combo: damage to opponent, consume player's gauge
-        return [
-            {
-                title: '相手へのダメージ',
-                value: ResourceType.OPPONENT_HEALTH 
-            },
-            {
-                title: 'プレイヤーODゲージ消費',
-                value: ResourceType.PLAYER_OD_GAUGE 
-            },
-            {
-                title: 'プレイヤーSAゲージ消費',
-                value: ResourceType.PLAYER_SA_GAUGE 
-            },
-        ];
-    } else {
-        // Opponent combo: damage to player, consume opponent's gauge
-        return [
-            {
-                title: 'プレイヤーへのダメージ',
-                value: ResourceType.PLAYER_HEALTH 
-            },
-            {
-                title: '相手ODゲージ消費',
-                value: ResourceType.OPPONENT_OD_GAUGE 
-            },
-            {
-                title: '相手SAゲージ消費',
-                value: ResourceType.OPPONENT_SA_GAUGE 
-            },
-        ];
+// OD damage: reduces opponent's OD gauge
+const odDamageResourceType = computed(() =>
+    props.isPlayerCombo ? ResourceType.OPPONENT_OD_GAUGE : ResourceType.PLAYER_OD_GAUGE
+);
+
+// OD cost: consumes own OD gauge
+const odResourceType = computed(() =>
+    props.isPlayerCombo ? ResourceType.PLAYER_OD_GAUGE : ResourceType.OPPONENT_OD_GAUGE
+);
+
+const saResourceType = computed(() =>
+    props.isPlayerCombo ? ResourceType.PLAYER_SA_GAUGE : ResourceType.OPPONENT_SA_GAUGE
+);
+
+// Get consumption value for a specific resource type
+function getConsumptionValue(routeIndex: number, resourceType: ResourceType): number {
+    const route = model.value.routes[routeIndex];
+    if (!route.consumptions) {
+        return 0;
     }
-});
+    const consumption = route.consumptions.find(c => c.resourceType === resourceType);
+    return consumption?.value ?? 0;
+}
+
+// Set consumption value for a specific resource type
+function setConsumptionValue(routeIndex: number, resourceType: ResourceType, value: number): void {
+    const route = model.value.routes[routeIndex];
+    if (!route.consumptions) {
+        route.consumptions = [];
+    }
+
+    const existingIndex = route.consumptions.findIndex(c => c.resourceType === resourceType);
+
+    if (value === 0) {
+        // Remove if value is 0
+        if (existingIndex !== -1) {
+            route.consumptions.splice(existingIndex, 1);
+        }
+    } else if (existingIndex !== -1) {
+        // Update existing
+        route.consumptions[existingIndex].value = value;
+    } else {
+        // Add new
+        route.consumptions.push({
+            resourceType,
+            value 
+        });
+    }
+}
+
+// Get requirement value for a specific resource type
+function getRequirementValue(routeIndex: number, resourceType: ResourceType): number {
+    const route = model.value.routes[routeIndex];
+    if (!route.requirements) {
+        return 0;
+    }
+    const requirement = route.requirements.find(r => r.resourceType === resourceType);
+    return requirement?.value ?? 0;
+}
+
+// Set requirement value for a specific resource type
+function setRequirementValue(routeIndex: number, resourceType: ResourceType, value: number): void {
+    const route = model.value.routes[routeIndex];
+    if (!route.requirements) {
+        route.requirements = [];
+    }
+
+    const existingIndex = route.requirements.findIndex(r => r.resourceType === resourceType);
+
+    if (value === 0) {
+        // Remove if value is 0
+        if (existingIndex !== -1) {
+            route.requirements.splice(existingIndex, 1);
+        }
+    } else if (existingIndex !== -1) {
+        // Update existing
+        route.requirements[existingIndex].value = value;
+    } else {
+        // Add new
+        route.requirements.push({
+            resourceType,
+            value 
+        });
+    }
+}
 
 const nextSituationItems = computed(() => {
     const items: Array<{ title: string;
@@ -312,80 +322,6 @@ function addRoute() {
 
 function removeRoute(index: number) {
     model.value.routes.splice(index, 1);
-}
-
-function addRequirement(routeIndex: number) {
-    const route = model.value.routes[routeIndex];
-    if (!route.requirements) {
-        route.requirements = [];
-    }
-    const defaultType = props.isPlayerCombo
-        ? ResourceType.PLAYER_OD_GAUGE
-        : ResourceType.OPPONENT_OD_GAUGE;
-    route.requirements.push({
-        resourceType: defaultType,
-        value: 2000,
-    });
-}
-
-function removeRequirement(routeIndex: number, reqIndex: number) {
-    const route = model.value.routes[routeIndex];
-    if (route.requirements) {
-        route.requirements.splice(reqIndex, 1);
-    }
-}
-
-function updateRequirement(
-    routeIndex: number,
-    reqIndex: number,
-    field: 'type' | 'value',
-    value: number
-) {
-    const route = model.value.routes[routeIndex];
-    if (route.requirements && route.requirements[reqIndex]) {
-        if (field === 'type') {
-            route.requirements[reqIndex].resourceType = value as ResourceType;
-        } else {
-            route.requirements[reqIndex].value = value;
-        }
-    }
-}
-
-function addConsumption(routeIndex: number) {
-    const route = model.value.routes[routeIndex];
-    if (!route.consumptions) {
-        route.consumptions = [];
-    }
-    const defaultType = props.isPlayerCombo
-        ? ResourceType.OPPONENT_HEALTH
-        : ResourceType.PLAYER_HEALTH;
-    route.consumptions.push({
-        resourceType: defaultType,
-        value: 1000,
-    });
-}
-
-function removeConsumption(routeIndex: number, consIndex: number) {
-    const route = model.value.routes[routeIndex];
-    if (route.consumptions) {
-        route.consumptions.splice(consIndex, 1);
-    }
-}
-
-function updateConsumption(
-    routeIndex: number,
-    consIndex: number,
-    field: 'type' | 'value',
-    value: number
-) {
-    const route = model.value.routes[routeIndex];
-    if (route.consumptions && route.consumptions[consIndex]) {
-        if (field === 'type') {
-            route.consumptions[consIndex].resourceType = value as ResourceType;
-        } else {
-            route.consumptions[consIndex].value = value;
-        }
-    }
 }
 
 function updateNextSituation(routeIndex: number, value: number) {
@@ -520,6 +456,32 @@ function handleDelete() {
   cursor: pointer;
   font-size: 12px;
   margin-top: 5px;
+}
+
+.consumption-row {
+  display: flex;
+  gap: 12px;
+}
+
+.consumption-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.consumption-item label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.consumption-item input {
+  padding: 8px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 button {
