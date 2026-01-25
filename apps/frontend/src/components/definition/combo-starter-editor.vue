@@ -122,30 +122,47 @@
 
         <!-- Requirements (fixed 2 items: OD, SA) -->
         <div class="route-subsection">
-          <div class="subsection-header">
-            必要ゲージ
-          </div>
-          <div class="consumption-row">
-            <v-text-field
-              type="number"
-              label="OD"
-              :model-value="getRequirementValue(routeIndex, odResourceType)"
-              placeholder="0"
-              density="compact"
-              variant="outlined"
-              hide-details
-              @update:model-value="setRequirementValue(routeIndex, odResourceType, parseFloat($event) || 0)"
-            />
-            <v-text-field
-              type="number"
-              label="SA"
-              :model-value="getRequirementValue(routeIndex, saResourceType)"
-              placeholder="0"
-              density="compact"
-              variant="outlined"
-              hide-details
-              @update:model-value="setRequirementValue(routeIndex, saResourceType, parseFloat($event) || 0)"
-            />
+          <div class="requirement-row">
+            <div class="requirement-checkbox-wrapper">
+              <v-checkbox
+                :model-value="getOverrideFlag(routeIndex, odResourceType) && getOverrideFlag(routeIndex, saResourceType)"
+                density="compact"
+                hide-details
+                label="上書き"
+                class="override-checkbox"
+                @update:model-value="(value: boolean | null) => {
+                  const boolValue = value ?? false;
+                  setOverrideFlag(routeIndex, odResourceType, boolValue);
+                  setOverrideFlag(routeIndex, saResourceType, boolValue);
+                }"
+              />
+            </div>
+            <div class="requirement-field">
+              <v-text-field
+                type="number"
+                label="必要OD"
+                :model-value="getEffectiveRequirementValue(routeIndex, odResourceType)"
+                placeholder="0"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :disabled="!getOverrideFlag(routeIndex, odResourceType)"
+                @update:model-value="setRequirementValue(routeIndex, odResourceType, parseFloat($event) || 0)"
+              />
+            </div>
+            <div class="requirement-field">
+              <v-text-field
+                type="number"
+                label="必要SA"
+                :model-value="getEffectiveRequirementValue(routeIndex, saResourceType)"
+                placeholder="0"
+                density="compact"
+                variant="outlined"
+                hide-details
+                :disabled="!getOverrideFlag(routeIndex, saResourceType)"
+                @update:model-value="setRequirementValue(routeIndex, saResourceType, parseFloat($event) || 0)"
+              />
+            </div>
           </div>
         </div>
 
@@ -178,7 +195,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import type {
     ComboStarter,
     Situation,
@@ -199,6 +216,12 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'delete'): void;
 }>();
+
+// Override flags for requirements (routeIndex -> { od: boolean, sa: boolean })
+const requirementOverrides = ref<Map<number, {
+    od: boolean;
+    sa: boolean;
+}>>(new Map());
 
 // Fixed resource types for requirements and consumptions
 const damageResourceType = computed(() =>
@@ -253,6 +276,28 @@ function setConsumptionValue(routeIndex: number, resourceType: ResourceType, val
             value 
         });
     }
+    
+    // Auto-sync requirement if override is false
+    const override = requirementOverrides.value.get(routeIndex);
+    if (override) {
+        const isOD = resourceType === odResourceType.value;
+        const isSA = resourceType === saResourceType.value;
+        
+        if (isOD && !override.od) {
+            setRequirementValue(routeIndex, odResourceType.value, value);
+        }
+        if (isSA && !override.sa) {
+            setRequirementValue(routeIndex, saResourceType.value, value);
+        }
+    } else {
+        // If no override flag exists, auto-sync both
+        if (resourceType === odResourceType.value) {
+            setRequirementValue(routeIndex, odResourceType.value, value);
+        }
+        if (resourceType === saResourceType.value) {
+            setRequirementValue(routeIndex, saResourceType.value, value);
+        }
+    }
 }
 
 // Get requirement value for a specific resource type
@@ -263,6 +308,53 @@ function getRequirementValue(routeIndex: number, resourceType: ResourceType): nu
     }
     const requirement = route.requirements.find(r => r.resourceType === resourceType);
     return requirement?.value ?? 0;
+}
+
+// Get effective requirement value (consumption value if override is false, requirement value if true)
+function getEffectiveRequirementValue(routeIndex: number, resourceType: ResourceType): number {
+    const override = requirementOverrides.value.get(routeIndex);
+    if (!override) {
+        // If no override flag exists, use consumption value
+        return getConsumptionValue(routeIndex, resourceType);
+    }
+    
+    const isOD = resourceType === odResourceType.value;
+    const isSA = resourceType === saResourceType.value;
+    
+    if (isOD && !override.od) {
+        return getConsumptionValue(routeIndex, resourceType);
+    }
+    if (isSA && !override.sa) {
+        return getConsumptionValue(routeIndex, resourceType);
+    }
+    
+    return getRequirementValue(routeIndex, resourceType);
+}
+
+// Check if requirements match consumptions for a route
+// Returns false (auto-sync) if they match, true (override) if they don't match
+function checkRequirementsMatchConsumptions(routeIndex: number): {
+    od: boolean;
+    sa: boolean;
+} {
+    const odConsumption = getConsumptionValue(routeIndex, odResourceType.value);
+    const saConsumption = getConsumptionValue(routeIndex, saResourceType.value);
+    const odRequirement = getRequirementValue(routeIndex, odResourceType.value);
+    const saRequirement = getRequirementValue(routeIndex, saResourceType.value);
+    
+    return {
+        od: odConsumption !== odRequirement,
+        sa: saConsumption !== saRequirement,
+    };
+}
+
+// Initialize override flags for all routes
+function initializeOverrideFlags(): void {
+    requirementOverrides.value.clear();
+    model.value.routes.forEach((_, index) => {
+        const matches = checkRequirementsMatchConsumptions(index);
+        requirementOverrides.value.set(index, matches);
+    });
 }
 
 // Set requirement value for a specific resource type
@@ -318,16 +410,37 @@ const nextSituationItems = computed(() => {
 });
 
 function addRoute() {
+    const newIndex = model.value.routes.length;
     model.value.routes.push({
         name: '',
         requirements: [],
         consumptions: [],
         nextSituationId: 0,
     });
+    // Initialize override flags for new route (default: false, meaning auto-sync)
+    requirementOverrides.value.set(newIndex, {
+        od: false,
+        sa: false,
+    });
 }
 
 function removeRoute(index: number) {
     model.value.routes.splice(index, 1);
+    // Remove override flags for deleted route and reindex
+    requirementOverrides.value.delete(index);
+    // Reindex remaining routes
+    const newMap = new Map<number, {
+        od: boolean;
+        sa: boolean;
+    }>();
+    requirementOverrides.value.forEach((value, key) => {
+        if (key > index) {
+            newMap.set(key - 1, value);
+        } else if (key < index) {
+            newMap.set(key, value);
+        }
+    });
+    requirementOverrides.value = newMap;
 }
 
 function updateNextSituation(routeIndex: number, value: number) {
@@ -337,6 +450,62 @@ function updateNextSituation(routeIndex: number, value: number) {
 function handleDelete() {
     emit('delete');
 }
+
+// Get override flag for a specific resource type
+function getOverrideFlag(routeIndex: number, resourceType: ResourceType): boolean {
+    const override = requirementOverrides.value.get(routeIndex);
+    if (!override) {
+        return false;
+    }
+    const isOD = resourceType === odResourceType.value;
+    const isSA = resourceType === saResourceType.value;
+    if (isOD) {
+        return override.od;
+    }
+    if (isSA) {
+        return override.sa;
+    }
+    return false;
+}
+
+// Set override flag for a specific resource type
+function setOverrideFlag(routeIndex: number, resourceType: ResourceType, value: boolean): void {
+    const current = requirementOverrides.value.get(routeIndex) || {
+        od: false,
+        sa: false,
+    };
+    const isOD = resourceType === odResourceType.value;
+    const isSA = resourceType === saResourceType.value;
+    
+    if (isOD) {
+        current.od = value;
+        // When enabling override, copy current consumption value to requirement
+        if (value) {
+            const consumptionValue = getConsumptionValue(routeIndex, odResourceType.value);
+            setRequirementValue(routeIndex, odResourceType.value, consumptionValue);
+        }
+    }
+    if (isSA) {
+        current.sa = value;
+        // When enabling override, copy current consumption value to requirement
+        if (value) {
+            const consumptionValue = getConsumptionValue(routeIndex, saResourceType.value);
+            setRequirementValue(routeIndex, saResourceType.value, consumptionValue);
+        }
+    }
+    
+    requirementOverrides.value.set(routeIndex, current);
+}
+
+// Initialize on mount
+onMounted(() => {
+    initializeOverrideFlags();
+});
+
+// Watch for route changes and reinitialize
+watch(() => model.value.routes.length, () => {
+    initializeOverrideFlags();
+});
 </script>
 
 <style scoped>
@@ -467,6 +636,34 @@ function handleDelete() {
 .consumption-row {
   display: flex;
   gap: 12px;
+}
+
+.requirement-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.requirement-checkbox-wrapper {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.requirement-field {
+  flex: 1;
+}
+
+.requirement-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.override-checkbox {
+  flex-shrink: 0;
 }
 
 button {
