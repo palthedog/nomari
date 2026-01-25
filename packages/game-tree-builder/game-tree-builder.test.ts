@@ -20,12 +20,20 @@ describe('gameTreeBuilder', () => {
                         name: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1001, name: '', description: 'Action 1' },
+                                {
+                                    actionId: 1001,
+                                    name: '',
+                                    description: 'Action 1' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1002, name: '', description: 'Action 2' },
+                                {
+                                    actionId: 1002,
+                                    name: '',
+                                    description: 'Action 2' 
+                                },
                             ],
                         },
                         transitions: [
@@ -43,12 +51,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1003, name: '', description: 'Action 3' },
+                                {
+                                    actionId: 1003,
+                                    name: '',
+                                    description: 'Action 3' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1004, name: '', description: 'Action 4' },
+                                {
+                                    actionId: 1004,
+                                    name: '',
+                                    description: 'Action 4' 
+                                },
                             ],
                         },
                         transitions: [
@@ -65,8 +81,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -94,12 +116,20 @@ describe('gameTreeBuilder', () => {
                         name: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1001, name: '', description: 'Action 1' },
+                                {
+                                    actionId: 1001,
+                                    name: '',
+                                    description: 'Action 1' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1002, name: '', description: 'Action 2' },
+                                {
+                                    actionId: 1002,
+                                    name: '',
+                                    description: 'Action 2' 
+                                },
                             ],
                         },
                         transitions: [
@@ -122,8 +152,14 @@ describe('gameTreeBuilder', () => {
                 ],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -168,12 +204,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Attack situation',
                         playerActions: {
                             actions: [
-                                { actionId: 2001, name: '', description: 'Attack' },
+                                {
+                                    actionId: 2001,
+                                    name: '',
+                                    description: 'Attack' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 2002, name: '', description: 'Guard' },
+                                {
+                                    actionId: 2002,
+                                    name: '',
+                                    description: 'Guard' 
+                                },
                             ],
                         },
                         transitions: [
@@ -196,12 +240,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Next situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1001, name: '', description: 'Action 1' },
+                                {
+                                    actionId: 1001,
+                                    name: '',
+                                    description: 'Action 1' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1002, name: '', description: 'Action 2' },
+                                {
+                                    actionId: 1002,
+                                    name: '',
+                                    description: 'Action 2' 
+                                },
                             ],
                         },
                         transitions: [],
@@ -210,8 +262,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -257,12 +315,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Attack situation',
                         playerActions: {
                             actions: [
-                                { actionId: 2001, name: '', description: 'Attack' },
+                                {
+                                    actionId: 2001,
+                                    name: '',
+                                    description: 'Attack' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 2002, name: '', description: 'Guard' },
+                                {
+                                    actionId: 2002,
+                                    name: '',
+                                    description: 'Guard' 
+                                },
                             ],
                         },
                         transitions: [
@@ -284,8 +350,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -324,12 +396,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Defense situation',
                         playerActions: {
                             actions: [
-                                { actionId: 2002, name: '', description: 'Guard' },
+                                {
+                                    actionId: 2002,
+                                    name: '',
+                                    description: 'Guard' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 2001, name: '', description: 'Attack' },
+                                {
+                                    actionId: 2001,
+                                    name: '',
+                                    description: 'Attack' 
+                                },
                             ],
                         },
                         transitions: [
@@ -351,8 +431,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -391,12 +477,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Mutual attack',
                         playerActions: {
                             actions: [
-                                { actionId: 2001, name: '', description: 'Attack' },
+                                {
+                                    actionId: 2001,
+                                    name: '',
+                                    description: 'Attack' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 2001, name: '', description: 'Attack' },
+                                {
+                                    actionId: 2001,
+                                    name: '',
+                                    description: 'Attack' 
+                                },
                             ],
                         },
                         transitions: [
@@ -422,8 +516,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -466,12 +566,20 @@ describe('gameTreeBuilder', () => {
                         name: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1001, name: '', description: 'Action 1' },
+                                {
+                                    actionId: 1001,
+                                    name: '',
+                                    description: 'Action 1' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1002, name: '', description: 'Action 2' },
+                                {
+                                    actionId: 1002,
+                                    name: '',
+                                    description: 'Action 2' 
+                                },
                             ],
                         },
                         transitions: [
@@ -494,8 +602,14 @@ describe('gameTreeBuilder', () => {
                 ],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 6000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 6000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -539,12 +653,20 @@ describe('gameTreeBuilder', () => {
                         name: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1001, name: '', description: 'Action 1' },
+                                {
+                                    actionId: 1001,
+                                    name: '',
+                                    description: 'Action 1' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1002, name: '', description: 'Action 2' },
+                                {
+                                    actionId: 1002,
+                                    name: '',
+                                    description: 'Action 2' 
+                                },
                             ],
                         },
                         transitions: [
@@ -562,12 +684,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1003, name: '', description: 'Action 3' },
+                                {
+                                    actionId: 1003,
+                                    name: '',
+                                    description: 'Action 3' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1004, name: '', description: 'Action 4' },
+                                {
+                                    actionId: 1004,
+                                    name: '',
+                                    description: 'Action 4' 
+                                },
                             ],
                         },
                         transitions: [
@@ -584,8 +714,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -613,12 +749,20 @@ describe('gameTreeBuilder', () => {
                         name: 'First situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1001, name: '', description: 'Action 1' },
+                                {
+                                    actionId: 1001,
+                                    name: '',
+                                    description: 'Action 1' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1002, name: '', description: 'Action 2' },
+                                {
+                                    actionId: 1002,
+                                    name: '',
+                                    description: 'Action 2' 
+                                },
                             ],
                         },
                         transitions: [
@@ -641,12 +785,20 @@ describe('gameTreeBuilder', () => {
                         name: 'Second situation',
                         playerActions: {
                             actions: [
-                                { actionId: 1003, name: '', description: 'Action 3' },
+                                {
+                                    actionId: 1003,
+                                    name: '',
+                                    description: 'Action 3' 
+                                },
                             ],
                         },
                         opponentActions: {
                             actions: [
-                                { actionId: 1004, name: '', description: 'Action 4' },
+                                {
+                                    actionId: 1004,
+                                    name: '',
+                                    description: 'Action 4' 
+                                },
                             ],
                         },
                         transitions: [
@@ -668,8 +820,14 @@ describe('gameTreeBuilder', () => {
                 terminalSituations: [],
                 initialDynamicState: {
                     resources: [
-                        { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                        { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                        {
+                            resourceType: ResourceType.PLAYER_HEALTH,
+                            value: 5000 
+                        },
+                        {
+                            resourceType: ResourceType.OPPONENT_HEALTH,
+                            value: 4000 
+                        },
                     ],
                 },
                 playerComboStarters: [],
@@ -704,12 +862,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -742,8 +908,14 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 5000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 4000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
@@ -791,12 +963,20 @@ describe('gameTreeBuilder', () => {
                             name: 'Mutual attack',
                             playerActions: {
                                 actions: [
-                                    { actionId: 2001, name: '', description: 'Attack' },
+                                    {
+                                        actionId: 2001,
+                                        name: '',
+                                        description: 'Attack' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 2001, name: '', description: 'Attack' },
+                                    {
+                                        actionId: 2001,
+                                        name: '',
+                                        description: 'Attack' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -822,8 +1002,14 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 5000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 5000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 5000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
@@ -871,12 +1057,20 @@ describe('gameTreeBuilder', () => {
                             name: 'Attack opponent',
                             playerActions: {
                                 actions: [
-                                    { actionId: 2001, name: '', description: 'Attack' },
+                                    {
+                                        actionId: 2001,
+                                        name: '',
+                                        description: 'Attack' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 2003, name: '', description: 'Defend' },
+                                    {
+                                        actionId: 2003,
+                                        name: '',
+                                        description: 'Defend' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -898,8 +1092,14 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 2000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 2000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 2000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
@@ -947,12 +1147,20 @@ describe('gameTreeBuilder', () => {
                             name: 'Opponent attacks',
                             playerActions: {
                                 actions: [
-                                    { actionId: 2003, name: '', description: 'Defend' },
+                                    {
+                                        actionId: 2003,
+                                        name: '',
+                                        description: 'Defend' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 2001, name: '', description: 'Attack' },
+                                    {
+                                        actionId: 2001,
+                                        name: '',
+                                        description: 'Attack' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -974,8 +1182,14 @@ describe('gameTreeBuilder', () => {
                     terminalSituations: [],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 2000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 2000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 2000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 2000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
@@ -1025,12 +1239,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1039,7 +1261,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1054,15 +1276,22 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 6000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 6000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 4000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 1000, // HP1000 worth of penalty
+                                // HP1000 worth of penalty
+                                cornerPenalty: 1000, 
                             },
                         },
                     },
@@ -1105,12 +1334,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1119,7 +1356,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1134,15 +1371,22 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 4000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 6000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 4000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 6000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 1000, // HP1000 worth of bonus (opponent in corner)
+                                // HP1000 worth of bonus (opponent in corner)
+                                cornerPenalty: 1000, 
                             },
                         },
                     },
@@ -1185,12 +1429,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1199,7 +1451,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1214,15 +1466,21 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 6000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 6000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 4000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 1000,
+                                cornerPenalty: 1000 
                             },
                         },
                     },
@@ -1266,12 +1524,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1280,7 +1546,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1295,15 +1561,22 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 5000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 5000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 5000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
+                            // HP3000 worth of penalty
                             winProbability: {
-                                cornerPenalty: 3000, // HP3000 worth of penalty
+                                cornerPenalty: 3000,
                             },
                         },
                     },
@@ -1322,12 +1595,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1336,7 +1617,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1351,15 +1632,22 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 5000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 5000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 5000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 5000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 3000, // HP3000 worth of bonus (opponent in corner)
+                                // HP3000 worth of bonus (opponent in corner)
+                                cornerPenalty: 3000, 
                             },
                         },
                     },
@@ -1416,12 +1704,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1430,7 +1726,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1445,15 +1741,22 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 10000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 1 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 10000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 1 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 1000, // HP1000 worth of penalty
+                                // HP1000 worth of penalty
+                                cornerPenalty: 1000, 
                             },
                         },
                     },
@@ -1496,12 +1799,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1510,7 +1821,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1525,15 +1836,22 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 1 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 10000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 1 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 10000 
+                            },
                         ],
                     },
                     rewardComputationMethod: {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 1000, // HP1000 worth of bonus (opponent in corner)
+                                // HP1000 worth of bonus (opponent in corner)
+                                cornerPenalty: 1000, 
                             },
                         },
                     },
@@ -1576,12 +1894,20 @@ describe('gameTreeBuilder', () => {
                             name: 'First situation',
                             playerActions: {
                                 actions: [
-                                    { actionId: 1001, name: '', description: 'Action 1' },
+                                    {
+                                        actionId: 1001,
+                                        name: '',
+                                        description: 'Action 1' 
+                                    },
                                 ],
                             },
                             opponentActions: {
                                 actions: [
-                                    { actionId: 1002, name: '', description: 'Action 2' },
+                                    {
+                                        actionId: 1002,
+                                        name: '',
+                                        description: 'Action 2' 
+                                    },
                                 ],
                             },
                             transitions: [
@@ -1590,7 +1916,7 @@ describe('gameTreeBuilder', () => {
                                     opponentActionId: 1002,
                                     nextSituationId: 200,
                                     resourceConsumptions: [],
-                                resourceRequirements: [],
+                                    resourceRequirements: [],
                                 },
                             ],
                         },
@@ -1605,8 +1931,14 @@ describe('gameTreeBuilder', () => {
                     ],
                     initialDynamicState: {
                         resources: [
-                            { resourceType: ResourceType.PLAYER_HEALTH, value: 6000 },
-                            { resourceType: ResourceType.OPPONENT_HEALTH, value: 4000 },
+                            {
+                                resourceType: ResourceType.PLAYER_HEALTH,
+                                value: 6000 
+                            },
+                            {
+                                resourceType: ResourceType.OPPONENT_HEALTH,
+                                value: 4000 
+                            },
                         ],
                     },
                     // rewardComputationMethod is not specified

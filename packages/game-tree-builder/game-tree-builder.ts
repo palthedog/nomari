@@ -39,8 +39,10 @@ export interface GameTreeBuildError {
  * Result type for game tree building
  */
 export type GameTreeBuildResult =
-    | { success: true; gameTree: GameTree }
-    | { success: false; error: GameTreeBuildError };
+    | { success: true;
+        gameTree: GameTree }
+    | { success: false;
+        error: GameTreeBuildError };
 
 /**
  * Hash a DynamicState to create a unique identifier
@@ -121,7 +123,9 @@ function applyResourceConsumptions(
         value,
     }));
 
-    return { resources };
+    return {
+        resources 
+    };
 }
 
 /**
@@ -143,14 +147,26 @@ function isTerminalState(state: DynamicState): {
     const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
 
     if (playerHealth <= 0 && opponentHealth <= 0) {
-        return { isTerminal: true, type: 'draw' };
+        return {
+            isTerminal: true,
+            type: 'draw' 
+        };
     } else if (playerHealth <= 0) {
-        return { isTerminal: true, type: 'lose' };
+        return {
+            isTerminal: true,
+            type: 'lose' 
+        };
     } else if (opponentHealth <= 0) {
-        return { isTerminal: true, type: 'win' };
+        return {
+            isTerminal: true,
+            type: 'win' 
+        };
     }
 
-    return { isTerminal: false, type: null };
+    return {
+        isTerminal: false,
+        type: null 
+    };
 }
 
 /**
@@ -158,12 +174,16 @@ function isTerminalState(state: DynamicState): {
  * Rewards are scaled so that winProbability=1 yields +10000,
  * winProbability=0 yields -10000, and 0.5 yields 0 for player.
  */
-function calculateRewardForWinProbability(winProbability: number): { playerReward: number; opponentReward: number } {
+function calculateRewardForWinProbability(winProbability: number): { playerReward: number;
+    opponentReward: number } {
     // Scale reward: -10000 to +10000 based on win probability
     // winProbability = 0 -> -10000, winProbability = 1 -> +10000
     const playerReward = winProbability * 20000 - 10000;
     const opponentReward = -playerReward; // Zero-sum game
-    return { playerReward, opponentReward };
+    return {
+        playerReward,
+        opponentReward 
+    };
 }
 
 /**
@@ -172,7 +192,8 @@ function calculateRewardForWinProbability(winProbability: number): { playerRewar
 function calculateRewardForNeutral(
     playerHealth: number,
     opponentHealth: number
-): { playerReward: number; opponentReward: number } {
+): { playerReward: number;
+    opponentReward: number } {
     const totalHealth = playerHealth + opponentHealth;
     let winProbability: number;
     if (totalHealth === 0) {
@@ -199,7 +220,8 @@ function calculateRewardForWinProbabilityWithCorner(
     opponentSa: number = 0,
     odGaugeWeight: number = 0,
     saGaugeWeight: number = 0
-): { playerReward: number; opponentReward: number } {
+): { playerReward: number;
+    opponentReward: number } {
     // 1. Calculate HP difference
     let score = playerHealth - opponentHealth;
 
@@ -231,7 +253,8 @@ function calculateRewardForDamageRace(
     opponentHealth: number,
     initialPlayerHealth: number,
     initialOpponentHealth: number
-): { playerReward: number; opponentReward: number } {
+): { playerReward: number;
+    opponentReward: number } {
     const damageDealt = initialOpponentHealth - opponentHealth;
     const damageReceived = initialPlayerHealth - playerHealth;
     const damageRace = damageDealt - damageReceived;
@@ -239,7 +262,10 @@ function calculateRewardForDamageRace(
     // Use damage race value directly without scaling
     const playerReward = damageRace;
     const opponentReward = -damageRace; // Zero-sum game
-    return { playerReward, opponentReward };
+    return {
+        playerReward,
+        opponentReward 
+    };
 }
 
 /**
@@ -319,8 +345,12 @@ function createTerminalNode(
         transitions: [],
         playerActions: undefined,
         opponentActions: undefined,
-        playerReward: { value: playerReward },
-        opponentReward: { value: opponentReward },
+        playerReward: {
+            value: playerReward 
+        },
+        opponentReward: {
+            value: opponentReward 
+        },
     };
 }
 
@@ -394,8 +424,12 @@ function createTerminalSituationNode(
         transitions: [],
         playerActions: undefined,
         opponentActions: undefined,
-        playerReward: { value: playerReward },
-        opponentReward: { value: opponentReward },
+        playerReward: {
+            value: playerReward 
+        },
+        opponentReward: {
+            value: opponentReward 
+        },
     };
 }
 
@@ -454,7 +488,9 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     const creatingNodes = new Set<string>(); // Track nodes currently being created to prevent infinite loops
 
     // Store initial dynamic state for damage race calculation
-    const initialDynamicState = gameDefinition.initialDynamicState || { resources: [] };
+    const initialDynamicState = gameDefinition.initialDynamicState || {
+        resources: [] 
+    };
     const initialPlayerHealth = getResourceValue(initialDynamicState, ResourceType.PLAYER_HEALTH);
     const initialOpponentHealth = getResourceValue(initialDynamicState, ResourceType.OPPONENT_HEALTH);
 
@@ -735,8 +771,12 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
                 playerHealth,
                 opponentHealth,
             },
-            playerActions: { actions: playerActions },
-            opponentActions: { actions: opponentActions },
+            playerActions: {
+                actions: playerActions 
+            },
+            opponentActions: {
+                actions: opponentActions 
+            },
             transitions,
         };
     }
@@ -749,7 +789,10 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
 
     if (isGameTreeBuildError(rootNodeResult)) {
         const error: GameTreeBuildError = rootNodeResult;
-        return { success: false, error };
+        return {
+            success: false,
+            error 
+        };
     }
 
     // Collect all nodes into a map

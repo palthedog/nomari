@@ -2,10 +2,19 @@ import js from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import stylistic from '@stylistic/eslint-plugin';
+import globals from 'globals';
 
 export default [
     js.configs.recommended,
     ...tseslint.configs['flat/recommended'],
+    {
+        files: ['**/*.js', '**/*.cjs'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
     {
         languageOptions: {
             parser: tsparser,
@@ -43,7 +52,7 @@ export default [
             '@stylistic/object-curly-newline': [
                 'error',
                 {
-                    ObjectExpression: { multiline: true, minProperties: 2 },
+                    ObjectExpression: { multiline: true, minProperties: 1 },
                     ObjectPattern: { multiline: true },
                     ImportDeclaration: { multiline: true },
                     ExportDeclaration: { multiline: true },
