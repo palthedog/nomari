@@ -37,7 +37,7 @@ export default [
                 },
             ],
             // General code quality
-            'no-console': ['warn', { allow: ['warn', 'error'] }],
+            'no-console': ['warn', { allow: ['warn', 'error', 'assert'] }],
             'prefer-const': 'warn',
             'no-var': 'warn',
             'curly': ['error', 'all'],
