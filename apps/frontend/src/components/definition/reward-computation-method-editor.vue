@@ -53,6 +53,36 @@
           画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します。
         </div>
       </div>
+
+      <div class="form-group">
+        <label for="od-gauge-weight">ODゲージ ウェイト:</label>
+        <input
+          id="od-gauge-weight"
+          type="number"
+          min="0"
+          step="100"
+          :value="odGaugeWeight"
+          @input="updateOdGaugeWeight(parseFloat(($event.target as HTMLInputElement).value))"
+        >
+        <div class="help-text">
+          ODゲージ差に対するウェイト。(自分OD - 相手OD) × ウェイト がスコアに加算されます。0で無効。
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="sa-gauge-weight">SAゲージ ウェイト:</label>
+        <input
+          id="sa-gauge-weight"
+          type="number"
+          min="0"
+          step="100"
+          :value="saGaugeWeight"
+          @input="updateSaGaugeWeight(parseFloat(($event.target as HTMLInputElement).value))"
+        >
+        <div class="help-text">
+          SAゲージ差に対するウェイト。(自分SA - 相手SA) × ウェイト がスコアに加算されます。0で無効。
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -97,6 +127,20 @@ const cornerPenalty = computed(() => {
     return 1000;
 });
 
+const odGaugeWeight = computed(() => {
+    if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
+        return model.value.method.winProbability.odGaugeWeight ?? 0;
+    }
+    return 0;
+});
+
+const saGaugeWeight = computed(() => {
+    if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
+        return model.value.method.winProbability.saGaugeWeight ?? 0;
+    }
+    return 0;
+});
+
 function selectMethod(method: MethodType) {
     if (method === 'damageRace') {
         model.value = {
@@ -105,29 +149,79 @@ function selectMethod(method: MethodType) {
                 damageRace: {},
             },
         };
-    } else if (method === 'winProbability') {
-        model.value = {
-            method: {
-                oneofKind: 'winProbability',
-                winProbability: {cornerPenalty: cornerPenalty.value,},
-            },
-        };
+        return;
     }
+    
+    model.value = {
+        method: {
+            oneofKind: 'winProbability',
+            winProbability: {
+                cornerPenalty: cornerPenalty.value,
+                odGaugeWeight: odGaugeWeight.value,
+                saGaugeWeight: saGaugeWeight.value,
+            },
+        },
+    };
 }
 
 function updateCornerPenalty(value: number) {
-    if (selectedMethod.value === 'winProbability') {
-        if (!model.value) {
-            model.value = {
-                method: {
-                    oneofKind: 'winProbability',
-                    winProbability: {cornerPenalty: value,},
-                },
-            };
-        } else if (model.value.method.oneofKind === 'winProbability') {
-            model.value.method.winProbability.cornerPenalty = value;
-        }
+    if (selectedMethod.value !== 'winProbability') {
+        return;
     }
+    
+    if (!model.value || model.value.method.oneofKind !== 'winProbability') {
+        model.value = {
+            method: {
+                oneofKind: 'winProbability',
+                winProbability: { cornerPenalty: value },
+            },
+        };
+        return;
+    }
+    
+    model.value.method.winProbability.cornerPenalty = value;
+}
+
+function updateOdGaugeWeight(value: number) {
+    if (selectedMethod.value !== 'winProbability') {
+        return;
+    }
+    
+    if (!model.value || model.value.method.oneofKind !== 'winProbability') {
+        model.value = {
+            method: {
+                oneofKind: 'winProbability',
+                winProbability: {
+                    cornerPenalty: cornerPenalty.value,
+                    odGaugeWeight: value,
+                },
+            },
+        };
+        return;
+    }
+    
+    model.value.method.winProbability.odGaugeWeight = value;
+}
+
+function updateSaGaugeWeight(value: number) {
+    if (selectedMethod.value !== 'winProbability') {
+        return;
+    }
+    
+    if (!model.value || model.value.method.oneofKind !== 'winProbability') {
+        model.value = {
+            method: {
+                oneofKind: 'winProbability',
+                winProbability: {
+                    cornerPenalty: cornerPenalty.value,
+                    saGaugeWeight: value,
+                },
+            },
+        };
+        return;
+    }
+    
+    model.value.method.winProbability.saGaugeWeight = value;
 }
 </script>
 
@@ -181,6 +275,11 @@ function updateCornerPenalty(value: number) {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-bottom: 15px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
 }
 
 .form-group label {

@@ -8,9 +8,14 @@ import {
     TerminalSituation,
     Action,
     RewardComputationMethod,
-    CornerState,
     ComboStarter,
 } from '@nomari/ts-proto';
+import {
+    calculateRewardForWinProbability,
+    calculateRewardForNeutral,
+    calculateRewardForWinProbabilityWithCorner,
+    calculateRewardForDamageRace,
+} from './reward';
 import {
     GameTree,
     Node,
@@ -170,105 +175,6 @@ function isTerminalState(state: DynamicState): {
 }
 
 /**
- * Calculates rewards for both players based on win probability.
- * Rewards are scaled so that winProbability=1 yields +10000,
- * winProbability=0 yields -10000, and 0.5 yields 0 for player.
- */
-function calculateRewardForWinProbability(winProbability: number): { playerReward: number;
-    opponentReward: number } {
-    // Scale reward: -10000 to +10000 based on win probability
-    // winProbability = 0 -> -10000, winProbability = 1 -> +10000
-    const playerReward = winProbability * 20000 - 10000;
-    const opponentReward = -playerReward; // Zero-sum game
-    return {
-        playerReward,
-        opponentReward 
-    };
-}
-
-/**
- * Calculate reward for neutral terminal situation based on win probability.
- */
-function calculateRewardForNeutral(
-    playerHealth: number,
-    opponentHealth: number
-): { playerReward: number;
-    opponentReward: number } {
-    const totalHealth = playerHealth + opponentHealth;
-    let winProbability: number;
-    if (totalHealth === 0) {
-        winProbability = 0.5; // When both zero, treat as equally likely (draw)
-    } else {
-        winProbability = playerHealth / totalHealth;
-    }
-    return calculateRewardForWinProbability(winProbability);
-}
-
-/**
- * Calculate reward for neutral terminal situation based on win probability with corner information.
- * Uses HP difference with sigmoid function to calculate win probability.
- * Also considers OD/SA gauge differences if weights are provided.
- */
-function calculateRewardForWinProbabilityWithCorner(
-    playerHealth: number,
-    opponentHealth: number,
-    cornerState: CornerState | undefined,
-    cornerPenalty: number,
-    playerOd: number = 0,
-    opponentOd: number = 0,
-    playerSa: number = 0,
-    opponentSa: number = 0,
-    odGaugeWeight: number = 0,
-    saGaugeWeight: number = 0
-): { playerReward: number;
-    opponentReward: number } {
-    // 1. Calculate HP difference
-    let score = playerHealth - opponentHealth;
-
-    // 2. Apply HP value adjustment based on corner state
-    if (cornerState === CornerState.PLAYER_IN_CORNER) {
-        score -= cornerPenalty;
-    } else if (cornerState === CornerState.OPPONENT_IN_CORNER) {
-        score += cornerPenalty;
-    }
-
-    // 3. Apply OD/SA gauge adjustment
-    score += odGaugeWeight * (playerOd - opponentOd);
-    score += saGaugeWeight * (playerSa - opponentSa);
-
-    // 4. Convert to probability [0, 1] using sigmoid function
-    // k = 0.0003: HP difference of 5000 yields approximately 80% win probability
-    const k = 0.0003;
-    const winProbability = 1 / (1 + Math.exp(-k * score));
-
-    return calculateRewardForWinProbability(winProbability);
-}
-
-/**
- * Calculate reward based on damage race (damage dealt - damage received).
- * No scaling is applied - the damage race value is used directly as reward.
- */
-function calculateRewardForDamageRace(
-    playerHealth: number,
-    opponentHealth: number,
-    initialPlayerHealth: number,
-    initialOpponentHealth: number
-): { playerReward: number;
-    opponentReward: number } {
-    const damageDealt = initialOpponentHealth - opponentHealth;
-    const damageReceived = initialPlayerHealth - playerHealth;
-    const damageRace = damageDealt - damageReceived;
-
-    // Use damage race value directly without scaling
-    const playerReward = damageRace;
-    const opponentReward = -damageRace; // Zero-sum game
-    return {
-        playerReward,
-        opponentReward 
-    };
-}
-
-/**
  * Create a terminal node based on terminal type
  */
 function createTerminalNode(
@@ -374,43 +280,35 @@ function createTerminalSituationNode(
     let playerReward: number;
     let opponentReward: number;
 
-    if (rewardComputationMethod && rewardComputationMethod.method.oneofKind !== undefined) {
-        if (rewardComputationMethod.method.oneofKind === 'damageRace') {
-            ({ playerReward, opponentReward } = calculateRewardForDamageRace(
-                playerHealth,
-                opponentHealth,
-                initialPlayerHealth,
-                initialOpponentHealth
-            ));
-        } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
-            const winProb = rewardComputationMethod.method.winProbability;
-            const cornerPenalty = winProb.cornerPenalty || 0;
-            const odGaugeWeight = winProb.odGaugeWeight ?? 0;
-            const saGaugeWeight = winProb.saGaugeWeight ?? 0;
-            const playerOd = getResourceValue(state, ResourceType.PLAYER_OD_GAUGE);
-            const opponentOd = getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE);
-            const playerSa = getResourceValue(state, ResourceType.PLAYER_SA_GAUGE);
-            const opponentSa = getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE);
-            ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
-                playerHealth,
-                opponentHealth,
-                terminalSituation.cornerState,
-                cornerPenalty,
-                playerOd,
-                opponentOd,
-                playerSa,
-                opponentSa,
-                odGaugeWeight,
-                saGaugeWeight
-            ));
-        } else {
-            // Fallback to default
-            const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
-            playerReward = rewards.playerReward;
-            opponentReward = rewards.opponentReward;
-        }
+    if (rewardComputationMethod && rewardComputationMethod.method.oneofKind === 'damageRace') {
+        ({ playerReward, opponentReward } = calculateRewardForDamageRace(
+            playerHealth,
+            opponentHealth,
+            initialPlayerHealth,
+            initialOpponentHealth
+        ));
+    } else if (rewardComputationMethod && rewardComputationMethod.method.oneofKind === 'winProbability') {
+        const winProb = rewardComputationMethod?.method.winProbability;
+        const cornerPenalty = winProb.cornerPenalty || 0;
+        const odGaugeWeight = winProb.odGaugeWeight ?? 0;
+        const saGaugeWeight = winProb.saGaugeWeight ?? 0;
+        const playerOd = getResourceValue(state, ResourceType.PLAYER_OD_GAUGE);
+        const opponentOd = getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE);
+        const playerSa = getResourceValue(state, ResourceType.PLAYER_SA_GAUGE);
+        const opponentSa = getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE);
+        ({ playerReward, opponentReward } = calculateRewardForWinProbabilityWithCorner(
+            playerHealth,
+            opponentHealth,
+            terminalSituation.cornerState,
+            cornerPenalty,
+            playerOd,
+            opponentOd,
+            playerSa,
+            opponentSa,
+            odGaugeWeight,
+            saGaugeWeight
+        ));
     } else {
-        // Default behavior when reward computation method is not specified
         const rewards = calculateRewardForNeutral(playerHealth, opponentHealth);
         playerReward = rewards.playerReward;
         opponentReward = rewards.opponentReward;
