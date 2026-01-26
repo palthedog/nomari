@@ -188,10 +188,10 @@ function getHpInfo(nodeId: string): string {
 }
 
 /**
- * Format gauge value (divide by 1000, 1 decimal place).
+ * Format gauge value (1 decimal place).
  */
 function formatGauge(value: number): string {
-    return (value / 1000).toFixed(1);
+    return value.toFixed(1);
 }
 
 /**

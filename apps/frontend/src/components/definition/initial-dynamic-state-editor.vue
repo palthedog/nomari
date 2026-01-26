@@ -62,11 +62,11 @@ function fillDefaultResources(): void {
         },
         {
             resourceType: ResourceType.PLAYER_OD_GAUGE,
-            value: 6000 
+            value: 6 
         },
         {
             resourceType: ResourceType.OPPONENT_OD_GAUGE,
-            value: 6000 
+            value: 6 
         },
         {
             resourceType: ResourceType.PLAYER_SA_GAUGE,
