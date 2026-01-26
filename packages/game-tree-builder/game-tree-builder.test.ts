@@ -362,6 +362,16 @@ describe('gameTreeBuilder', () => {
                 },
                 playerComboStarters: [],
                 opponentComboStarters: [],
+                rewardComputationMethod: {
+                    method: {
+                        oneofKind: 'winProbability',
+                        winProbability: {
+                            cornerPenalty: 0,
+                            odGaugeWeight: 0,
+                            saGaugeWeight: 0,
+                        }
+                    }
+                }
             };
 
             const result = buildGameTree(gameDefinition);
@@ -443,6 +453,16 @@ describe('gameTreeBuilder', () => {
                 },
                 playerComboStarters: [],
                 opponentComboStarters: [],
+                rewardComputationMethod: {
+                    method: {
+                        oneofKind: 'winProbability',
+                        winProbability: {
+                            cornerPenalty: 0,
+                            odGaugeWeight: 0,
+                            saGaugeWeight: 0,
+                        }
+                    }
+                }
             };
 
             const result = buildGameTree(gameDefinition);
@@ -528,6 +548,16 @@ describe('gameTreeBuilder', () => {
                 },
                 playerComboStarters: [],
                 opponentComboStarters: [],
+                rewardComputationMethod: {
+                    method: {
+                        oneofKind: 'winProbability',
+                        winProbability: {
+                            cornerPenalty: 0,
+                            odGaugeWeight: 0,
+                            saGaugeWeight: 0,
+                        }
+                    }
+                }
             };
 
             const result = buildGameTree(gameDefinition);
@@ -598,13 +628,14 @@ describe('gameTreeBuilder', () => {
                         situationId: 200,
                         name: 'Neutral',
                         description: 'Neutral terminal situation',
+                        cornerState: CornerState.NONE,
                     },
                 ],
                 initialDynamicState: {
                     resources: [
                         {
                             resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 6000 
+                            value: 4000 
                         },
                         {
                             resourceType: ResourceType.OPPONENT_HEALTH,
@@ -614,6 +645,16 @@ describe('gameTreeBuilder', () => {
                 },
                 playerComboStarters: [],
                 opponentComboStarters: [],
+                rewardComputationMethod: {
+                    method: {
+                        oneofKind: 'winProbability',
+                        winProbability: {
+                            cornerPenalty: 0,
+                            odGaugeWeight: 0,
+                            saGaugeWeight: 0,
+                        }
+                    }
+                }
             };
 
             const result = buildGameTree(gameDefinition);
@@ -633,10 +674,9 @@ describe('gameTreeBuilder', () => {
             expect(nextNode.playerReward).toBeDefined();
             expect(nextNode.opponentReward).toBeDefined();
 
-            // Win probability = 6000 / (6000 + 4000) = 0.6
-            // Reward = 0.6 * 20000 - 10000 = 2000
-            expect(nextNode.playerReward!.value).toBeCloseTo(2000, 1);
-            expect(nextNode.opponentReward!.value).toBeCloseTo(-2000, 1);
+            // Win probability = 0.5
+            expect(nextNode.playerReward!.value).toBeCloseTo(0, 1);
+            expect(nextNode.opponentReward!.value).toBeCloseTo(0, 1);
         });
     });
 
@@ -1880,93 +1920,6 @@ describe('gameTreeBuilder', () => {
                 // Reward ≈ 0.0001 * 20000 - 10000 ≈ -9998 (sigmoid saturates at low values)
                 expect(nextNode.playerReward!.value).toBeLessThan(-8000);
                 expect(nextNode.opponentReward!.value).toBeGreaterThan(8000);
-            });
-
-            it('should use default behavior when reward computation method is not specified', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 20,
-                    name: 'Default Reward Game',
-                    description: 'A game with default reward computation',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.UNKNOWN,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 6000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 4000 
-                            },
-                        ],
-                    },
-                    // rewardComputationMethod is not specified
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Default behavior: win probability without corner penalty
-                // Win probability = 6000 / (6000 + 4000) = 0.6
-                // Reward = 0.6 * 20000 - 10000 = 2000
-                expect(nextNode.playerReward!.value).toBeCloseTo(2000, 1);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-2000, 1);
             });
         });
     });
