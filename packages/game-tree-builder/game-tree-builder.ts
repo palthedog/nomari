@@ -257,6 +257,11 @@ function createTerminalSituationNode(
 ): Node {
     let playerReward: number;
 
+    const playerOd = getResourceValue(state, ResourceType.PLAYER_OD_GAUGE);
+    const opponentOd = getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE);
+    const playerSa = getResourceValue(state, ResourceType.PLAYER_SA_GAUGE);
+    const opponentSa = getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE);
+
     if (!rewardComputationMethod) {
         rewardComputationMethod = DEFAULT_REWARD_COMPUTATION_METHOD;
     }
@@ -269,25 +274,24 @@ function createTerminalSituationNode(
             initialOpponentHealth
         );
     } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
-        const winProb = rewardComputationMethod?.method.winProbability;
-        const cornerPenalty = winProb.cornerPenalty || 0;
-        const odGaugeWeight = winProb.odGaugeWeight ?? 0;
-        const saGaugeWeight = winProb.saGaugeWeight ?? 0;
-        const playerOd = getResourceValue(state, ResourceType.PLAYER_OD_GAUGE);
-        const opponentOd = getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE);
-        const playerSa = getResourceValue(state, ResourceType.PLAYER_SA_GAUGE);
-        const opponentSa = getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE);
+        const winProb = rewardComputationMethod.method.winProbability;
+        // corner_penalty is now used as corner bonus damage
+        const cornerBonus = winProb.cornerPenalty || 0;
+        // od_gauge_weight is now used as OD bonus for lethal combo
+        const odBonus = winProb.odGaugeWeight ?? 0;
+        // sa_gauge_weight is now used as SA bonus for lethal combo
+        const saBonus = winProb.saGaugeWeight ?? 0;
         playerReward = calculateRewardForWinProbabilityWithCorner(
             playerHealth,
             opponentHealth,
             terminalSituation.cornerState,
-            cornerPenalty,
+            cornerBonus,
             playerOd,
             opponentOd,
             playerSa,
             opponentSa,
-            odGaugeWeight,
-            saGaugeWeight
+            odBonus,
+            saBonus
         );
     } else {
         throw new Error(`Invalid reward computation method: ${rewardComputationMethod.method.oneofKind}`);
@@ -301,10 +305,10 @@ function createTerminalSituationNode(
             situation_id: terminalSituation.situationId,
             playerHealth: playerHealth,
             opponentHealth: opponentHealth,
-            playerOd: getResourceValue(state, ResourceType.PLAYER_OD_GAUGE),
-            opponentOd: getResourceValue(state, ResourceType.OPPONENT_OD_GAUGE),
-            playerSa: getResourceValue(state, ResourceType.PLAYER_SA_GAUGE),
-            opponentSa: getResourceValue(state, ResourceType.OPPONENT_SA_GAUGE),
+            playerOd: playerOd,
+            opponentOd: opponentOd,
+            playerSa: playerSa,
+            opponentSa: opponentSa,
         },
         transitions: [],
         playerActions: undefined,
