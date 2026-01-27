@@ -34,22 +34,22 @@
           <!-- Reward info (only for terminal nodes) -->
           <text
             v-if="isTerminalNode(nodeId)"
-            :y="-5"
+            :y="-10"
             text-anchor="middle"
             :fill="getRewardColor(nodeId)"
-            font-size="10"
+            font-size="11"
             font-weight="bold"
           >
             報酬: {{ formatReward(nodeId) }}
           </text>
 
-          <!-- Description -->
+          <!-- Name -->
           <text
             v-else
-            :y="-5"
+            :y="-10"
             text-anchor="middle"
             fill="white"
-            font-size="10"
+            font-size="11"
             font-weight="bold"
           >
             {{ truncate(getNodeDisplayText(nodeId), 18) }}
@@ -57,7 +57,7 @@
 
           <!-- HP info -->
           <text
-            :y="7"
+            :y="8"
             text-anchor="middle"
             fill="white"
             font-size="9"
@@ -67,12 +67,12 @@
 
           <!-- OD/SA info -->
           <text
-            :y="17"
+            :y="20"
             text-anchor="middle"
             fill="white"
             font-size="8"
           >
-            OD: {{ getOdInfo(nodeId) }} / SA: {{ getSaInfo(nodeId) }}
+            OD: {{ getOdInfo(nodeId) }} | SA: {{ getSaInfo(nodeId) }}
           </text>
         </template>
       </v-network-graph>
@@ -103,7 +103,9 @@ const nodeGap = 80;
 // Reactive data for v-network-graph
 const graphNodes = reactive<Nodes>({});
 const graphEdges = reactive<Edges>({});
-const layouts = reactive<Layouts>({ nodes: {} });
+const layouts = reactive<Layouts>({
+    nodes: {} 
+});
 
 const nodeCount = computed(() => Object.keys(props.gameTree.nodes).length);
 const rootNodeId = computed(() => props.gameTree.root);
@@ -129,8 +131,12 @@ const configs = computed<UserConfigs>(() => ({
             borderRadius: 5,
             color: '#2196F3',
         },
-        hover: {color: '#1976D2',},
-        label: {visible: false,},
+        hover: {
+            color: '#1976D2',
+        },
+        label: {
+            visible: false,
+        },
     },
     edge: {
         selectable: false,
@@ -338,11 +344,7 @@ function getNodeDisplayText(nodeId: string): string {
         return ''; 
     }
 
-    if (isOtherTerminalNode(node) && node.name) {
-        return node.name;
-    }
-
-    return node.description;
+    return node.name ?? node.description ?? '';
 }
 
 /**
@@ -391,7 +393,9 @@ function bfsBuildGraphData(
         }
 
         // Add node to graph
-        graphNodes[nodeId] = {name: node.description,};
+        graphNodes[nodeId] = {
+            name: node.name
+        };
 
         // Add children to queue and create edges
         for (const transition of node.transitions) {
@@ -510,7 +514,9 @@ watch(
             }
         }
     },
-    { immediate: true }
+    {
+        immediate: true 
+    }
 );
 
 </script>

@@ -26,7 +26,7 @@
                 -->
         <div class="info-row">
           <span class="label">状況:</span>
-          <span class="value">{{ selectedNode.description }}</span>
+          <span class="value">{{ selectedNode.name }}</span>
         </div>
         <div class="info-row">
           <span class="label">HP:</span>

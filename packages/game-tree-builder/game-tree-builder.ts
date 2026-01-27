@@ -300,7 +300,7 @@ function createTerminalSituationNode(
     return {
         nodeId: nodeId,
         name: terminalSituation.name,
-        description: terminalSituation.description || terminalSituation.name,
+        description: terminalSituation.description ?? '',
         state: {
             situation_id: terminalSituation.situationId,
             playerHealth: playerHealth,
@@ -518,7 +518,8 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
         const opponentHealth = getResourceValue(state, ResourceType.OPPONENT_HEALTH);
         const node: Node = {
             nodeId: nodeKey,
-            description: situation.name,
+            name: situation.name,
+            description: '',
             state: {
                 situation_id: situationId,
                 playerHealth: playerHealth,
