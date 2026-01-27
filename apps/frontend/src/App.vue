@@ -76,13 +76,22 @@
         </div>
       </template>
     </div>
+
+    <v-snackbar
+      v-model="notificationStore.show"
+      :color="notificationStore.type"
+      :timeout="5000"
+      location="bottom"
+    >
+      {{ notificationStore.message }}
+    </v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
-import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
+import { exportAsJSON, exportAsProto, importGameDefinition, parseAsProto } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
@@ -91,6 +100,7 @@ import GameDefinitionEditor from '@/components/definition/game-definition-editor
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
 import { useDefinitionStore } from './stores/definition-store';
+import { useNotificationStore } from './stores/notification-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
 import log from 'loglevel';
 
@@ -102,6 +112,9 @@ const viewModes = VIEW_MODES;
 // Game definition and tree state
 const definitionStore = useDefinitionStore();
 const gameDefinition = computed(() => definitionStore.gameDefinition);
+
+// Notification store
+const notificationStore = useNotificationStore();
 
 const gameTree = computed(() => gameTreeStore.gameTree);
 
@@ -181,6 +194,42 @@ function updateGameTree() {
     gameTreeStore.updateGameTree();
     viewStore.switchToGameTree();
 }
+
+// Validate example name to prevent path traversal (alphanumeric and underscore only)
+function isValidExampleName(name: string): boolean {
+    return /^[a-zA-Z0-9_]+$/.test(name);
+}
+
+async function loadExample(exampleName: string) {
+    if (!isValidExampleName(exampleName)) {
+        notificationStore.showError(`Invalid example name: ${exampleName}`);
+        return;
+    }
+    try {
+        const response = await fetch(`${import.meta.env.BASE_URL}static/examples/${exampleName}.pb`);
+        // Check response status and content type (Vite may return HTML for 404)
+        const contentType = response.headers.get('content-type') ?? '';
+        if (!response.ok || contentType.includes('text/html')) {
+            notificationStore.showError(`Failed to load example: ${exampleName}`);
+            return;
+        }
+        const buffer = await response.arrayBuffer();
+        const gameDefinition = parseAsProto(buffer);
+        definitionStore.loadGameDefinition(gameDefinition);
+    } catch (error) {
+        log.error('Failed to load example:', error);
+        notificationStore.showError(`Failed to load example: ${exampleName}`);
+    }
+}
+
+onMounted(async () => {
+    const params = new URLSearchParams(window.location.search);
+    const exampleName = params.get('example');
+    if (!exampleName) {
+        return;
+    }
+    await loadExample(exampleName);
+});
 
 </script>
 

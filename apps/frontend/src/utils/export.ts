@@ -62,7 +62,7 @@ function parseAsJSON(text: string): GameDefinition {
 /**
  * Import GameDefinition from Proto binary content
  */
-function parseAsProto(buffer: ArrayBuffer): GameDefinition {
+export function parseAsProto(buffer: ArrayBuffer): GameDefinition {
     return GameDefinition.fromBinary(new Uint8Array(buffer));
 }
 
