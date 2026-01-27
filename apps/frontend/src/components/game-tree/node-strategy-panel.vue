@@ -74,35 +74,18 @@
         >
           <div class="expected-value-row">
             <div class="expected-value-label">
-              プレイヤー期待値:
+              報酬期待値:
             </div>
             <div class="expected-value-number">
               {{ formatExpectedValue(nodeExpectedValues.nodeExpectedValue)
               }}
             </div>
           </div>
-          <div
-            v-if="nodeExpectedValues.opponentNodeExpectedValue !== undefined"
-            class="expected-value-row"
-          >
-            <div class="expected-value-label">
-              相手期待値:
-            </div>
-            <div class="expected-value-number opponent-value">
-              {{
-                formatExpectedValue(nodeExpectedValues.opponentNodeExpectedValue) }}
-            </div>
-          </div>
-        </div>
 
-        <!-- Expected damage values -->
-        <div
-          v-if="nodeExpectedValues"
-          class="damage-expected-value"
-        >
+          <!-- Expected damage values -->
           <div class="expected-value-row">
             <div class="expected-value-label">
-              与えるダメージ期待値:
+              ダメージ期待値:
             </div>
             <div class="expected-value-number damage-dealt">
               {{ formatDamage(nodeExpectedValues.expectedDamageDealt) }}
@@ -110,7 +93,7 @@
           </div>
           <div class="expected-value-row">
             <div class="expected-value-label">
-              受けるダメージ期待値:
+              被ダメージ期待値:
             </div>
             <div class="expected-value-number damage-received">
               {{ formatDamage(nodeExpectedValues.expectedDamageReceived) }}
