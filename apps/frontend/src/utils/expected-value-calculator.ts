@@ -1,5 +1,6 @@
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '../workers/solver-types';
+import log from 'loglevel';
 
 /**
  * Expected value for a single action
@@ -17,6 +18,9 @@ export interface NodeExpectedValues {
     nodeExpectedValue: number;
     opponentActionExpectedValues?: ActionExpectedValue[];
     opponentNodeExpectedValue?: number;
+    // Expected damage values for the subtree rooted at this node
+    expectedDamageDealt: number;      // Expected damage player deals to opponent
+    expectedDamageReceived: number;   // Expected damage player receives from opponent
 }
 
 /**
@@ -60,6 +64,56 @@ export function calculateExpectedValues(
     }
 
     /**
+     * Calculate expected damage dealt and received for a node
+     * Damage = immediate HP change during transition + expected damage in subtree
+     */
+    interface ExpectedDamage {
+        expectedDamageDealt: number;
+        expectedDamageReceived: number;
+    }
+
+    function calculateExpectedDamage(
+        node: Node,
+        playerStrategy: StrategyData['playerStrategy'],
+        opponentStrategy: StrategyData['opponentStrategy']
+    ): ExpectedDamage {
+        let expectedDamageDealt = 0;
+        let expectedDamageReceived = 0;
+
+        for (const transition of node.transitions) {
+            const transitionProb = getActionProbability(transition.playerActionId, playerStrategy)
+                * getActionProbability(transition.opponentActionId, opponentStrategy);
+
+            if (transitionProb === 0) {
+                continue;
+            }
+
+            const nextNode = nodeMap[transition.nextNodeId];
+            if (!nextNode) {
+                log.error(`Node not found in nodeMap: ${transition.nextNodeId}`);
+                continue;
+            }
+
+            const nextNodeValues = result[transition.nextNodeId];
+            if (!nextNodeValues) {
+                log.error(`Expected values not calculated for node: ${transition.nextNodeId}`);
+                continue;
+            }
+
+            const immediateDamageDealt = node.state.opponentHealth - nextNode.state.opponentHealth;
+            const immediateDamageReceived = node.state.playerHealth - nextNode.state.playerHealth;
+
+            expectedDamageDealt += transitionProb * (immediateDamageDealt + nextNodeValues.expectedDamageDealt);
+            expectedDamageReceived += transitionProb * (immediateDamageReceived + nextNodeValues.expectedDamageReceived);
+        }
+
+        return {
+            expectedDamageDealt,
+            expectedDamageReceived,
+        };
+    }
+
+    /**
      * Calculate expected values for a node (recursive)
      */
     function calculateNodeExpectedValues(nodeId: string): NodeExpectedValues {
@@ -79,12 +133,15 @@ export function calculateExpectedValues(
         }
 
         // Terminal node: return reward directly
+        // No further damage expected from terminal nodes
         if (isTerminalNode(node)) {
             const terminalValue: NodeExpectedValues = {
                 actionExpectedValues: [],
                 nodeExpectedValue: node.playerReward?.value ?? 0,
                 opponentActionExpectedValues: [],
                 opponentNodeExpectedValue: node.opponentReward?.value ?? 0,
+                expectedDamageDealt: 0,
+                expectedDamageReceived: 0,
             };
             result[nodeId] = terminalValue;
             return terminalValue;
@@ -101,6 +158,8 @@ export function calculateExpectedValues(
                 nodeExpectedValue: 0,
                 opponentActionExpectedValues: [],
                 opponentNodeExpectedValue: 0,
+                expectedDamageDealt: 0,
+                expectedDamageReceived: 0,
             };
             result[nodeId] = noStrategyValue;
             return noStrategyValue;
@@ -191,11 +250,20 @@ export function calculateExpectedValues(
             opponentNodeExpectedValue += opponentActionProb * actionValue.expectedValue;
         }
 
+        // Calculate expected damage dealt and received for this node
+        const { expectedDamageDealt, expectedDamageReceived } = calculateExpectedDamage(
+            node,
+            playerStrategy,
+            opponentStrategy
+        );
+
         const nodeValues: NodeExpectedValues = {
             actionExpectedValues,
             nodeExpectedValue,
             opponentActionExpectedValues,
             opponentNodeExpectedValue,
+            expectedDamageDealt,
+            expectedDamageReceived,
         };
 
         calculating.delete(nodeId);

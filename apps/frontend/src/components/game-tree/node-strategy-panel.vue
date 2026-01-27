@@ -95,6 +95,29 @@
           </div>
         </div>
 
+        <!-- Expected damage values -->
+        <div
+          v-if="nodeExpectedValues"
+          class="damage-expected-value"
+        >
+          <div class="expected-value-row">
+            <div class="expected-value-label">
+              与えるダメージ期待値:
+            </div>
+            <div class="expected-value-number damage-dealt">
+              {{ formatDamage(nodeExpectedValues.expectedDamageDealt) }}
+            </div>
+          </div>
+          <div class="expected-value-row">
+            <div class="expected-value-label">
+              受けるダメージ期待値:
+            </div>
+            <div class="expected-value-number damage-received">
+              {{ formatDamage(nodeExpectedValues.expectedDamageReceived) }}
+            </div>
+          </div>
+        </div>
+
         <!-- Player strategy -->
         <StrategyActionList
           v-if="playerStrategy.length > 0"
@@ -191,6 +214,10 @@ function formatExpectedValue(value: number | null): string {
 
 function formatGauge(value: number): string {
     return (value / 1000).toFixed(1);
+}
+
+function formatDamage(value: number): string {
+    return Math.round(value).toLocaleString();
 }
 </script>
 
@@ -326,7 +353,21 @@ function formatGauge(value: number): string {
     color: var(--color-error);
 }
 
-.opponent-value {
+.damage-expected-value {
+    background-color: var(--bg-tertiary);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.damage-dealt {
+    color: var(--color-accent-blue);
+}
+
+.damage-received {
     color: var(--color-error);
 }
 
