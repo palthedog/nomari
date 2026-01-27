@@ -12,11 +12,23 @@ export const useDefinitionStore = defineStore('definition', {
         gameDefinition: createInitialGameDefinition(),
         validationErrors: [] as ValidationError[],
         showValidationErrors: false,
+        /**
+         * Version number that increments when gameDefinition changes.
+         * Used to detect if game tree needs to be rebuilt.
+         */
+        definitionVersion: 0,
     }),
     getters: {
         hasValidationErrors: (state) => state.validationErrors.length > 0
     },
     actions: {
+        /**
+         * Increment the definition version.
+         * Call this when gameDefinition is modified.
+         */
+        incrementVersion() {
+            this.definitionVersion++;
+        },
         /**
          * Load a GameDefinition (e.g., from JSON import)
          * This also syncs the ID counter to prevent ID collisions

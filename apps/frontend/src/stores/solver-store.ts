@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, shallowRef } from 'vue';
 import type { GameTree } from '@nomari/game-tree/game-tree';
 import type { SolverCommand, SolverResult, SolverStatus, StrategyData } from '../workers/solver-types';
+import { useGameTreeStore } from './game-tree-store';
 
 // Import worker using Vite's worker import syntax
 import LpWorker from '../workers/lp-worker?worker';
@@ -13,6 +14,12 @@ export const useSolverStore = defineStore('solver', () => {
     const strategies = shallowRef<Record<string, StrategyData>>({});
     const error = ref<string | null>(null);
     let onCompleteCallback: (() => void) | null = null;
+
+    /**
+     * The gameTreeVersion that was used to compute the current strategies.
+     * Used to detect if strategies need to be recalculated.
+     */
+    const solvedFromGameTreeVersion = ref(-1);
 
     /**
      * Initialize the worker if not already done
@@ -106,6 +113,25 @@ export const useSolverStore = defineStore('solver', () => {
         status.value = 'idle';
     }
 
+    /**
+     * Ensure strategies are up-to-date with the current game tree.
+     * Rebuilds game tree if needed, then recalculates strategies if needed.
+     */
+    function ensureSolved(): void {
+        const gameTreeStore = useGameTreeStore();
+
+        if (!gameTreeStore.ensureGameTreeUpdated()) {
+            return;
+        }
+
+        if (solvedFromGameTreeVersion.value === gameTreeStore.gameTreeVersion) {
+            return;
+        }
+
+        solvedFromGameTreeVersion.value = gameTreeStore.gameTreeVersion;
+        startSolving(gameTreeStore.gameTree!);
+    }
+
     return {
         status,
         strategies,
@@ -113,5 +139,6 @@ export const useSolverStore = defineStore('solver', () => {
         startSolving,
         getNodeStrategy,
         terminate,
+        ensureSolved,
     };
 });

@@ -10,16 +10,6 @@
       />
 
       <RewardComputationMethodEditor v-model="gameDefinition.rewardComputationMethod" />
-
-      <div class="update-button-section">
-        <button
-          type="button"
-          class="update-tree-btn"
-          @click="handleUpdate"
-        >
-          ゲーム木を更新
-        </button>
-      </div>
     </div>
   </div>
 </template>
@@ -30,14 +20,6 @@ import InitialDynamicStateEditor from '../definition/initial-dynamic-state-edito
 import RewardComputationMethodEditor from '../definition/reward-computation-method-editor.vue';
 
 const gameDefinition = defineModel<GameDefinition>({ required: true });
-
-const emit = defineEmits<{
-    update: [];
-}>();
-
-function handleUpdate() {
-    emit('update');
-}
 </script>
 
 <style scoped>
@@ -65,35 +47,9 @@ function handleUpdate() {
     flex: 1;
     overflow-y: auto;
     padding: 15px;
+    padding-bottom: 80px; /* Space for floating button */
     display: flex;
     flex-direction: column;
     gap: 20px;
-}
-
-.update-button-section {
-    margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid var(--border-primary);
-}
-
-.update-tree-btn {
-    width: 100%;
-    padding: 12px 16px;
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-    transition: background-color 0.2s;
-}
-
-.update-tree-btn:hover {
-    background-color: var(--color-primary-hover);
-}
-
-.update-tree-btn:active {
-    background-color: var(--color-primary-hover);
 }
 </style>

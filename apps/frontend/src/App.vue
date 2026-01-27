@@ -46,22 +46,15 @@
           <GameDefinitionEditor v-model="gameDefinition" />
         </div>
         <div class="build-panel-section">
-          <GameTreeBuildPanel
-            v-model="gameDefinition"
-            @update="updateGameTree"
-          />
+          <GameTreeBuildPanel v-model="gameDefinition" />
         </div>
-      </template>
-
-      <!-- Game Tree Mode: GameTreeBuildPanel | GameTreeVisualization -->
-      <template v-else-if="viewMode === 'game-tree'">
-        <div class="build-panel-section">
-          <GameTreeBuildPanel
-            v-model="gameDefinition"
-            @update="updateGameTreeOnly"
-          />
-        </div>
-        <GameTreePanel :game-tree="gameTree" />
+        <button
+          type="button"
+          class="floating-btn floating-btn-right"
+          @click="viewStore.switchToStrategy()"
+        >
+          戦略を確認
+        </button>
       </template>
 
       <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
@@ -74,6 +67,13 @@
             :expected-values="expectedValues"
           />
         </div>
+        <button
+          type="button"
+          class="floating-btn floating-btn-left"
+          @click="viewStore.switchToEdit()"
+        >
+          編集に戻る
+        </button>
       </template>
     </div>
 
@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
 import { exportAsJSON, exportAsProto, importGameDefinition, parseAsProto } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
@@ -178,23 +178,6 @@ async function importFile() {
     }
 }
 
-function updateGameTreeOnly() {
-    // Validate first. If there are errors, show them and don't update the tree.
-    if (!definitionStore.validateAndShowErrors()) {
-        return;
-    }
-    gameTreeStore.updateGameTree();
-}
-
-function updateGameTree() {
-    // Validate first. If there are errors, show them and don't update the tree.
-    if (!definitionStore.validateAndShowErrors()) {
-        return;
-    }
-    gameTreeStore.updateGameTree();
-    viewStore.switchToGameTree();
-}
-
 // Validate example name to prevent path traversal (alphanumeric and underscore only)
 function isValidExampleName(name: string): boolean {
     return /^[a-zA-Z0-9_]+$/.test(name);
@@ -230,6 +213,23 @@ onMounted(async () => {
     }
     await loadExample(exampleName);
 });
+
+// Watch viewMode and auto-solve when switching to strategy mode
+watch(viewMode, (newMode) => {
+    if (newMode === 'strategy') {
+        solverStore.ensureSolved();
+    }
+});
+
+// Watch gameDefinition for changes and increment version
+// This catches direct mutations to gameDefinition (e.g., gameDefinition.situations.push())
+watch(
+    () => definitionStore.gameDefinition,
+    () => {
+        definitionStore.incrementVersion();
+    },
+    { deep: true }
+);
 
 </script>
 
@@ -376,5 +376,41 @@ body {
   height: 100%;
   color: var(--text-secondary);
   font-size: 14px;
+}
+
+/* Floating action buttons */
+.floating-btn {
+  position: fixed;
+  bottom: 24px;
+  padding: 14px 28px;
+  background-color: var(--color-accent-coral);
+  color: white !important;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  z-index: 100;
+}
+
+.floating-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  background-color: var(--color-accent-coral-hover);
+}
+
+.floating-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.floating-btn-right {
+  right: 24px;
+}
+
+.floating-btn-left {
+  left: 24px;
 }
 </style>
