@@ -275,12 +275,9 @@ function createTerminalSituationNode(
         );
     } else if (rewardComputationMethod.method.oneofKind === 'winProbability') {
         const winProb = rewardComputationMethod.method.winProbability;
-        // corner_penalty is now used as corner bonus damage
-        const cornerBonus = winProb.cornerPenalty || 0;
-        // od_gauge_weight is now used as OD bonus for lethal combo
-        const odBonus = winProb.odGaugeWeight ?? 0;
-        // sa_gauge_weight is now used as SA bonus for lethal combo
-        const saBonus = winProb.saGaugeWeight ?? 0;
+        const cornerBonus = winProb.cornerBonus || 0;
+        const odBonus = winProb.odGaugeBonus ?? 0;
+        const saBonus = winProb.saGaugeBonus ?? 0;
         playerReward = calculateRewardForWinProbabilityWithCorner(
             playerHealth,
             opponentHealth,

@@ -19,7 +19,9 @@ import type { GameDefinition } from '@nomari/ts-proto';
 import InitialDynamicStateEditor from '../definition/initial-dynamic-state-editor.vue';
 import RewardComputationMethodEditor from '../definition/reward-computation-method-editor.vue';
 
-const gameDefinition = defineModel<GameDefinition>({ required: true });
+const gameDefinition = defineModel<GameDefinition>({
+    required: true 
+});
 </script>
 
 <style scoped>

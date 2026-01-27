@@ -366,9 +366,9 @@ describe('gameTreeBuilder', () => {
                     method: {
                         oneofKind: 'winProbability',
                         winProbability: {
-                            cornerPenalty: 0,
-                            odGaugeWeight: 0,
-                            saGaugeWeight: 0,
+                            cornerBonus: 0,
+                            odGaugeBonus: 0,
+                            saGaugeBonus: 0,
                         }
                     }
                 }
@@ -457,9 +457,9 @@ describe('gameTreeBuilder', () => {
                     method: {
                         oneofKind: 'winProbability',
                         winProbability: {
-                            cornerPenalty: 0,
-                            odGaugeWeight: 0,
-                            saGaugeWeight: 0,
+                            cornerBonus: 0,
+                            odGaugeBonus: 0,
+                            saGaugeBonus: 0,
                         }
                     }
                 }
@@ -552,9 +552,9 @@ describe('gameTreeBuilder', () => {
                     method: {
                         oneofKind: 'winProbability',
                         winProbability: {
-                            cornerPenalty: 0,
-                            odGaugeWeight: 0,
-                            saGaugeWeight: 0,
+                            cornerBonus: 0,
+                            odGaugeBonus: 0,
+                            saGaugeBonus: 0,
                         }
                     }
                 }
@@ -649,9 +649,9 @@ describe('gameTreeBuilder', () => {
                     method: {
                         oneofKind: 'winProbability',
                         winProbability: {
-                            cornerPenalty: 0,
-                            odGaugeWeight: 0,
-                            saGaugeWeight: 0,
+                            cornerBonus: 0,
+                            odGaugeBonus: 0,
+                            saGaugeBonus: 0,
                         }
                     }
                 }
@@ -1267,11 +1267,11 @@ describe('gameTreeBuilder', () => {
         });
 
         describe('win probability with corner', () => {
-            it('should calculate rewards based on win probability with corner penalty when player is in corner', () => {
+            it('should calculate rewards based on win probability when player is in corner', () => {
                 const gameDefinition: GameDefinition = {
                     gameId: 13,
-                    name: 'Corner Penalty Game',
-                    description: 'A game with corner penalty',
+                    name: 'Corner Game',
+                    description: 'A game with corner bonus for opponent',
                     rootSituationId: 101,
                     situations: [
                         {
@@ -1330,8 +1330,8 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                // HP1000 worth of penalty
-                                cornerPenalty: 1000, 
+                                // HP1000 worth of bonus for the player attacking into corner
+                                cornerBonus: 1000, 
                             },
                         },
                     },
@@ -1355,18 +1355,20 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Score = 6000 - 4000 - 1000 = 1000 (player in corner, so subtract penalty)
-                // Win probability = 1 / (1 + exp(-0.0003 * 1000)) ≈ 0.5744
-                // Reward = 0.5744 * 20000 - 10000 ≈ 1488
-                expect(nextNode.playerReward!.value).toBeCloseTo(1489, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-1489, 0);
+                // Player in corner: opponent gets corner bonus (3000 damage per turn)
+                // Player damage: 2000, opponent damage: 3000
+                // Player turns to kill: ceil(4000/2000) = 2
+                // Opponent turns to kill: 1 + ceil((6000-3000)/3000) = 2
+                // Win probability = 2/(2+2) = 0.5, Reward = 0
+                expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
             });
 
-            it('should calculate rewards based on win probability with corner bonus when opponent is in corner', () => {
+            it('should calculate rewards based on win probability when opponent is in corner', () => {
                 const gameDefinition: GameDefinition = {
                     gameId: 14,
                     name: 'Corner Bonus Game',
-                    description: 'A game with corner bonus',
+                    description: 'A game with corner bonus for player',
                     rootSituationId: 101,
                     situations: [
                         {
@@ -1425,8 +1427,8 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                // HP1000 worth of bonus (opponent in corner)
-                                cornerPenalty: 1000, 
+                                // HP1000 worth of bonus for player (opponent in corner)
+                                cornerBonus: 1000, 
                             },
                         },
                     },
@@ -1450,18 +1452,20 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Score = 4000 - 6000 + 1000 = -1000 (opponent in corner, so add bonus)
-                // Win probability = 1 / (1 + exp(-0.0003 * -1000)) ≈ 0.4256
-                // Reward = 0.4256 * 20000 - 10000 ≈ -1488
-                expect(nextNode.playerReward!.value).toBeCloseTo(-1489, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(1489, 0);
+                // Opponent in corner: player gets corner bonus (3000 damage per turn)
+                // Player damage: 3000, opponent damage: 2000
+                // Player turns to kill: 1 + ceil((6000-3000)/3000) = 2
+                // Opponent turns to kill: ceil(4000/2000) = 2
+                // Win probability = 2/(2+2) = 0.5, Reward = 0
+                expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
+                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
             });
 
-            it('should not apply corner penalty when corner state is NONE', () => {
+            it('should not apply corner bonus when corner state is NONE', () => {
                 const gameDefinition: GameDefinition = {
                     gameId: 15,
-                    name: 'No Corner Penalty Game',
-                    description: 'A game without corner penalty',
+                    name: 'No Corner Bonus Game',
+                    description: 'A game without corner bonus',
                     rootSituationId: 101,
                     situations: [
                         {
@@ -1520,7 +1524,7 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                cornerPenalty: 1000 
+                                cornerBonus: 1000 
                             },
                         },
                     },
@@ -1544,11 +1548,13 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Score = 6000 - 4000 = 2000 (no corner penalty applied)
-                // Win probability = 1 / (1 + exp(-0.0003 * 2000)) ≈ 0.6457
-                // Reward = 0.6457 * 20000 - 10000 ≈ 2913
-                expect(nextNode.playerReward!.value).toBeCloseTo(2913, 0);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(-2913, 0);
+                // Corner state NONE: no corner bonus applied
+                // Both players deal 2000 damage per turn
+                // Player turns to kill: ceil(4000/2000) = 2
+                // Opponent turns to kill: ceil(6000/2000) = 3
+                // Win probability = 3/(2+3) = 0.6, Reward = 0.6 * 20000 - 10000 = 2000
+                expect(nextNode.playerReward!.value).toBe(2000);
+                expect(nextNode.opponentReward!.value).toBe(-2000);
             });
 
             it('should apply symmetric adjustments around 50% probability using HP difference', () => {
@@ -1616,7 +1622,7 @@ describe('gameTreeBuilder', () => {
                             oneofKind: 'winProbability',
                             // HP3000 worth of penalty
                             winProbability: {
-                                cornerPenalty: 3000,
+                                cornerBonus: 3000,
                             },
                         },
                     },
@@ -1687,7 +1693,7 @@ describe('gameTreeBuilder', () => {
                             oneofKind: 'winProbability',
                             winProbability: {
                                 // HP3000 worth of bonus (opponent in corner)
-                                cornerPenalty: 3000, 
+                                cornerBonus: 3000, 
                             },
                         },
                     },
@@ -1732,11 +1738,11 @@ describe('gameTreeBuilder', () => {
                 expect(Math.abs(rewardPlayer)).toBeCloseTo(Math.abs(rewardOpponent), 0);
             });
 
-            it('should keep probability at 100% even when player is in corner', () => {
+            it('should have high win probability when player has HP advantage even in corner', () => {
                 const gameDefinition: GameDefinition = {
                     gameId: 18,
-                    name: 'Max Probability Corner Game',
-                    description: 'A game with 100% win probability and corner penalty',
+                    name: 'High Probability Corner Game',
+                    description: 'A game with high win probability even when player in corner',
                     rootSituationId: 101,
                     situations: [
                         {
@@ -1795,8 +1801,8 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                // HP1000 worth of penalty
-                                cornerPenalty: 1000, 
+                                // HP1000 worth of bonus for opponent (player in corner)
+                                cornerBonus: 1000, 
                             },
                         },
                     },
@@ -1820,18 +1826,19 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Score = 10000 - 1 - 1000 = 8999
-                // Win probability = 1 / (1 + exp(-0.0003 * 8999)) ≈ 0.9999 (very close to 100%)
-                // Reward ≈ 0.9999 * 20000 - 10000 ≈ 9998 (sigmoid saturates at high values)
-                expect(nextNode.playerReward!.value).toBeGreaterThan(8000);
-                expect(nextNode.opponentReward!.value).toBeLessThan(-8000);
+                // Player in corner: opponent gets corner bonus (3000 damage per turn)
+                // Player damage: 2000, kills opponent in 1 turn (2000 >= 1)
+                // Opponent damage: 3000, needs 1 + ceil((10000-3000)/3000) = 1+3 = 4 turns
+                // Win probability = 4/(1+4) = 0.8, Reward = 0.8 * 20000 - 10000 = 6000
+                expect(nextNode.playerReward!.value).toBe(6000);
+                expect(nextNode.opponentReward!.value).toBe(-6000);
             });
 
-            it('should keep probability at 0% even when opponent is in corner', () => {
+            it('should have low win probability when opponent has HP advantage even in corner', () => {
                 const gameDefinition: GameDefinition = {
                     gameId: 19,
-                    name: 'Min Probability Corner Game',
-                    description: 'A game with 0% win probability and corner bonus',
+                    name: 'Low Probability Corner Game',
+                    description: 'A game with low win probability even when opponent in corner',
                     rootSituationId: 101,
                     situations: [
                         {
@@ -1890,8 +1897,8 @@ describe('gameTreeBuilder', () => {
                         method: {
                             oneofKind: 'winProbability',
                             winProbability: {
-                                // HP1000 worth of bonus (opponent in corner)
-                                cornerPenalty: 1000, 
+                                // HP1000 worth of bonus for player (opponent in corner)
+                                cornerBonus: 1000, 
                             },
                         },
                     },
@@ -1915,11 +1922,12 @@ describe('gameTreeBuilder', () => {
                 expect(nextNode.playerReward).toBeDefined();
                 expect(nextNode.opponentReward).toBeDefined();
 
-                // Score = 1 - 10000 + 1000 = -8999
-                // Win probability = 1 / (1 + exp(-0.0003 * -8999)) ≈ 0.0001 (very close to 0%)
-                // Reward ≈ 0.0001 * 20000 - 10000 ≈ -9998 (sigmoid saturates at low values)
-                expect(nextNode.playerReward!.value).toBeLessThan(-8000);
-                expect(nextNode.opponentReward!.value).toBeGreaterThan(8000);
+                // Opponent in corner: player gets corner bonus (3000 damage per turn)
+                // Player damage: 3000, needs 1 + ceil((10000-3000)/3000) = 1+3 = 4 turns
+                // Opponent damage: 2000, kills player in 1 turn (2000 >= 1)
+                // Win probability = 1/(4+1) = 0.2, Reward = 0.2 * 20000 - 10000 = -6000
+                expect(nextNode.playerReward!.value).toBe(-6000);
+                expect(nextNode.opponentReward!.value).toBe(6000);
             });
         });
     });

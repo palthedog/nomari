@@ -38,49 +38,55 @@
       v-if="selectedMethod === 'winProbability'"
       class="win-probability-settings"
     >
+      <div class="help-text method-description">
+        後何回コンボを決めれば相手を倒せるかを推定し、そこから勝率を計算します。<br>
+        推定勝率 = 相手を倒すターン数 / (自分のターン数 + 相手のターン数)<br>
+        ターン数が少ないほど有利。
+      </div>
+
       <div class="form-group">
-        <label for="corner-penalty">画面端 ペナルティ:</label>
+        <label for="corner-bonus">画面端 ボーナス:</label>
         <input
-          id="corner-penalty"
+          id="corner-bonus"
           type="number"
           min="0"
           max="10000"
           step="100"
-          :value="cornerPenalty"
-          @input="updateCornerPenalty(parseFloat(($event.target as HTMLInputElement).value))"
+          :value="cornerBonus"
+          @input="updateCornerBonus(parseFloat(($event.target as HTMLInputElement).value))"
         >
         <div class="help-text">
-          画面端にいる場合のHP値としてのペナルティ。例: 2000 は HP2000分の不利を意味します。
+          相手が画面端にいる場合のコンボダメージボーナス。例: 500 は通常コンボ+500ダメージを意味します。
         </div>
       </div>
 
       <div class="form-group">
-        <label for="od-gauge-weight">ODゲージ ウェイト:</label>
+        <label for="od-gauge-bonus">ODゲージ ボーナス:</label>
         <input
-          id="od-gauge-weight"
+          id="od-gauge-bonus"
           type="number"
           min="0"
           step="100"
-          :value="odGaugeWeight"
-          @input="updateOdGaugeWeight(parseFloat(($event.target as HTMLInputElement).value))"
+          :value="odGaugeBonus"
+          @input="updateOdGaugeBonus(parseFloat(($event.target as HTMLInputElement).value))"
         >
         <div class="help-text">
-          ODゲージ差に対するウェイト。(自分OD - 相手OD) × ウェイト がスコアに加算されます。0で無効。
+          ODゲージ1ポイントあたりのリーサルコンボダメージボーナス。自分のOD × ボーナス がダメージに加算されます。0で無効。
         </div>
       </div>
 
       <div class="form-group">
-        <label for="sa-gauge-weight">SAゲージ ウェイト:</label>
+        <label for="sa-gauge-bonus">SAゲージ ボーナス:</label>
         <input
-          id="sa-gauge-weight"
+          id="sa-gauge-bonus"
           type="number"
           min="0"
           step="100"
-          :value="saGaugeWeight"
-          @input="updateSaGaugeWeight(parseFloat(($event.target as HTMLInputElement).value))"
+          :value="saGaugeBonus"
+          @input="updateSaGaugeBonus(parseFloat(($event.target as HTMLInputElement).value))"
         >
         <div class="help-text">
-          SAゲージ差に対するウェイト。(自分SA - 相手SA) × ウェイト がスコアに加算されます。0で無効。
+          SAゲージ1ポイントあたりのリーサルコンボダメージボーナス。自分のSA × ボーナス がダメージに加算されます。0で無効。
         </div>
       </div>
     </div>
@@ -91,7 +97,9 @@
 import { computed, onMounted } from 'vue';
 import type { RewardComputationMethod } from '@nomari/ts-proto';
 
-const model = defineModel<RewardComputationMethod | undefined>({ required: false });
+const model = defineModel<RewardComputationMethod | undefined>({
+    required: false 
+});
 
 // Initialize with win probability if not set
 onMounted(() => {
@@ -120,23 +128,23 @@ const selectedMethod = computed<MethodType>(() => {
     return 'damageRace'; // Default to damage race
 });
 
-const cornerPenalty = computed(() => {
+const cornerBonus = computed(() => {
     if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
-        return model.value.method.winProbability.cornerPenalty || 1000;
+        return model.value.method.winProbability.cornerBonus || 1000;
     }
     return 1000;
 });
 
-const odGaugeWeight = computed(() => {
+const odGaugeBonus = computed(() => {
     if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
-        return model.value.method.winProbability.odGaugeWeight ?? 0;
+        return model.value.method.winProbability.odGaugeBonus ?? 0;
     }
     return 0;
 });
 
-const saGaugeWeight = computed(() => {
+const saGaugeBonus = computed(() => {
     if (selectedMethod.value === 'winProbability' && model.value?.method.oneofKind === 'winProbability') {
-        return model.value.method.winProbability.saGaugeWeight ?? 0;
+        return model.value.method.winProbability.saGaugeBonus ?? 0;
     }
     return 0;
 });
@@ -156,33 +164,15 @@ function selectMethod(method: MethodType) {
         method: {
             oneofKind: 'winProbability',
             winProbability: {
-                cornerPenalty: cornerPenalty.value,
-                odGaugeWeight: odGaugeWeight.value,
-                saGaugeWeight: saGaugeWeight.value,
+                cornerBonus: cornerBonus.value,
+                odGaugeBonus: odGaugeBonus.value,
+                saGaugeBonus: saGaugeBonus.value,
             },
         },
     };
 }
 
-function updateCornerPenalty(value: number) {
-    if (selectedMethod.value !== 'winProbability') {
-        return;
-    }
-    
-    if (!model.value || model.value.method.oneofKind !== 'winProbability') {
-        model.value = {
-            method: {
-                oneofKind: 'winProbability',
-                winProbability: { cornerPenalty: value },
-            },
-        };
-        return;
-    }
-    
-    model.value.method.winProbability.cornerPenalty = value;
-}
-
-function updateOdGaugeWeight(value: number) {
+function updateCornerBonus(value: number) {
     if (selectedMethod.value !== 'winProbability') {
         return;
     }
@@ -192,18 +182,17 @@ function updateOdGaugeWeight(value: number) {
             method: {
                 oneofKind: 'winProbability',
                 winProbability: {
-                    cornerPenalty: cornerPenalty.value,
-                    odGaugeWeight: value,
+                    cornerBonus: value 
                 },
             },
         };
         return;
     }
     
-    model.value.method.winProbability.odGaugeWeight = value;
+    model.value.method.winProbability.cornerBonus = value;
 }
 
-function updateSaGaugeWeight(value: number) {
+function updateOdGaugeBonus(value: number) {
     if (selectedMethod.value !== 'winProbability') {
         return;
     }
@@ -213,15 +202,36 @@ function updateSaGaugeWeight(value: number) {
             method: {
                 oneofKind: 'winProbability',
                 winProbability: {
-                    cornerPenalty: cornerPenalty.value,
-                    saGaugeWeight: value,
+                    cornerBonus: cornerBonus.value,
+                    odGaugeBonus: value,
                 },
             },
         };
         return;
     }
     
-    model.value.method.winProbability.saGaugeWeight = value;
+    model.value.method.winProbability.odGaugeBonus = value;
+}
+
+function updateSaGaugeBonus(value: number) {
+    if (selectedMethod.value !== 'winProbability') {
+        return;
+    }
+    
+    if (!model.value || model.value.method.oneofKind !== 'winProbability') {
+        model.value = {
+            method: {
+                oneofKind: 'winProbability',
+                winProbability: {
+                    cornerBonus: cornerBonus.value,
+                    saGaugeBonus: value,
+                },
+            },
+        };
+        return;
+    }
+    
+    model.value.method.winProbability.saGaugeBonus = value;
 }
 </script>
 
@@ -298,5 +308,12 @@ function updateSaGaugeWeight(value: number) {
     font-size: 12px;
     color: var(--text-secondary);
     margin-top: 4px;
+}
+
+.method-description {
+    margin-bottom: 15px;
+    padding: 8px;
+    background-color: var(--bg-secondary);
+    border-radius: 4px;
 }
 </style>

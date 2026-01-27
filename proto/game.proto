@@ -68,17 +68,17 @@ message RewardComputationMethod {
     // No configuration needed at this time
   }
   message WinProbability {
-    // Corner penalty for win probability calculation (HP value)
-    // Example: 2000 means HP2000 worth of penalty when in corner (20% of max HP 10000)
-    double corner_penalty = 1;
-    // Weight for OD gauge difference in win probability calculation
-    // (player_od - opponent_od) * od_gauge_weight is added to the score
+    // Corner bonus: combo damage bonus when opponent is in corner
+    // Example: 500 means +500 damage per combo when opponent is cornered
+    double corner_bonus = 1;
+    // OD gauge bonus: lethal combo damage bonus per OD gauge point
+    // player_od * od_gauge_bonus is added to lethal combo damage
     // Default: 0 (no effect)
-    optional double od_gauge_weight = 2;
-    // Weight for SA gauge difference in win probability calculation
-    // (player_sa - opponent_sa) * sa_gauge_weight is added to the score
+    optional double od_gauge_bonus = 2;
+    // SA gauge bonus: lethal combo damage bonus per SA gauge point
+    // player_sa * sa_gauge_bonus is added to lethal combo damage
     // Default: 0 (no effect)
-    optional double sa_gauge_weight = 3;
+    optional double sa_gauge_bonus = 3;
   }
 
   oneof method {
