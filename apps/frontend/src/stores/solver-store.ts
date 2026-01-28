@@ -3,6 +3,7 @@ import { ref, shallowRef } from 'vue';
 import type { GameTree } from '@nomari/game-tree/game-tree';
 import type { SolverCommand, SolverResult, SolverStatus, StrategyData } from '../workers/solver-types';
 import { useGameTreeStore } from './game-tree-store';
+import { useNotificationStore } from './notification-store';
 
 // Import worker using Vite's worker import syntax
 import LpWorker from '../workers/lp-worker?worker';
@@ -29,8 +30,11 @@ export const useSolverStore = defineStore('solver', () => {
             worker.value = new LpWorker();
             worker.value.onmessage = handleMessage;
             worker.value.onerror = (e) => {
+                log.error('Solver worker error:', e);
                 error.value = e.message;
                 status.value = 'idle';
+                const notificationStore = useNotificationStore();
+                notificationStore.showError(`戦略計算でエラーが発生しました: ${e.message}`);
             };
         }
         return worker.value;
@@ -66,8 +70,13 @@ export const useSolverStore = defineStore('solver', () => {
                 break;
 
             case 'error':
+                log.error('Solver error:', result.message);
                 error.value = result.message;
                 status.value = 'idle';
+                {
+                    const notificationStore = useNotificationStore();
+                    notificationStore.showError(`戦略計算でエラーが発生しました: ${result.message}`);
+                }
                 break;
         }
     }
