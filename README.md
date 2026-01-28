@@ -26,6 +26,10 @@ Nomari can help you to answer questions like:
     - Yes, you can calculate the GTO defender's strategy as well.
         - ❓️How often should we choose "Guard" to minimize the expected damage?
 
+## Screenshot
+![](documents/ja/images/example_4hp_gto.png)
+
 ## Demo page
 https://palthedog.github.io/nomari/?example=marisa
 
+[How to (written in Japanese)](documents/ja)
