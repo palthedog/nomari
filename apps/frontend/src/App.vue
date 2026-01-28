@@ -51,7 +51,7 @@
         <button
           type="button"
           class="floating-btn floating-btn-right"
-          @click="viewStore.switchToStrategy()"
+          @click="switchToStrategyWithValidation()"
         >
           戦略を確認
         </button>
@@ -215,6 +215,17 @@ onMounted(async () => {
     }
     await loadExample(exampleName);
 });
+
+/**
+ * Switch to strategy mode with validation.
+ * Validates the game definition first and only switches if valid.
+ */
+function switchToStrategyWithValidation() {
+    if (!definitionStore.validateAndShowErrors()) {
+        return;
+    }
+    viewStore.switchToStrategy();
+}
 
 // Watch viewMode and auto-solve when switching to strategy mode
 watch(viewMode, (newMode) => {

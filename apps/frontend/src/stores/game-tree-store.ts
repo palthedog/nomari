@@ -4,6 +4,8 @@ import { ref } from 'vue';
 
 import { buildGameTree } from '@nomari/game-tree-builder';
 import { useDefinitionStore } from './definition-store';
+import { useNotificationStore } from './notification-store';
+import log from 'loglevel';
 
 export const useGameTreeStore = defineStore('gameTree', () => {
     const buildError = ref<string | null>(null);
@@ -51,6 +53,9 @@ export const useGameTreeStore = defineStore('gameTree', () => {
         } else {
             gameTree.value = null;
             buildError.value = result.error.message;
+            log.error('Failed to build game tree:', result.error);
+            const notificationStore = useNotificationStore();
+            notificationStore.showError(`ゲーム木の構築に失敗しました: ${result.error.message}`);
         }
         builtFromDefinitionVersion.value = definitionStore.definitionVersion;
     }

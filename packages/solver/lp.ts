@@ -96,33 +96,35 @@ export class LPSolver {
     private nodes: Map<string, LPNode>;
     private nodeMap: Map<string, Node>; // proto node lookup
     private topologicalOrder: string[]; // nodes in topological order
+    private initialized: boolean = false;
 
     constructor(gameTree: GameTree) {
         this.gameTree = gameTree;
         this.nodes = new Map();
         this.nodeMap = new Map();
         this.topologicalOrder = [];
-        this.buildInternalTree();
     }
 
     /**
-     * Build internal LP node structure from proto GameTree
+     * Build internal LP node structure from proto GameTree.
+     * Returns true on success, false on error.
      */
-    private buildInternalTree(): void {
-        // Get root node from nodes map
+    private buildInternalTree(): boolean {
         const rootNode = this.gameTree.nodes[this.gameTree.root];
         if (!rootNode) {
-            throw new Error(`Root node ${this.gameTree.root} not found in nodes map`);
+            log.error(`Root node ${this.gameTree.root} not found in nodes map`);
+            return false;
         }
 
-        // First, collect all nodes from the tree
         this.collectAllNodes(rootNode);
 
-        // Then build LP nodes
-        this.buildLPNode(rootNode);
+        if (!this.buildLPNode(rootNode)) {
+            return false;
+        }
 
-        // Finally, compute topological order
         this.computeTopologicalOrder();
+        this.initialized = true;
+        return true;
     }
 
     /**
@@ -167,9 +169,10 @@ export class LPSolver {
     }
 
     /**
-     * Build LP node from proto node
+     * Build LP node from proto node.
+     * Returns null on error.
      */
-    private buildLPNode(protoNode: Node): LPNode {
+    private buildLPNode(protoNode: Node): LPNode | null {
         if (this.nodes.has(protoNode.nodeId)) {
             return this.nodes.get(protoNode.nodeId)!;
         }
@@ -177,7 +180,6 @@ export class LPSolver {
         const isTerminal = this.isTerminalNode(protoNode);
         const lpNode = new LPNode(protoNode.nodeId, isTerminal);
 
-        // Extract actions
         if (protoNode.playerActions) {
             lpNode.playerActions = protoNode.playerActions.actions.map(a => a.actionId);
         }
@@ -185,25 +187,36 @@ export class LPSolver {
             lpNode.opponentActions = protoNode.opponentActions.actions.map(a => a.actionId);
         }
 
-        // Process transitions
         for (const transition of protoNode.transitions) {
             const key = `${transition.playerActionId}-${transition.opponentActionId}`;
 
-            if (transition.nextNodeId) {
-                const nextProtoNode = this.nodeMap.get(transition.nextNodeId);
-                if (nextProtoNode) {
-                    if (this.isTerminalNode(nextProtoNode)) {
-                        // Terminal node - use its rewards
-                        const playerReward = nextProtoNode.playerReward?.value ?? 0;
-                        const opponentReward = nextProtoNode.opponentReward?.value ?? 0;
-                        lpNode.rewards.set(key, [playerReward, opponentReward]);
-                    } else {
-                        // Non-terminal node - build child
-                        const childNode = this.buildLPNode(nextProtoNode);
-                        lpNode.children.set(key, childNode);
-                    }
-                }
+            if (!transition.nextNodeId) {
+                log.error(
+                    `Transition in node "${protoNode.nodeId}" (player action: ${transition.playerActionId}, opponent action: ${transition.opponentActionId}) has no nextNodeId`
+                );
+                return null;
             }
+
+            const nextProtoNode = this.nodeMap.get(transition.nextNodeId);
+            if (!nextProtoNode) {
+                log.error(
+                    `Transition in node "${protoNode.nodeId}" references non-existent node "${transition.nextNodeId}"`
+                );
+                return null;
+            }
+
+            if (this.isTerminalNode(nextProtoNode)) {
+                const playerReward = nextProtoNode.playerReward?.value ?? 0;
+                const opponentReward = nextProtoNode.opponentReward?.value ?? 0;
+                lpNode.rewards.set(key, [playerReward, opponentReward]);
+                continue;
+            }
+
+            const childNode = this.buildLPNode(nextProtoNode);
+            if (!childNode) {
+                return null;
+            }
+            lpNode.children.set(key, childNode);
         }
 
         this.nodes.set(protoNode.nodeId, lpNode);
@@ -311,6 +324,7 @@ export class LPSolver {
             // Unshift the value
             node.playerValue = (result.v ?? 0) - shift;
         } else {
+            log.warn(`LP solver returned infeasible result for player at node "${node.nodeId}", using uniform strategy`);
             // Fallback to uniform strategy
             const uniformProb = 1.0 / node.playerActions.length;
             for (const action of node.playerActions) {
@@ -427,6 +441,7 @@ export class LPSolver {
             }
             node.opponentValue = (result.v ?? 0) - shift;
         } else {
+            log.warn(`LP solver returned infeasible result for opponent at node "${node.nodeId}", using uniform strategy`);
             // Fallback to uniform strategy
             const uniformProb = 1.0 / node.opponentActions.length;
             for (const action of node.opponentActions) {
@@ -565,21 +580,27 @@ export class LPSolver {
     }
 
     /**
-     * Run LP solver to solve the game
+     * Run LP solver to solve the game.
+     * Returns true on success, false on error.
      */
-    public solve(_iterations?: number): void {
-        // iterations parameter is ignored for LP solver (for interface compatibility)
-        // Solve nodes in topological order (from terminal to root)
+    public solve(_iterations?: number): boolean {
+        if (!this.initialized) {
+            if (!this.buildInternalTree()) {
+                return false;
+            }
+        }
+
         for (const nodeId of this.topologicalOrder) {
             const node = this.nodes.get(nodeId);
             if (!node || node.isTerminal) {
                 continue;
             }
 
-            // Solve LP for both players
             this.solvePlayerLP(node);
             this.solveOpponentLP(node);
         }
+
+        return true;
     }
 
     /**

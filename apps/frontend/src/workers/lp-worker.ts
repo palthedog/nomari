@@ -93,10 +93,14 @@ async function runSolver(tree: GameTree): Promise<void> {
     gameTree = tree;
     solver = new LPSolver(tree);
 
-    // Solve the game using LP (instant)
-    solver.solve();
+    if (!solver.solve()) {
+        postResult({
+            type: 'error',
+            message: 'Failed to build game tree for solver. Check console for details.',
+        });
+        return;
+    }
 
-    // Report completion
     const strategies = getAllStrategies();
     postResult({
         type: 'complete',
