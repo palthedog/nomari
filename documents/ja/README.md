@@ -16,6 +16,7 @@ Nomari ではポーカーの世界で有名な GTO戦略 (Game Theory Optimal戦
 
 ## 簡単なデモ
 簡単なデモを見るのが1番雰囲気がわかるかもしれません。
+
 https://palthedog.github.io/nomari/?example=marisa
 
 ## やってみよう
