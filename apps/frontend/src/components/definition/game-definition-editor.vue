@@ -919,4 +919,60 @@ function deleteOpponentCombo() {
 .error-message {
   color: var(--text-secondary);
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .header-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+
+  .content {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    flex: 0 0 auto;
+    max-height: 35vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border-primary);
+  }
+
+  .right-panel {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .panel-header {
+    padding: 10px 15px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .panel-header h3 {
+    font-size: 14px;
+  }
+
+  .panel-header button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .panel-content {
+    padding: 10px;
+  }
+
+  .section-group h4 {
+    font-size: 12px;
+  }
+
+  .section-item {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
 </style>

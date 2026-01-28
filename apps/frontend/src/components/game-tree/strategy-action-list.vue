@@ -8,7 +8,7 @@
       <v-tooltip
         v-for="action in strategy"
         :key="action.actionId"
-        location="right"
+        :location="isMobile ? 'bottom' : 'right'"
         :open-delay="50"
         :close-delay="playerType === 'player' ? 0 : undefined"
         :transition="false"
@@ -51,6 +51,8 @@
                 class="calc-row"
                 @mouseenter="gameTreeStore.highlightNode(row.nextNodeId)"
                 @mouseleave="gameTreeStore.highlightNode(null)"
+                @touchstart="gameTreeStore.highlightNode(row.nextNodeId)"
+                @touchend="gameTreeStore.highlightNode(null)"
                 @click="gameTreeStore.selectNode(row.nextNodeId)"
               >
                 <td class="calc-action-name">
@@ -81,12 +83,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
 import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import log from 'loglevel';
+
+// Mobile detection
+const MOBILE_BREAKPOINT = 768;
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024);
+const isMobile = computed(() => windowWidth.value <= MOBILE_BREAKPOINT);
+
+function handleResize() {
+    windowWidth.value = window.innerWidth;
+}
+
+onMounted(() => {
+    window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
+});
 
 interface CalculationRow {
     actionName: string;
@@ -364,5 +383,30 @@ function getActionNameForType(actionId: number, type: 'player' | 'opponent'): st
     text-align: right;
     padding-left: 8px;
     min-width: 60px;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    :deep(.calculation-tooltip) {
+        max-width: 90vw;
+        overflow-x: auto;
+    }
+
+    .calculation-table {
+        font-size: 11px;
+    }
+
+    .calculation-table td {
+        padding: 4px 2px;
+    }
+
+    .calc-value,
+    .calc-product {
+        min-width: 50px;
+    }
+
+    .calc-prob {
+        min-width: 35px;
+    }
 }
 </style>
