@@ -417,4 +417,41 @@ function formatDamage(value: number): string {
     color: var(--text-primary);
     margin-bottom: 4px;
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .node-strategy-panel {
+        border-left: none;
+    }
+
+    .node-strategy-panel h3 {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .node-details {
+        padding: 12px;
+    }
+
+    .node-info {
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+
+    .info-row {
+        font-size: 12px;
+    }
+
+    .info-row .label {
+        min-width: 60px;
+    }
+
+    .no-selection-icon {
+        font-size: 36px;
+    }
+
+    .no-selection p {
+        font-size: 13px;
+    }
+}
 </style>

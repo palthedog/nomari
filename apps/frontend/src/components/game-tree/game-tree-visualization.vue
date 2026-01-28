@@ -601,4 +601,23 @@ watch(
 .node-group {
   cursor: pointer;
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .game-tree-visualization {
+    padding: 10px;
+  }
+
+  .game-tree-header {
+    margin-bottom: 8px;
+  }
+
+  .game-tree-title {
+    font-size: 14px;
+  }
+
+  .tree-stats {
+    font-size: 11px;
+  }
+}
 </style>
