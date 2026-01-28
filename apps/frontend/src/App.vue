@@ -42,12 +42,42 @@
     <div class="app-content">
       <!-- Edit Mode: GameDefinitionEditor | GameTreeBuildPanel -->
       <template v-if="viewMode === 'edit'">
-        <div class="editor-section">
-          <GameDefinitionEditor v-model="gameDefinition" />
-        </div>
-        <div class="build-panel-section">
-          <GameTreeBuildPanel v-model="gameDefinition" />
-        </div>
+        <!-- Desktop: Show both panels side by side -->
+        <template v-if="!isMobile">
+          <div class="editor-section">
+            <GameDefinitionEditor v-model="gameDefinition" />
+          </div>
+          <div class="build-panel-section">
+            <GameTreeBuildPanel v-model="gameDefinition" />
+          </div>
+        </template>
+
+        <!-- Mobile: Show one panel at a time -->
+        <template v-else>
+          <div
+            v-show="mobileEditView === 'editor'"
+            class="editor-section mobile-full"
+          >
+            <GameDefinitionEditor v-model="gameDefinition" />
+          </div>
+          <div
+            v-show="mobileEditView === 'settings'"
+            class="build-panel-section mobile-full"
+          >
+            <GameTreeBuildPanel v-model="gameDefinition" />
+          </div>
+        </template>
+
+        <!-- Mobile: Settings toggle button -->
+        <button
+          v-if="isMobile"
+          type="button"
+          class="floating-btn floating-btn-left"
+          @click="toggleMobileEditView()"
+        >
+          {{ mobileEditView === 'editor' ? '初期状態' : '編集' }}
+        </button>
+
         <button
           type="button"
           class="floating-btn floating-btn-right"
@@ -59,17 +89,51 @@
 
       <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
       <template v-else-if="viewMode === 'strategy'">
-        <GameTreePanel :game-tree="gameTree" />
-        <div class="strategy-section">
-          <NodeStrategyPanel
-            :selected-node="selectedNode"
-            :strategy-data="selectedNodeStrategy"
-            :expected-values="expectedValues"
+        <!-- Desktop: Show both panels side by side -->
+        <template v-if="!isMobile">
+          <GameTreePanel :game-tree="gameTree" />
+          <div class="strategy-section">
+            <NodeStrategyPanel
+              :selected-node="selectedNode"
+              :strategy-data="selectedNodeStrategy"
+              :expected-values="expectedValues"
+            />
+          </div>
+        </template>
+
+        <!-- Mobile: Show one panel at a time -->
+        <template v-else>
+          <GameTreePanel
+            v-show="mobileStrategyView === 'tree'"
+            :game-tree="gameTree"
+            class="mobile-full"
           />
-        </div>
+          <div
+            v-show="mobileStrategyView === 'strategy'"
+            class="strategy-section mobile-full"
+          >
+            <NodeStrategyPanel
+              :selected-node="selectedNode"
+              :strategy-data="selectedNodeStrategy"
+              :expected-values="expectedValues"
+            />
+          </div>
+        </template>
+
+        <!-- Mobile: Back to tree button when viewing strategy -->
         <button
+          v-if="isMobile && mobileStrategyView === 'strategy'"
           type="button"
           class="floating-btn floating-btn-left"
+          @click="showMobileGameTree()"
+        >
+          ゲーム木に戻る
+        </button>
+
+        <button
+          type="button"
+          class="floating-btn"
+          :class="isMobile && mobileStrategyView === 'strategy' ? 'floating-btn-right' : 'floating-btn-left'"
           @click="viewStore.switchToEdit()"
         >
           編集に戻る
@@ -89,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
 import { exportAsJSON, exportAsProto, importGameDefinition, parseAsProto } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
@@ -103,6 +167,35 @@ import { useDefinitionStore } from './stores/definition-store';
 import { useNotificationStore } from './stores/notification-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
 import log from 'loglevel';
+
+// Mobile detection
+const MOBILE_BREAKPOINT = 768;
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024);
+const isMobile = computed(() => windowWidth.value <= MOBILE_BREAKPOINT);
+
+// Mobile view state for strategy mode: 'tree' shows game tree, 'strategy' shows strategy panel
+type MobileStrategyView = 'tree' | 'strategy';
+const mobileStrategyView = ref<MobileStrategyView>('tree');
+
+// Mobile view state for edit mode: 'editor' shows definition editor, 'settings' shows build panel
+type MobileEditView = 'editor' | 'settings';
+const mobileEditView = ref<MobileEditView>('editor');
+
+function handleResize() {
+    windowWidth.value = window.innerWidth;
+}
+
+function showMobileGameTree() {
+    mobileStrategyView.value = 'tree';
+}
+
+function showMobileStrategy() {
+    mobileStrategyView.value = 'strategy';
+}
+
+function toggleMobileEditView() {
+    mobileEditView.value = mobileEditView.value === 'editor' ? 'settings' : 'editor';
+}
 
 // View store
 const viewStore = useViewStore();
@@ -208,12 +301,19 @@ async function loadExample(exampleName: string) {
 }
 
 onMounted(async () => {
+    // Add resize listener for mobile detection
+    window.addEventListener('resize', handleResize);
+
     const params = new URLSearchParams(window.location.search);
     const exampleName = params.get('example');
     if (!exampleName) {
         return;
     }
     await loadExample(exampleName);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
 });
 
 /**
@@ -243,6 +343,23 @@ watch(
     },
     { deep: true }
 );
+
+// Auto-switch to strategy panel when node is selected on mobile
+watch(
+    () => gameTreeStore.selectedNodeId,
+    (newNodeId) => {
+        if (isMobile.value && newNodeId && viewMode.value === 'strategy') {
+            mobileStrategyView.value = 'strategy';
+        }
+    }
+);
+
+// Reset mobile strategy view when switching to strategy mode
+watch(viewMode, (newMode) => {
+    if (newMode === 'strategy') {
+        mobileStrategyView.value = 'tree';
+    }
+});
 
 </script>
 
@@ -425,5 +542,90 @@ body {
 
 .floating-btn-left {
   left: 24px;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 15px;
+  }
+
+  .app-header h1 {
+    font-size: 18px;
+  }
+
+  .header-content {
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .mode-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .header-actions button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .app-content {
+    flex-direction: column;
+  }
+
+  /* Mobile full-screen panel */
+  .mobile-full {
+    flex: 1 !important;
+    width: 100%;
+    height: 100%;
+    border: none !important;
+  }
+
+  /* Edit mode on mobile */
+  .editor-section.mobile-full {
+    border-bottom: none;
+  }
+
+  .build-panel-section.mobile-full {
+    max-height: none;
+  }
+
+  /* Strategy mode on mobile */
+  .strategy-section.mobile-full {
+    border-top: none;
+  }
+
+  .visualization-section {
+    flex: 1;
+  }
+
+  /* Floating buttons */
+  .floating-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+    bottom: 16px;
+  }
+
+  .floating-btn-right {
+    right: 16px;
+  }
+
+  .floating-btn-left {
+    left: 16px;
+  }
+}
+
+/* Tablet responsive styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .build-panel-section {
+    flex: 0 0 280px;
+  }
+
+  .strategy-section {
+    flex: 0 0 320px;
+  }
 }
 </style>
