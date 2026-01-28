@@ -62,7 +62,12 @@ npm run build:pages
 
 - **Comments**: All source code comments must be in English
 - **File naming**: Use kebab-case (e.g., `game-tree-builder.ts`, not `gameTreeBuilder.ts`)
-- **Error handling**: Return errors instead of throwing exceptions for normal cases; use assert for edge cases; never silently return default values
+- **Error handling**:
+  - Never throw exceptions; return `bool` or `null` to indicate errors
+  - Callers must check return values and propagate errors up the call chain
+  - Never use global/class-level error flags (e.g., `buildError`) to track state
+  - Log errors with `log.error()` or `log.warn()` before returning
+  - For user input errors, use notification-store to display messages
 - **Block size**: Keep blocks under ~50 lines; extract meaningful functions even if used only once
 - **Nesting**: Keep nesting shallow (max 4 levels); use early return pattern
 - **Inner functions**: Avoid unless necessary
@@ -73,3 +78,5 @@ npm run build:pages
 - Solver changes require unit tests
 - UI changes require screenshots in PR
 - Ask for confirmation before proceeding when user's proposed implementation has issues
+- Do not commit without user confirmation, except for trivial changes like adding logs
+- Do not include `Co-Authored-By` in commit messages
