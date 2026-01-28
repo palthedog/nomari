@@ -80,3 +80,9 @@ npm run build:pages
 - Ask for confirmation before proceeding when user's proposed implementation has issues
 - Do not commit without user confirmation, except for trivial changes like adding logs
 - Do not include `Co-Authored-By` in commit messages
+
+## Long-running Tasks
+
+- Request all necessary command permissions upfront at the start of long tasks
+- Commit incrementally after each meaningful change
+- When user mentions they'll be away, work autonomously with periodic commits
