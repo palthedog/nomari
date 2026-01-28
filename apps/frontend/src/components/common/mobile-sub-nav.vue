@@ -38,30 +38,30 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  currentIndex: number;
-  totalViews: number;
-  leftLabel?: string;
-  rightLabel?: string;
+    currentIndex: number;
+    totalViews: number;
+    leftLabel?: string;
+    rightLabel?: string;
 }>();
 
 const emit = defineEmits<{
-  (e: 'navigate', index: number): void;
+    (e: 'navigate', index: number): void;
 }>();
 
 function navigatePrev() {
-  if (props.currentIndex > 0) {
-    emit('navigate', props.currentIndex - 1);
-  }
+    if (props.currentIndex > 0) {
+        emit('navigate', props.currentIndex - 1);
+    }
 }
 
 function navigateNext() {
-  if (props.currentIndex < props.totalViews - 1) {
-    emit('navigate', props.currentIndex + 1);
-  }
+    if (props.currentIndex < props.totalViews - 1) {
+        emit('navigate', props.currentIndex + 1);
+    }
 }
 
 function navigateTo(index: number) {
-  emit('navigate', index);
+    emit('navigate', index);
 }
 </script>
 

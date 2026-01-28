@@ -397,7 +397,9 @@ function getOrCreateTerminalNode(
  * Initialize build context from game definition
  */
 function initializeBuildContext(gameDefinition: GameDefinition): BuildContext {
-    const initialDynamicState = gameDefinition.initialDynamicState || { resources: [] };
+    const initialDynamicState = gameDefinition.initialDynamicState || {
+        resources: [] 
+    };
 
     const situationMap = new Map<number, Situation>();
     for (const situation of gameDefinition.situations) {
@@ -700,8 +702,12 @@ function buildComboStarterNode(
         name: comboStarter.name,
         description: comboStarter.description || comboStarter.name,
         state: createNodeState(comboStarter.situationId, state),
-        playerActions: { actions: playerActions },
-        opponentActions: { actions: opponentActions },
+        playerActions: {
+            actions: playerActions 
+        },
+        opponentActions: {
+            actions: opponentActions 
+        },
         transitions,
     };
 }
@@ -736,7 +742,9 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     log.debug('Building game tree:', gameDefinition.name || gameDefinition.gameId);
 
     const ctx = initializeBuildContext(gameDefinition);
-    const initialDynamicState = gameDefinition.initialDynamicState || { resources: [] };
+    const initialDynamicState = gameDefinition.initialDynamicState || {
+        resources: [] 
+    };
 
     /**
      * Get or create a node for a given situation and dynamic state
@@ -807,7 +815,10 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
 
     if (isGameTreeBuildError(rootNodeResult)) {
         log.error('Game tree build failed:', rootNodeResult.message);
-        return { success: false, error: rootNodeResult };
+        return {
+            success: false,
+            error: rootNodeResult 
+        };
     }
 
     const allNodes = collectAllNodes(rootNodeResult, ctx.nodeMap);

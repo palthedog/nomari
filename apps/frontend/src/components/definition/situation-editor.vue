@@ -217,7 +217,9 @@ import type {
 import { ResourceType } from '@nomari/ts-proto';
 import { generateId } from '@/utils/game-definition-utils';
 
-const model = defineModel<Situation>({ required: true });
+const model = defineModel<Situation>({
+    required: true 
+});
 
 const props = defineProps<{
     availableSituations: Situation[];

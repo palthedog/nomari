@@ -226,7 +226,10 @@ function calculateExpectedDamage(
         expectedDamageReceived += transitionProb * (immediateDamageReceived + nextNodeValues.expectedDamageReceived);
     }
 
-    return { expectedDamageDealt, expectedDamageReceived };
+    return {
+        expectedDamageDealt,
+        expectedDamageReceived 
+    };
 }
 
 /**

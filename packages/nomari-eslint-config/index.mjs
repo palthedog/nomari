@@ -37,7 +37,9 @@ export default [
                 },
             ],
             // General code quality
-            'no-console': ['warn', { allow: ['warn', 'error', 'assert'] }],
+            'no-console': ['warn', {
+                allow: ['warn', 'error', 'assert'] 
+            }],
             'prefer-const': 'warn',
             'no-var': 'warn',
             'curly': ['error', 'all'],
@@ -52,10 +54,19 @@ export default [
             '@stylistic/object-curly-newline': [
                 'error',
                 {
-                    ObjectExpression: { multiline: true, minProperties: 1 },
-                    ObjectPattern: { multiline: true },
-                    ImportDeclaration: { multiline: true },
-                    ExportDeclaration: { multiline: true },
+                    ObjectExpression: {
+                        multiline: true,
+                        minProperties: 1 
+                    },
+                    ObjectPattern: {
+                        multiline: true 
+                    },
+                    ImportDeclaration: {
+                        multiline: true 
+                    },
+                    ExportDeclaration: {
+                        multiline: true 
+                    },
                 },
             ],
             '@stylistic/object-property-newline': [

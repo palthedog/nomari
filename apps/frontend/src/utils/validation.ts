@@ -33,10 +33,16 @@ function validateRootSituation(
     allSituationIds: Set<number>
 ): ValidationError[] {
     if (!gameDefinition.rootSituationId) {
-        return [{ field: '初期状況', message: '初期状況を設定してください' }];
+        return [{
+            field: '初期状況',
+            message: '初期状況を設定してください' 
+        }];
     }
     if (!allSituationIds.has(gameDefinition.rootSituationId)) {
-        return [{ field: '初期状況', message: '初期状況に設定されている状況が存在しません' }];
+        return [{
+            field: '初期状況',
+            message: '初期状況に設定されている状況が存在しません' 
+        }];
     }
     return [];
 }

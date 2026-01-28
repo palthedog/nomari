@@ -16,7 +16,9 @@ function exportAsFile(blob: Blob, filename: string): void {
  */
 export function exportAsJSON(gameDefinition: GameDefinition, filename: string): void {
     const json = GameDefinition.toJsonString(gameDefinition);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], {
+        type: 'application/json' 
+    });
     exportAsFile(blob, filename);
 }
 

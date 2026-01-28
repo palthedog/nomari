@@ -186,12 +186,16 @@ function handleResize() {
 const mobileNavLabels = ['一覧', '編集', '初期状態', 'ゲーム木', '最適戦略'];
 
 const mobileNavLeftLabel = computed(() => {
-    if (mobileNavIndex.value === 0) return '';
+    if (mobileNavIndex.value === 0) {
+        return '';
+    }
     return mobileNavLabels[mobileNavIndex.value - 1];
 });
 
 const mobileNavRightLabel = computed(() => {
-    if (mobileNavIndex.value === 4) return '';
+    if (mobileNavIndex.value === 4) {
+        return '';
+    }
     return mobileNavLabels[mobileNavIndex.value + 1];
 });
 
@@ -357,7 +361,9 @@ watch(
     () => {
         definitionStore.incrementVersion();
     },
-    { deep: true }
+    {
+        deep: true 
+    }
 );
 
 // Auto-switch to strategy panel when node is selected on mobile
@@ -372,7 +378,9 @@ watch(
 
 // Sync mobileNavIndex when viewMode changes (e.g., from header tabs)
 watch(viewMode, (newMode) => {
-    if (!isMobile.value) return;
+    if (!isMobile.value) {
+        return;
+    }
     if (newMode === 'strategy' && mobileNavIndex.value < 3) {
         mobileNavIndex.value = 3; // Switch to tree view
     } else if (newMode === 'edit' && mobileNavIndex.value >= 3) {

@@ -61,7 +61,9 @@
 import type { TerminalSituation } from '@nomari/ts-proto';
 import { CornerState } from '@nomari/ts-proto';
 
-const model = defineModel<TerminalSituation>({ required: true });
+const model = defineModel<TerminalSituation>({
+    required: true 
+});
 
 const cornerStateItems = [
     {

@@ -283,12 +283,12 @@ import { useDefinitionStore } from '@/stores/definition-store';
 
 // Props for mobile support
 const props = defineProps<{
-  isMobile?: boolean;
-  mobileSubView?: 'list' | 'detail';
+    isMobile?: boolean;
+    mobileSubView?: 'list' | 'detail';
 }>();
 
 const emit = defineEmits<{
-  (e: 'update:mobileSubView', value: 'list' | 'detail'): void;
+    (e: 'update:mobileSubView', value: 'list' | 'detail'): void;
 }>();
 
 const definitionStore = useDefinitionStore();
@@ -367,8 +367,12 @@ const availableSituationsForTransition = computed(() => {
         situations.push({
             situationId: combo.situationId,
             name: `[コンボ] ${combo.name || '(名前なし)'}`,
-            playerActions: { actions: [] },
-            opponentActions: { actions: [] },
+            playerActions: {
+                actions: [] 
+            },
+            opponentActions: {
+                actions: [] 
+            },
             transitions: [],
         });
     }
@@ -376,8 +380,12 @@ const availableSituationsForTransition = computed(() => {
         situations.push({
             situationId: combo.situationId,
             name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
-            playerActions: { actions: [] },
-            opponentActions: { actions: [] },
+            playerActions: {
+                actions: [] 
+            },
+            opponentActions: {
+                actions: [] 
+            },
             transitions: [],
         });
     }

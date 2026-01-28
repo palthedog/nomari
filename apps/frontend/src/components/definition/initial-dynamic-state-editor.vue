@@ -46,7 +46,9 @@
 import type { DynamicState, DynamicState_Resource } from '@nomari/ts-proto';
 import { ResourceType } from '@nomari/ts-proto';
 
-const model = defineModel<DynamicState>({ required: true });
+const model = defineModel<DynamicState>({
+    required: true 
+});
 
 fillDefaultResources();
 

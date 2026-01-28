@@ -13,8 +13,12 @@ function createInitialSituation(): Situation {
     return {
         situationId: generateId(),
         name: "開始状況",
-        playerActions: {actions: [],},
-        opponentActions: {actions: [],},
+        playerActions: {
+            actions: [],
+        },
+        opponentActions: {
+            actions: [],
+        },
         transitions: [],
     };
 }
