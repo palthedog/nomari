@@ -75,6 +75,7 @@ npm run build:pages
 ## Development Guidelines
 
 - Always run `npm run test` after code changes to verify all packages pass
+- **Before every commit**: Run `npm run test` at the workspace root (nomari/) and verify all tests pass
 - Solver changes require unit tests
 - UI changes require screenshots in PR
 - Ask for confirmation before proceeding when user's proposed implementation has issues
