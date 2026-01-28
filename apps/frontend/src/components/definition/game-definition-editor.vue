@@ -1,6 +1,9 @@
 <template>
   <div class="game-definition-editor">
-    <div class="header">
+    <div
+      v-show="!isMobile || mobileSubView === 'list'"
+      class="header"
+    >
       <div class="header-controls">
         <!-- Game ID-->
         <div
@@ -56,9 +59,13 @@
     </div>
 
     <div class="content">
-      <div class="left-panel">
+      <div
+        v-show="!isMobile || mobileSubView === 'list'"
+        class="left-panel"
+        :class="{ 'mobile-full-height': isMobile }"
+      >
         <div class="panel-content">
-          <!-- 状況(Situation) -->
+          <!-- Situations -->
           <div class="section-group">
             <div class="section-header">
               <h4>状況</h4>
@@ -83,7 +90,7 @@
             </ul>
           </div>
 
-          <!-- 終了条件 -->
+          <!-- Terminal Situations -->
           <div class="section-group">
             <div class="section-header">
               <h4>終了条件</h4>
@@ -108,7 +115,7 @@
             </ul>
           </div>
 
-          <!-- プレイヤーコンボ -->
+          <!-- Player Combos -->
           <div class="section-group">
             <div class="section-header">
               <h4>プレイヤーコンボ</h4>
@@ -133,7 +140,7 @@
             </ul>
           </div>
 
-          <!-- 相手コンボ -->
+          <!-- Opponent Combos -->
           <div class="section-group">
             <div class="section-header">
               <h4>相手コンボ</h4>
@@ -160,7 +167,11 @@
         </div>
       </div>
 
-      <div class="right-panel">
+      <div
+        v-show="!isMobile || mobileSubView === 'detail'"
+        class="right-panel"
+        :class="{ 'mobile-full-height': isMobile }"
+      >
         <div class="panel-content">
           <SituationEditor
             v-if="selectedSituation"
@@ -270,6 +281,16 @@ import TerminalSituationEditor from './terminal-situation-editor.vue';
 import ComboStarterEditor from './combo-starter-editor.vue';
 import { useDefinitionStore } from '@/stores/definition-store';
 
+// Props for mobile support
+const props = defineProps<{
+  isMobile?: boolean;
+  mobileSubView?: 'list' | 'detail';
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:mobileSubView', value: 'list' | 'detail'): void;
+}>();
+
 const definitionStore = useDefinitionStore();
 const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
 const { closeValidationErrors } = definitionStore;
@@ -370,28 +391,38 @@ function clearSelection() {
     selectedOpponentComboId.value = null;
 }
 
+function switchToDetailIfMobile() {
+    if (props.isMobile) {
+        emit('update:mobileSubView', 'detail');
+    }
+}
+
 function selectSituation(situationId: number) {
     clearSelection();
     selectedItemType.value = 'situation';
     selectedSituationId.value = situationId;
+    switchToDetailIfMobile();
 }
 
 function selectTerminalSituation(terminalSituationId: number) {
     clearSelection();
     selectedItemType.value = 'terminal-situation';
     selectedTerminalSituationId.value = terminalSituationId;
+    switchToDetailIfMobile();
 }
 
 function selectPlayerCombo(comboId: number) {
     clearSelection();
     selectedItemType.value = 'player-combo';
     selectedPlayerComboId.value = comboId;
+    switchToDetailIfMobile();
 }
 
 function selectOpponentCombo(comboId: number) {
     clearSelection();
     selectedItemType.value = 'opponent-combo';
     selectedOpponentComboId.value = comboId;
+    switchToDetailIfMobile();
 }
 
 function addSituation() {
@@ -920,6 +951,13 @@ function deleteOpponentCombo() {
   color: var(--text-secondary);
 }
 
+/* Mobile full height for single-view mode */
+.mobile-full-height {
+  flex: 1 !important;
+  max-height: none !important;
+  height: 100%;
+}
+
 /* Mobile responsive styles */
 @media (max-width: 768px) {
   .header-controls {
@@ -940,6 +978,10 @@ function deleteOpponentCombo() {
     max-height: 35vh;
     border-right: none;
     border-bottom: 1px solid var(--border-primary);
+  }
+
+  .left-panel.mobile-full-height {
+    border-bottom: none;
   }
 
   .right-panel {

@@ -55,30 +55,27 @@
         <!-- Mobile: Show one panel at a time -->
         <template v-else>
           <div
-            v-show="mobileEditView === 'editor'"
+            v-show="mobileNavIndex === 0 || mobileNavIndex === 1"
             class="editor-section mobile-full"
           >
-            <GameDefinitionEditor v-model="gameDefinition" />
+            <GameDefinitionEditor
+              v-model="gameDefinition"
+              :is-mobile="isMobile"
+              :mobile-sub-view="mobileNavIndex === 0 ? 'list' : 'detail'"
+              @update:mobile-sub-view="mobileNavIndex = $event === 'list' ? 0 : 1"
+            />
           </div>
           <div
-            v-show="mobileEditView === 'settings'"
+            v-show="mobileNavIndex === 2"
             class="build-panel-section mobile-full"
           >
             <GameTreeBuildPanel v-model="gameDefinition" />
           </div>
         </template>
 
-        <!-- Mobile: Settings toggle button -->
+        <!-- Desktop only: View Strategy button -->
         <button
-          v-if="isMobile"
-          type="button"
-          class="floating-btn floating-btn-left"
-          @click="toggleMobileEditView()"
-        >
-          {{ mobileEditView === 'editor' ? '初期状態' : '編集' }}
-        </button>
-
-        <button
+          v-if="!isMobile"
           type="button"
           class="floating-btn floating-btn-right"
           @click="switchToStrategyWithValidation()"
@@ -104,12 +101,12 @@
         <!-- Mobile: Show one panel at a time -->
         <template v-else>
           <GameTreePanel
-            v-show="mobileStrategyView === 'tree'"
+            v-show="mobileNavIndex === 3"
             :game-tree="gameTree"
             class="mobile-full"
           />
           <div
-            v-show="mobileStrategyView === 'strategy'"
+            v-show="mobileNavIndex === 4"
             class="strategy-section mobile-full"
           >
             <NodeStrategyPanel
@@ -120,26 +117,28 @@
           </div>
         </template>
 
-        <!-- Mobile: Back to tree button when viewing strategy -->
+        <!-- Desktop only: Back to Edit button -->
         <button
-          v-if="isMobile && mobileStrategyView === 'strategy'"
+          v-if="!isMobile"
           type="button"
           class="floating-btn floating-btn-left"
-          @click="showMobileGameTree()"
-        >
-          ゲーム木に戻る
-        </button>
-
-        <button
-          type="button"
-          class="floating-btn"
-          :class="isMobile && mobileStrategyView === 'strategy' ? 'floating-btn-right' : 'floating-btn-left'"
           @click="viewStore.switchToEdit()"
         >
           編集に戻る
         </button>
       </template>
     </div>
+
+    <!-- Mobile: Unified navigation bar for all 5 pages -->
+    <MobileSubNav
+      v-if="isMobile"
+      :current-index="mobileNavIndex"
+      :total-views="5"
+      :left-label="mobileNavLeftLabel"
+      :right-label="mobileNavRightLabel"
+      class="mobile-nav-bar"
+      @navigate="handleMobileNavigation"
+    />
 
     <v-snackbar
       v-model="notificationStore.show"
@@ -163,6 +162,7 @@ import { useViewStore, VIEW_MODES } from '@/stores/view-store';
 import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
+import MobileSubNav from '@/components/common/mobile-sub-nav.vue';
 import { useDefinitionStore } from './stores/definition-store';
 import { useNotificationStore } from './stores/notification-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
@@ -173,28 +173,44 @@ const MOBILE_BREAKPOINT = 768;
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024);
 const isMobile = computed(() => windowWidth.value <= MOBILE_BREAKPOINT);
 
-// Mobile view state for strategy mode: 'tree' shows game tree, 'strategy' shows strategy panel
-type MobileStrategyView = 'tree' | 'strategy';
-const mobileStrategyView = ref<MobileStrategyView>('tree');
 
-// Mobile view state for edit mode: 'editor' shows definition editor, 'settings' shows build panel
-type MobileEditView = 'editor' | 'settings';
-const mobileEditView = ref<MobileEditView>('editor');
+// Mobile unified navigation: 5 pages across edit and strategy modes
+// 0: list, 1: detail, 2: settings, 3: tree, 4: strategy
+const mobileNavIndex = ref(0);
 
 function handleResize() {
     windowWidth.value = window.innerWidth;
 }
 
-function showMobileGameTree() {
-    mobileStrategyView.value = 'tree';
-}
+// Labels for mobile unified navigation (5 pages)
+const mobileNavLabels = ['一覧', '編集', '初期状態', 'ゲーム木', '最適戦略'];
 
-function showMobileStrategy() {
-    mobileStrategyView.value = 'strategy';
-}
+const mobileNavLeftLabel = computed(() => {
+    if (mobileNavIndex.value === 0) return '';
+    return mobileNavLabels[mobileNavIndex.value - 1];
+});
 
-function toggleMobileEditView() {
-    mobileEditView.value = mobileEditView.value === 'editor' ? 'settings' : 'editor';
+const mobileNavRightLabel = computed(() => {
+    if (mobileNavIndex.value === 4) return '';
+    return mobileNavLabels[mobileNavIndex.value + 1];
+});
+
+function handleMobileNavigation(index: number) {
+    // Validate before switching to strategy pages (index 3 or 4)
+    if (index >= 3 && mobileNavIndex.value < 3) {
+        if (!definitionStore.validateAndShowErrors()) {
+            return;
+        }
+    }
+
+    mobileNavIndex.value = index;
+
+    // Update viewMode based on index
+    if (index <= 2) {
+        viewStore.setViewMode('edit');
+    } else {
+        viewStore.setViewMode('strategy');
+    }
 }
 
 // View store
@@ -349,15 +365,18 @@ watch(
     () => gameTreeStore.selectedNodeId,
     (newNodeId) => {
         if (isMobile.value && newNodeId && viewMode.value === 'strategy') {
-            mobileStrategyView.value = 'strategy';
+            mobileNavIndex.value = 4; // Switch to strategy panel
         }
     }
 );
 
-// Reset mobile strategy view when switching to strategy mode
+// Sync mobileNavIndex when viewMode changes (e.g., from header tabs)
 watch(viewMode, (newMode) => {
-    if (newMode === 'strategy') {
-        mobileStrategyView.value = 'tree';
+    if (!isMobile.value) return;
+    if (newMode === 'strategy' && mobileNavIndex.value < 3) {
+        mobileNavIndex.value = 3; // Switch to tree view
+    } else if (newMode === 'edit' && mobileNavIndex.value >= 3) {
+        mobileNavIndex.value = 0; // Switch to list view
     }
 });
 
@@ -544,6 +563,15 @@ body {
   left: 24px;
 }
 
+/* Mobile navigation bar */
+.mobile-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+
 /* Mobile responsive styles */
 @media (max-width: 768px) {
   .app-header {
@@ -574,6 +602,7 @@ body {
 
   .app-content {
     flex-direction: column;
+    padding-bottom: 60px; /* Space for mobile nav bar */
   }
 
   /* Mobile full-screen panel */
@@ -602,11 +631,11 @@ body {
     flex: 1;
   }
 
-  /* Floating buttons */
+  /* Floating buttons - position above nav bar */
   .floating-btn {
     padding: 12px 20px;
     font-size: 14px;
-    bottom: 16px;
+    bottom: 76px; /* Above the 60px nav bar + 16px margin */
   }
 
   .floating-btn-right {
