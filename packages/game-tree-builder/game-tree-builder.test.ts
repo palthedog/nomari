@@ -1,1934 +1,464 @@
 import { buildGameTree, GameTreeBuildErrorCode } from './game-tree-builder';
 import {
     GameDefinition,
+    Situation,
+    TerminalSituation,
+    Transition,
     ResourceType,
     CornerState,
+    RewardComputationMethod,
 } from '@nomari/ts-proto';
-import type { NodeTransition } from '@nomari/game-tree/game-tree';
+
+// =============================================================================
+// Test Helpers: Build GameDefinition with sensible defaults
+// =============================================================================
+
+/**
+ * Default health values for testing
+ */
+const DEFAULT_PLAYER_HP = 5000;
+const DEFAULT_OPPONENT_HP = 4000;
+
+/**
+ * Create initial dynamic state with given health values
+ */
+function initialState(playerHp: number = DEFAULT_PLAYER_HP, opponentHp: number = DEFAULT_OPPONENT_HP) {
+    return {
+        resources: [
+            { resourceType: ResourceType.PLAYER_HEALTH, value: playerHp },
+            { resourceType: ResourceType.OPPONENT_HEALTH, value: opponentHp },
+        ],
+    };
+}
+
+/**
+ * Create a simple action with auto-generated ID
+ */
+let actionIdCounter = 1000;
+function act(name: string, id?: number) {
+    return { actionId: id ?? actionIdCounter++, name, description: name };
+}
+
+/**
+ * Create a transition with optional resource consumption
+ */
+function trans(
+    playerActionId: number,
+    opponentActionId: number,
+    nextSituationId: number,
+    damage?: { player?: number; opponent?: number }
+): Transition {
+    const consumptions = [];
+    if (damage?.player) {
+        consumptions.push({ resourceType: ResourceType.PLAYER_HEALTH, value: damage.player });
+    }
+    if (damage?.opponent) {
+        consumptions.push({ resourceType: ResourceType.OPPONENT_HEALTH, value: damage.opponent });
+    }
+    return {
+        playerActionId,
+        opponentActionId,
+        nextSituationId,
+        resourceConsumptions: consumptions,
+        resourceRequirements: [],
+    };
+}
+
+/**
+ * Create a situation with one player action and one opponent action
+ */
+function simpleSituation(
+    id: number,
+    nextSituationId: number,
+    damage?: { player?: number; opponent?: number }
+): Situation {
+    const pAction = act('Action1', id * 10 + 1);
+    const oAction = act('Action2', id * 10 + 2);
+    return {
+        situationId: id,
+        name: `Situation ${id}`,
+        playerActions: { actions: [pAction] },
+        opponentActions: { actions: [oAction] },
+        transitions: [trans(pAction.actionId, oAction.actionId, nextSituationId, damage)],
+    };
+}
+
+/**
+ * Reward computation methods
+ */
+const WIN_PROBABILITY_METHOD = (cornerBonus: number = 0): RewardComputationMethod => ({
+    method: { oneofKind: 'winProbability', winProbability: { cornerBonus, odGaugeBonus: 0, saGaugeBonus: 0 } },
+});
+
+const DAMAGE_RACE_METHOD: RewardComputationMethod = {
+    method: { oneofKind: 'damageRace', damageRace: {} },
+};
+
+/**
+ * Base GameDefinition with sensible defaults.
+ * Override specific fields as needed for each test.
+ */
+function baseGameDef(overrides: Partial<GameDefinition> = {}): GameDefinition {
+    return {
+        gameId: 1,
+        name: 'Test Game',
+        description: 'Test',
+        rootSituationId: 101,
+        situations: [],
+        terminalSituations: [],
+        initialDynamicState: initialState(),
+        playerComboStarters: [],
+        opponentComboStarters: [],
+        ...overrides,
+    };
+}
+
+// =============================================================================
+// Tests
+// =============================================================================
 
 describe('gameTreeBuilder', () => {
+    // =========================================================================
+    // Basic tree generation
+    // =========================================================================
+
     describe('basic game tree generation', () => {
-        it('should fail when there is a cycle without DynamicState changes', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 1,
-                name: 'Test Game',
-                description: 'Test game with two cyclic situations.',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'First situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1001,
-                                    name: '',
-                                    description: 'Action 1' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1002,
-                                    name: '',
-                                    description: 'Action 2' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1001,
-                                opponentActionId: 1002,
-                                nextSituationId: 102,
-                                resourceConsumptions: [],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                    {
-                        situationId: 102,
-                        name: 'Second situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1003,
-                                    name: '',
-                                    description: 'Action 3' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1004,
-                                    name: '',
-                                    description: 'Action 4' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1003,
-                                opponentActionId: 1004,
-                                nextSituationId: 101,
-                                resourceConsumptions: [],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-            };
+        it('creates simple tree: situation -> terminal', () => {
+            const game = baseGameDef({
+                situations: [simpleSituation(101, 200)],
+                terminalSituations: [{ situationId: 200, name: 'End', description: 'End' }],
+            });
 
-            // Cyclic references without any change in DynamicState should return an error
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(false);
-            if (!result.success) {
-                expect(result.error.code).toBe(GameTreeBuildErrorCode.CYCLE_DETECTED);
-                expect(result.error.message).toContain('Cycle detected');
-            }
-        });
+            const result = buildGameTree(game);
 
-        it('should create a simple game tree with terminal situation', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 1,
-                name: 'Test Game',
-                description: 'A simple test game with terminal',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'First situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1001,
-                                    name: '',
-                                    description: 'Action 1' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1002,
-                                    name: '',
-                                    description: 'Action 2' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1001,
-                                opponentActionId: 1002,
-                                nextSituationId: 200,
-                                resourceConsumptions: [],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [
-                    {
-                        situationId: 200,
-                        name: 'Neutral',
-                        description: 'Neutral terminal situation',
-                    },
-                ],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-            };
-
-            const result = buildGameTree(gameDefinition);
             expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
+            if (!result.success) throw new Error(result.error.message);
 
+            const { gameTree } = result;
             expect(gameTree.id).toBe(1);
-            expect(gameTree.root).toBeDefined();
+            expect(gameTree.nodes[gameTree.root]).toBeDefined();
+
+            // Root has transition to terminal
             const rootNode = gameTree.nodes[gameTree.root];
-            expect(rootNode).toBeDefined();
-            expect(rootNode.nodeId).toContain('101');
-            expect(rootNode.playerActions).toBeDefined();
-            expect(rootNode.opponentActions).toBeDefined();
-            expect(rootNode.transitions.length).toBeGreaterThan(0);
-            // Check if transition leads to a terminal node
-            const firstTransition = rootNode.transitions[0];
-            expect(firstTransition.nextNodeId).toBeDefined();
-            const nextNode = gameTree.nodes[firstTransition.nextNodeId!];
-            expect(nextNode).toBeDefined();
-            expect(nextNode.playerReward).toBeDefined();
-            expect(nextNode.opponentReward).toBeDefined();
+            expect(rootNode.transitions.length).toBe(1);
+            const terminalNode = gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward).toBeDefined();
         });
     });
+
+    // =========================================================================
+    // Cycle detection
+    // =========================================================================
+
+    describe('cycle detection', () => {
+        it('fails when cycle has no state change', () => {
+            // 101 -> 102 -> 101 (no damage = infinite loop)
+            const game = baseGameDef({
+                situations: [
+                    simpleSituation(101, 102),
+                    simpleSituation(102, 101),
+                ],
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(false);
+            if (result.success) throw new Error('Expected failure');
+            expect(result.error.code).toBe(GameTreeBuildErrorCode.CYCLE_DETECTED);
+        });
+
+        it('allows cycle when state changes each iteration', () => {
+            // 101 -> 102 -> 101 with damage each step (eventually someone dies)
+            const game = baseGameDef({
+                situations: [
+                    simpleSituation(101, 102, { opponent: 100 }),
+                    simpleSituation(102, 101, { player: 100 }),
+                ],
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+            expect(result.gameTree.root).toBeDefined();
+        });
+    });
+
+    // =========================================================================
+    // Automatic terminal creation (win/lose/draw)
+    // =========================================================================
+
+    describe('auto-terminal creation', () => {
+        it('creates WIN terminal when opponent HP reaches 0', () => {
+            // Deal 5000 damage to 4000 HP opponent -> kills
+            const game = baseGameDef({
+                situations: [simpleSituation(101, 102, { opponent: 5000 })],
+                rewardComputationMethod: WIN_PROBABILITY_METHOD(),
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBe(10000); // Win
+            expect(terminalNode.opponentReward!.value).toBe(-10000);
+        });
+
+        it('creates LOSE terminal when player HP reaches 0', () => {
+            // Deal 6000 damage to 5000 HP player -> player dies
+            const game = baseGameDef({
+                situations: [simpleSituation(101, 102, { player: 6000 })],
+                rewardComputationMethod: WIN_PROBABILITY_METHOD(),
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBe(-10000); // Lose
+            expect(terminalNode.opponentReward!.value).toBe(10000);
+        });
+
+        it('creates DRAW terminal when both HP reach 0', () => {
+            const game = baseGameDef({
+                situations: [simpleSituation(101, 102, { player: 6000, opponent: 5000 })],
+                rewardComputationMethod: WIN_PROBABILITY_METHOD(),
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBeCloseTo(0, 5);
+        });
+    });
+
+    // =========================================================================
+    // Neutral terminal situations
+    // =========================================================================
+
+    describe('neutral terminal situations', () => {
+        it('calculates reward based on remaining HP', () => {
+            // Equal HP -> 50% win prob -> reward = 0
+            const game = baseGameDef({
+                initialDynamicState: initialState(4000, 4000),
+                situations: [simpleSituation(101, 200)],
+                terminalSituations: [{ situationId: 200, name: 'Neutral', description: 'Neutral', cornerState: CornerState.NONE }],
+                rewardComputationMethod: WIN_PROBABILITY_METHOD(),
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBeCloseTo(0, 1);
+        });
+    });
+
+    // =========================================================================
+    // Damage race reward computation
+    // =========================================================================
+
+    describe('damage race rewards', () => {
+        it('calculates based on damage dealt - damage received', () => {
+            // Deal 1000 to opponent, receive 500 -> net +500
+            const game = baseGameDef({
+                situations: [simpleSituation(101, 200, { player: 500, opponent: 1000 })],
+                terminalSituations: [{ situationId: 200, name: 'End', description: 'End', cornerState: CornerState.UNKNOWN }],
+                rewardComputationMethod: DAMAGE_RACE_METHOD,
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBe(500);
+            expect(terminalNode.opponentReward!.value).toBe(-500);
+        });
+
+        it('returns 0 for draw (equal damage)', () => {
+            // Both deal 5000 damage (kills both) -> draw
+            const game = baseGameDef({
+                initialDynamicState: initialState(5000, 5000),
+                situations: [simpleSituation(101, 102, { player: 5000, opponent: 5000 })],
+                rewardComputationMethod: DAMAGE_RACE_METHOD,
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBeCloseTo(0, 5);
+        });
+
+        it('win: player kills opponent', () => {
+            const game = baseGameDef({
+                initialDynamicState: initialState(2000, 2000),
+                situations: [simpleSituation(101, 102, { opponent: 2000 })],
+                rewardComputationMethod: DAMAGE_RACE_METHOD,
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBe(2000);
+        });
+
+        it('lose: opponent kills player', () => {
+            const game = baseGameDef({
+                initialDynamicState: initialState(2000, 2000),
+                situations: [simpleSituation(101, 102, { player: 2000 })],
+                rewardComputationMethod: DAMAGE_RACE_METHOD,
+            });
+
+            const result = buildGameTree(game);
+
+            expect(result.success).toBe(true);
+            if (!result.success) throw new Error(result.error.message);
+
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const terminalNode = result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+            expect(terminalNode.playerReward!.value).toBe(-2000);
+        });
+    });
+
+    // =========================================================================
+    // Win probability with corner bonus
+    // =========================================================================
+
+    describe('win probability with corner', () => {
+        const testWithCorner = (
+            cornerState: CornerState,
+            playerHp: number,
+            opponentHp: number,
+            cornerBonus: number
+        ) => {
+            const game = baseGameDef({
+                initialDynamicState: initialState(playerHp, opponentHp),
+                situations: [simpleSituation(101, 200)],
+                terminalSituations: [{ situationId: 200, name: 'End', description: 'End', cornerState }],
+                rewardComputationMethod: WIN_PROBABILITY_METHOD(cornerBonus),
+            });
+            const result = buildGameTree(game);
+            if (!result.success) throw new Error(result.error.message);
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            return result.gameTree.nodes[rootNode.transitions[0].nextNodeId!];
+        };
+
+        it('player in corner: opponent gets advantage', () => {
+            // Player 6000 HP, opponent 4000 HP, corner bonus 1000
+            // Without corner: player would have advantage
+            // With player in corner: opponent gets +1000 damage -> evens out
+            const terminal = testWithCorner(CornerState.PLAYER_IN_CORNER, 6000, 4000, 1000);
+            expect(terminal.playerReward!.value).toBeCloseTo(0, 5);
+        });
+
+        it('opponent in corner: player gets advantage', () => {
+            // Player 4000 HP, opponent 6000 HP, corner bonus 1000
+            // Without corner: opponent would have advantage
+            // With opponent in corner: player gets +1000 damage -> evens out
+            const terminal = testWithCorner(CornerState.OPPONENT_IN_CORNER, 4000, 6000, 1000);
+            expect(terminal.playerReward!.value).toBeCloseTo(0, 5);
+        });
+
+        it('NONE corner state: no bonus applied', () => {
+            // Player 6000 HP, opponent 4000 HP -> player advantage
+            const terminal = testWithCorner(CornerState.NONE, 6000, 4000, 1000);
+            expect(terminal.playerReward!.value).toBe(2000); // Player wins more often
+        });
+
+        it('symmetric corner effects cancel out', () => {
+            // 5000 vs 5000 HP with 3000 corner bonus
+            // Player in corner -> negative reward
+            const terminalPlayerCorner = testWithCorner(CornerState.PLAYER_IN_CORNER, 5000, 5000, 3000);
+            // Opponent in corner -> positive reward
+            const terminalOppCorner = testWithCorner(CornerState.OPPONENT_IN_CORNER, 5000, 5000, 3000);
+
+            expect(terminalPlayerCorner.playerReward!.value).toBeLessThan(0);
+            expect(terminalOppCorner.playerReward!.value).toBeGreaterThan(0);
+            // Symmetric: |reward| should be equal
+            expect(Math.abs(terminalPlayerCorner.playerReward!.value))
+                .toBeCloseTo(Math.abs(terminalOppCorner.playerReward!.value), 0);
+        });
+
+        it('HP advantage overcomes corner disadvantage', () => {
+            // Player 10000 HP vs opponent 1 HP, player in corner
+            // Even with corner penalty, player should win easily
+            const terminal = testWithCorner(CornerState.PLAYER_IN_CORNER, 10000, 1, 1000);
+            expect(terminal.playerReward!.value).toBe(6000);
+        });
+
+        it('HP disadvantage overcomes corner advantage', () => {
+            // Player 1 HP vs opponent 10000 HP, opponent in corner
+            // Even with corner bonus, player should lose
+            const terminal = testWithCorner(CornerState.OPPONENT_IN_CORNER, 1, 10000, 1000);
+            expect(terminal.playerReward!.value).toBe(-6000);
+        });
+    });
+
+    // =========================================================================
+    // Resource consumption
+    // =========================================================================
 
     describe('resource consumption', () => {
-        it('should apply resource consumptions and create different nodes for different states', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 2,
-                name: 'Damage Game',
-                description: 'A game with damage',
-                rootSituationId: 101,
+        it('creates different nodes for different states', () => {
+            // Situation 101 -> 102 with opponent damage
+            const pAction = act('Attack', 2001);
+            const oAction = act('Guard', 2002);
+            const game = baseGameDef({
                 situations: [
                     {
                         situationId: 101,
-                        name: 'Attack situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 2001,
-                                    name: '',
-                                    description: 'Attack' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 2002,
-                                    name: '',
-                                    description: 'Guard' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 2001,
-                                opponentActionId: 2002,
-                                nextSituationId: 102,
-                                resourceConsumptions: [
-                                    {
-                                        resourceType: ResourceType.OPPONENT_HEALTH,
-                                        value: 2000,
-                                    },
-                                ],
-                                resourceRequirements: [],
-                            },
-                        ],
+                        name: 'Attack',
+                        playerActions: { actions: [pAction] },
+                        opponentActions: { actions: [oAction] },
+                        transitions: [trans(pAction.actionId, oAction.actionId, 102, { opponent: 2000 })],
                     },
                     {
                         situationId: 102,
-                        name: 'Next situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1001,
-                                    name: '',
-                                    description: 'Action 1' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1002,
-                                    name: '',
-                                    description: 'Action 2' 
-                                },
-                            ],
-                        },
-                        transitions: [],
+                        name: 'Next',
+                        playerActions: { actions: [act('A', 1001)] },
+                        opponentActions: { actions: [act('B', 1002)] },
+                        transitions: [], // Dead end -> creates terminal
                     },
                 ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-            };
+            });
 
-            const result = buildGameTree(gameDefinition);
+            const result = buildGameTree(game);
+
             expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
-            const rootNode = gameTree.nodes[gameTree.root];
+            if (!result.success) throw new Error(result.error.message);
 
-            // Find the transition
-            const transition = rootNode.transitions.find(
-                (t: NodeTransition) => t.playerActionId === 2001 && t.opponentActionId === 2002
-            );
-            expect(transition).toBeDefined();
-            // Check if transition leads to a non-terminal node
-            expect(transition!.nextNodeId).toBeDefined();
-            const nextNode = gameTree.nodes[transition!.nextNodeId!];
-            expect(nextNode).toBeDefined();
+            // Transition exists
+            const rootNode = result.gameTree.nodes[result.gameTree.root];
+            const transition = rootNode.transitions[0];
+            expect(transition.nextNodeId).toBeDefined();
+
+            // Next node is not terminal (has actions)
+            const nextNode = result.gameTree.nodes[transition.nextNodeId!];
             expect(nextNode.playerReward).toBeUndefined();
-            expect(nextNode.opponentReward).toBeUndefined();
-
-            // The next node should have reduced opponent health
-            // We can't directly check the state, but we can verify the tree structure
-            expect(transition!.nextNodeId).toBeDefined();
-        });
-    });
-
-    describe('automatic terminal node creation', () => {
-        it('should create win terminal node when opponent health reaches 0', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 3,
-                name: 'Win Game',
-                description: 'A game that ends with win',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'Attack situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 2001,
-                                    name: '',
-                                    description: 'Attack' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 2002,
-                                    name: '',
-                                    description: 'Guard' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 2001,
-                                opponentActionId: 2002,
-                                nextSituationId: 102,
-                                resourceConsumptions: [
-                                    {
-                                        resourceType: ResourceType.OPPONENT_HEALTH,
-                                        value: 5000, // Enough to kill opponent
-                                    },
-                                ],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-                rewardComputationMethod: {
-                    method: {
-                        oneofKind: 'winProbability',
-                        winProbability: {
-                            cornerBonus: 0,
-                            odGaugeBonus: 0,
-                            saGaugeBonus: 0,
-                        }
-                    }
-                }
-            };
-
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
-            const rootNode = gameTree.nodes[gameTree.root];
-
-            const transition = rootNode.transitions[0];
-            expect(transition).toBeDefined();
-            // Check if transition leads to a terminal node
-            expect(transition.nextNodeId).toBeDefined();
-            const nextNode = gameTree.nodes[transition.nextNodeId!];
-            expect(nextNode).toBeDefined();
-            expect(nextNode.playerReward).toBeDefined();
-            expect(nextNode.playerReward!.value).toBe(10000);
-            expect(nextNode.opponentReward).toBeDefined();
-            expect(nextNode.opponentReward!.value).toBe(-10000);
-        });
-
-        it('should create lose terminal node when player health reaches 0', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 4,
-                name: 'Lose Game',
-                description: 'A game that ends with lose',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'Defense situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 2002,
-                                    name: '',
-                                    description: 'Guard' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 2001,
-                                    name: '',
-                                    description: 'Attack' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 2002,
-                                opponentActionId: 2001,
-                                nextSituationId: 102,
-                                resourceConsumptions: [
-                                    {
-                                        resourceType: ResourceType.PLAYER_HEALTH,
-                                        value: 6000, // Enough to kill player
-                                    },
-                                ],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-                rewardComputationMethod: {
-                    method: {
-                        oneofKind: 'winProbability',
-                        winProbability: {
-                            cornerBonus: 0,
-                            odGaugeBonus: 0,
-                            saGaugeBonus: 0,
-                        }
-                    }
-                }
-            };
-
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
-            const rootNode = gameTree.nodes[gameTree.root];
-
-            const transition = rootNode.transitions[0];
-            expect(transition).toBeDefined();
-            // Check if transition leads to a terminal node
-            expect(transition.nextNodeId).toBeDefined();
-            const nextNode = gameTree.nodes[transition.nextNodeId!];
-            expect(nextNode).toBeDefined();
-            expect(nextNode.playerReward).toBeDefined();
-            expect(nextNode.playerReward!.value).toBe(-10000);
-            expect(nextNode.opponentReward).toBeDefined();
-            expect(nextNode.opponentReward!.value).toBe(10000);
-        });
-
-        it('should create draw terminal node when both healths reach 0', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 5,
-                name: 'Draw Game',
-                description: 'A game that ends with draw',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'Mutual attack',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 2001,
-                                    name: '',
-                                    description: 'Attack' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 2001,
-                                    name: '',
-                                    description: 'Attack' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 2001,
-                                opponentActionId: 2001,
-                                nextSituationId: 102,
-                                resourceConsumptions: [
-                                    {
-                                        resourceType: ResourceType.PLAYER_HEALTH,
-                                        value: 6000, // Kill player
-                                    },
-                                    {
-                                        resourceType: ResourceType.OPPONENT_HEALTH,
-                                        value: 5000, // Kill opponent
-                                    },
-                                ],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-                rewardComputationMethod: {
-                    method: {
-                        oneofKind: 'winProbability',
-                        winProbability: {
-                            cornerBonus: 0,
-                            odGaugeBonus: 0,
-                            saGaugeBonus: 0,
-                        }
-                    }
-                }
-            };
-
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
-            const rootNode = gameTree.nodes[gameTree.root];
-
-            const transition = rootNode.transitions[0];
-            expect(transition).toBeDefined();
-            // Check if transition leads to a terminal node
-            expect(transition.nextNodeId).toBeDefined();
-            const nextNode = gameTree.nodes[transition.nextNodeId!];
-            expect(nextNode).toBeDefined();
-            expect(nextNode.playerReward).toBeDefined();
-            expect(nextNode.opponentReward).toBeDefined();
-            // Draw rewards should be calculated based on neutral calculation
-            // Since both are 0, winProbability = 0.5, so reward = 0.5 * 20000 - 10000 = 0
-            expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
-            expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
-        });
-    });
-
-    describe('neutral terminal situation', () => {
-        it('should calculate rewards based on win probability for neutral terminal', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 6,
-                name: 'Neutral Game',
-                description: 'A game with neutral terminal',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'First situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1001,
-                                    name: '',
-                                    description: 'Action 1' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1002,
-                                    name: '',
-                                    description: 'Action 2' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1001,
-                                opponentActionId: 1002,
-                                nextSituationId: 200,
-                                resourceConsumptions: [],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [
-                    {
-                        situationId: 200,
-                        name: 'Neutral',
-                        description: 'Neutral terminal situation',
-                        cornerState: CornerState.NONE,
-                    },
-                ],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 4000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-                rewardComputationMethod: {
-                    method: {
-                        oneofKind: 'winProbability',
-                        winProbability: {
-                            cornerBonus: 0,
-                            odGaugeBonus: 0,
-                            saGaugeBonus: 0,
-                        }
-                    }
-                }
-            };
-
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
-            const rootNode = gameTree.nodes[gameTree.root];
-
-            const transition = rootNode.transitions[0];
-            expect(transition).toBeDefined();
-            // Check if transition leads to a terminal node
-            expect(transition.nextNodeId).toBeDefined();
-            const nextNode = gameTree.nodes[transition.nextNodeId!];
-            expect(nextNode).toBeDefined();
-            expect(nextNode.playerReward).toBeDefined();
-            expect(nextNode.opponentReward).toBeDefined();
-
-            // Win probability = 0.5
-            expect(nextNode.playerReward!.value).toBeCloseTo(0, 1);
-            expect(nextNode.opponentReward!.value).toBeCloseTo(0, 1);
-        });
-    });
-
-    describe('cycle prevention', () => {
-        it('should fail when there is a cycle without DynamicState changes', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 7,
-                name: 'Cycle Game',
-                description: 'A game with cycles',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'First situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1001,
-                                    name: '',
-                                    description: 'Action 1' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1002,
-                                    name: '',
-                                    description: 'Action 2' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1001,
-                                opponentActionId: 1002,
-                                nextSituationId: 102,
-                                resourceConsumptions: [],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                    {
-                        situationId: 102,
-                        name: 'Second situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1003,
-                                    name: '',
-                                    description: 'Action 3' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1004,
-                                    name: '',
-                                    description: 'Action 4' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1003,
-                                opponentActionId: 1004,
-                                nextSituationId: 101,
-                                resourceConsumptions: [],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-            };
-
-            // Cycle with no DynamicState change should be an error
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(false);
-            if (!result.success) {
-                expect(result.error.code).toBe(GameTreeBuildErrorCode.CYCLE_DETECTED);
-                expect(result.error.message).toContain('Cycle detected');
-            }
-        });
-
-        it('should allow cycles when DynamicState changes', () => {
-            const gameDefinition: GameDefinition = {
-                gameId: 8,
-                name: 'Cycle Game with State Change',
-                description: 'A game with cycles but state changes',
-                rootSituationId: 101,
-                situations: [
-                    {
-                        situationId: 101,
-                        name: 'First situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1001,
-                                    name: '',
-                                    description: 'Action 1' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1002,
-                                    name: '',
-                                    description: 'Action 2' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1001,
-                                opponentActionId: 1002,
-                                nextSituationId: 102,
-                                resourceConsumptions: [
-                                    {
-                                        resourceType: ResourceType.OPPONENT_HEALTH,
-                                        value: 100,
-                                    },
-                                ],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                    {
-                        situationId: 102,
-                        name: 'Second situation',
-                        playerActions: {
-                            actions: [
-                                {
-                                    actionId: 1003,
-                                    name: '',
-                                    description: 'Action 3' 
-                                },
-                            ],
-                        },
-                        opponentActions: {
-                            actions: [
-                                {
-                                    actionId: 1004,
-                                    name: '',
-                                    description: 'Action 4' 
-                                },
-                            ],
-                        },
-                        transitions: [
-                            {
-                                playerActionId: 1003,
-                                opponentActionId: 1004,
-                                nextSituationId: 101,
-                                resourceConsumptions: [
-                                    {
-                                        resourceType: ResourceType.PLAYER_HEALTH,
-                                        value: 100,
-                                    },
-                                ],
-                                resourceRequirements: [],
-                            },
-                        ],
-                    },
-                ],
-                terminalSituations: [],
-                initialDynamicState: {
-                    resources: [
-                        {
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 5000 
-                        },
-                        {
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 4000 
-                        },
-                    ],
-                },
-                playerComboStarters: [],
-                opponentComboStarters: [],
-            };
-
-            // Cycle with DynamicState change is allowed (health decreases continuously, so it will eventually reach a terminal node)
-            const result = buildGameTree(gameDefinition);
-            expect(result.success).toBe(true);
-            if (!result.success) {
-                throw new Error('Expected success but got error: ' + result.error.message);
-            }
-            const gameTree = result.gameTree;
-            expect(gameTree.root).toBeDefined();
-            const rootNode = gameTree.nodes[gameTree.root];
-            expect(rootNode).toBeDefined();
-            expect(rootNode.transitions.length).toBeGreaterThan(0);
-        });
-    });
-
-    describe('reward computation methods', () => {
-        describe('damage race', () => {
-            it('should calculate rewards based on damage race for neutral terminal', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 9,
-                    name: 'Damage Race Game',
-                    description: 'A game with damage race reward computation',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [
-                                        {
-                                            resourceType: ResourceType.OPPONENT_HEALTH,
-                                            value: 1000,
-                                        },
-                                        {
-                                            resourceType: ResourceType.PLAYER_HEALTH,
-                                            value: 500,
-                                        },
-                                    ],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.UNKNOWN,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 5000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 4000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'damageRace',
-                            damageRace: {},
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Damage dealt = 4000 - 3000 = 1000
-                // Damage received = 5000 - 4500 = 500
-                // Damage race = 1000 - 500 = 500
-                expect(nextNode.playerReward!.value).toBe(500);
-                expect(nextNode.opponentReward!.value).toBe(-500);
-            });
-
-            it('should calculate rewards based on damage race for draw terminal', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 10,
-                    name: 'Damage Race Draw Game',
-                    description: 'A game with damage race reward computation ending in draw',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'Mutual attack',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 2001,
-                                        name: '',
-                                        description: 'Attack' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 2001,
-                                        name: '',
-                                        description: 'Attack' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 2001,
-                                    opponentActionId: 2001,
-                                    nextSituationId: 102,
-                                    resourceConsumptions: [
-                                        {
-                                            resourceType: ResourceType.PLAYER_HEALTH,
-                                            value: 5000,
-                                        },
-                                        {
-                                            resourceType: ResourceType.OPPONENT_HEALTH,
-                                            value: 5000,
-                                        },
-                                    ],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 5000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 5000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'damageRace',
-                            damageRace: {},
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Damage dealt = 5000 - 0 = 5000
-                // Damage received = 5000 - 0 = 5000
-                // Damage race = 5000 - 5000 = 0
-                expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
-            });
-
-            it('should calculate rewards based on damage race for win terminal', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 11,
-                    name: 'Damage Race Win Game',
-                    description: 'A game with damage race reward computation ending in win',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'Attack opponent',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 2001,
-                                        name: '',
-                                        description: 'Attack' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 2003,
-                                        name: '',
-                                        description: 'Defend' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 2001,
-                                    opponentActionId: 2003,
-                                    nextSituationId: 102,
-                                    resourceConsumptions: [
-                                        {
-                                            resourceType: ResourceType.OPPONENT_HEALTH,
-                                            value: 2000,
-                                        },
-                                    ],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 2000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 2000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'damageRace',
-                            damageRace: {},
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Damage dealt = 2000 - 0 = 2000
-                // Damage received = 2000 - 2000 = 0
-                // Damage race = 2000 - 0 = 2000
-                expect(nextNode.playerReward!.value).toBe(2000);
-                expect(nextNode.opponentReward!.value).toBe(-2000);
-            });
-
-            it('should calculate rewards based on damage race for lose terminal', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 12,
-                    name: 'Damage Race Lose Game',
-                    description: 'A game with damage race reward computation ending in lose',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'Opponent attacks',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 2003,
-                                        name: '',
-                                        description: 'Defend' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 2001,
-                                        name: '',
-                                        description: 'Attack' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 2003,
-                                    opponentActionId: 2001,
-                                    nextSituationId: 102,
-                                    resourceConsumptions: [
-                                        {
-                                            resourceType: ResourceType.PLAYER_HEALTH,
-                                            value: 2000,
-                                        },
-                                    ],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 2000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 2000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'damageRace',
-                            damageRace: {},
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Damage dealt = 2000 - 2000 = 0
-                // Damage received = 2000 - 0 = 2000
-                // Damage race = 0 - 2000 = -2000
-                expect(nextNode.playerReward!.value).toBe(-2000);
-                expect(nextNode.opponentReward!.value).toBe(2000);
-            });
-        });
-
-        describe('win probability with corner', () => {
-            it('should calculate rewards based on win probability when player is in corner', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 13,
-                    name: 'Corner Game',
-                    description: 'A game with corner bonus for opponent',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.PLAYER_IN_CORNER,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 6000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 4000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            winProbability: {
-                                // HP1000 worth of bonus for the player attacking into corner
-                                cornerBonus: 1000, 
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Player in corner: opponent gets corner bonus (3000 damage per turn)
-                // Player damage: 2000, opponent damage: 3000
-                // Player turns to kill: ceil(4000/2000) = 2
-                // Opponent turns to kill: 1 + ceil((6000-3000)/3000) = 2
-                // Win probability = 2/(2+2) = 0.5, Reward = 0
-                expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
-            });
-
-            it('should calculate rewards based on win probability when opponent is in corner', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 14,
-                    name: 'Corner Bonus Game',
-                    description: 'A game with corner bonus for player',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.OPPONENT_IN_CORNER,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 4000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 6000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            winProbability: {
-                                // HP1000 worth of bonus for player (opponent in corner)
-                                cornerBonus: 1000, 
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Opponent in corner: player gets corner bonus (3000 damage per turn)
-                // Player damage: 3000, opponent damage: 2000
-                // Player turns to kill: 1 + ceil((6000-3000)/3000) = 2
-                // Opponent turns to kill: ceil(4000/2000) = 2
-                // Win probability = 2/(2+2) = 0.5, Reward = 0
-                expect(nextNode.playerReward!.value).toBeCloseTo(0, 5);
-                expect(nextNode.opponentReward!.value).toBeCloseTo(0, 5);
-            });
-
-            it('should not apply corner bonus when corner state is NONE', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 15,
-                    name: 'No Corner Bonus Game',
-                    description: 'A game without corner bonus',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.NONE,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 6000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 4000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            winProbability: {
-                                cornerBonus: 1000 
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Corner state NONE: no corner bonus applied
-                // Both players deal 2000 damage per turn
-                // Player turns to kill: ceil(4000/2000) = 2
-                // Opponent turns to kill: ceil(6000/2000) = 3
-                // Win probability = 3/(2+3) = 0.6, Reward = 0.6 * 20000 - 10000 = 2000
-                expect(nextNode.playerReward!.value).toBe(2000);
-                expect(nextNode.opponentReward!.value).toBe(-2000);
-            });
-
-            it('should apply symmetric adjustments around 50% probability using HP difference', () => {
-                // Test that symmetric HP penalties from 50% probability are symmetric
-                const gameDefinitionPlayerInCorner: GameDefinition = {
-                    gameId: 16,
-                    name: 'Symmetric Test Player Corner',
-                    description: 'Test symmetric adjustment with player in corner',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.PLAYER_IN_CORNER,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 5000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 5000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            // HP3000 worth of penalty
-                            winProbability: {
-                                cornerBonus: 3000,
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const gameDefinitionOpponentInCorner: GameDefinition = {
-                    gameId: 17,
-                    name: 'Symmetric Test Opponent Corner',
-                    description: 'Test symmetric adjustment with opponent in corner',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.OPPONENT_IN_CORNER,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 5000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 5000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            winProbability: {
-                                // HP3000 worth of bonus (opponent in corner)
-                                cornerBonus: 3000, 
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const resultPlayer = buildGameTree(gameDefinitionPlayerInCorner);
-                expect(resultPlayer.success).toBe(true);
-                if (!resultPlayer.success) {
-                    throw new Error('Expected success but got error: ' + resultPlayer.error.message);
-                }
-
-                const resultOpponent = buildGameTree(gameDefinitionOpponentInCorner);
-                expect(resultOpponent.success).toBe(true);
-                if (!resultOpponent.success) {
-                    throw new Error('Expected success but got error: ' + resultOpponent.error.message);
-                }
-
-                const gameTreePlayer = resultPlayer.gameTree;
-                const gameTreeOpponent = resultOpponent.gameTree;
-                const rootNodePlayer = gameTreePlayer.nodes[gameTreePlayer.root];
-                const rootNodeOpponent = gameTreeOpponent.nodes[gameTreeOpponent.root];
-
-                const transitionPlayer = rootNodePlayer.transitions[0];
-                const transitionOpponent = rootNodeOpponent.transitions[0];
-                const nextNodePlayer = gameTreePlayer.nodes[transitionPlayer.nextNodeId!];
-                const nextNodeOpponent = gameTreeOpponent.nodes[transitionOpponent.nextNodeId!];
-
-                // Score with player in corner = 5000 - 5000 - 3000 = -3000
-                // Win probability = 1 / (1 + exp(-0.0003 * -3000)) ≈ 0.2890
-                // Reward ≈ 0.2890 * 20000 - 10000 ≈ -4220
-                // Score with opponent in corner = 5000 - 5000 + 3000 = 3000
-                // Win probability = 1 / (1 + exp(-0.0003 * 3000)) ≈ 0.7110
-                // Reward ≈ 0.7110 * 20000 - 10000 ≈ 4220
-                // The absolute values should be symmetric (approximately equal)
-                const rewardPlayer = nextNodePlayer.playerReward!.value;
-                const rewardOpponent = nextNodeOpponent.playerReward!.value;
-
-                expect(rewardPlayer).toBeLessThan(0); // Player in corner should reduce reward
-                expect(rewardOpponent).toBeGreaterThan(0); // Opponent in corner should increase reward
-                expect(Math.abs(rewardPlayer)).toBeCloseTo(Math.abs(rewardOpponent), 0);
-            });
-
-            it('should have high win probability when player has HP advantage even in corner', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 18,
-                    name: 'High Probability Corner Game',
-                    description: 'A game with high win probability even when player in corner',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.PLAYER_IN_CORNER,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 10000 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 1 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            winProbability: {
-                                // HP1000 worth of bonus for opponent (player in corner)
-                                cornerBonus: 1000, 
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Player in corner: opponent gets corner bonus (3000 damage per turn)
-                // Player damage: 2000, kills opponent in 1 turn (2000 >= 1)
-                // Opponent damage: 3000, needs 1 + ceil((10000-3000)/3000) = 1+3 = 4 turns
-                // Win probability = 4/(1+4) = 0.8, Reward = 0.8 * 20000 - 10000 = 6000
-                expect(nextNode.playerReward!.value).toBe(6000);
-                expect(nextNode.opponentReward!.value).toBe(-6000);
-            });
-
-            it('should have low win probability when opponent has HP advantage even in corner', () => {
-                const gameDefinition: GameDefinition = {
-                    gameId: 19,
-                    name: 'Low Probability Corner Game',
-                    description: 'A game with low win probability even when opponent in corner',
-                    rootSituationId: 101,
-                    situations: [
-                        {
-                            situationId: 101,
-                            name: 'First situation',
-                            playerActions: {
-                                actions: [
-                                    {
-                                        actionId: 1001,
-                                        name: '',
-                                        description: 'Action 1' 
-                                    },
-                                ],
-                            },
-                            opponentActions: {
-                                actions: [
-                                    {
-                                        actionId: 1002,
-                                        name: '',
-                                        description: 'Action 2' 
-                                    },
-                                ],
-                            },
-                            transitions: [
-                                {
-                                    playerActionId: 1001,
-                                    opponentActionId: 1002,
-                                    nextSituationId: 200,
-                                    resourceConsumptions: [],
-                                    resourceRequirements: [],
-                                },
-                            ],
-                        },
-                    ],
-                    terminalSituations: [
-                        {
-                            situationId: 200,
-                            name: 'Neutral',
-                            description: 'Neutral terminal situation',
-                            cornerState: CornerState.OPPONENT_IN_CORNER,
-                        },
-                    ],
-                    initialDynamicState: {
-                        resources: [
-                            {
-                                resourceType: ResourceType.PLAYER_HEALTH,
-                                value: 1 
-                            },
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 10000 
-                            },
-                        ],
-                    },
-                    rewardComputationMethod: {
-                        method: {
-                            oneofKind: 'winProbability',
-                            winProbability: {
-                                // HP1000 worth of bonus for player (opponent in corner)
-                                cornerBonus: 1000, 
-                            },
-                        },
-                    },
-                    playerComboStarters: [],
-                    opponentComboStarters: [],
-                };
-
-                const result = buildGameTree(gameDefinition);
-                expect(result.success).toBe(true);
-                if (!result.success) {
-                    throw new Error('Expected success but got error: ' + result.error.message);
-                }
-                const gameTree = result.gameTree;
-                const rootNode = gameTree.nodes[gameTree.root];
-
-                const transition = rootNode.transitions[0];
-                expect(transition).toBeDefined();
-                expect(transition.nextNodeId).toBeDefined();
-                const nextNode = gameTree.nodes[transition.nextNodeId!];
-                expect(nextNode).toBeDefined();
-                expect(nextNode.playerReward).toBeDefined();
-                expect(nextNode.opponentReward).toBeDefined();
-
-                // Opponent in corner: player gets corner bonus (3000 damage per turn)
-                // Player damage: 3000, needs 1 + ceil((10000-3000)/3000) = 1+3 = 4 turns
-                // Opponent damage: 2000, kills player in 1 turn (2000 >= 1)
-                // Win probability = 1/(4+1) = 0.2, Reward = 0.2 * 20000 - 10000 = -6000
-                expect(nextNode.playerReward!.value).toBe(-6000);
-                expect(nextNode.opponentReward!.value).toBe(6000);
-            });
         });
     });
 });
