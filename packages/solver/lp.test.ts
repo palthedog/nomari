@@ -1,5 +1,19 @@
 import { LPSolver } from './lp';
-import { GameTree, Node, PlayerActions, Action, NodeTransition } from '@nomari/game-tree/game-tree';
+import { GameTree, Node, PlayerActions, Action, NodeTransition, State } from '@nomari/game-tree/game-tree';
+
+/**
+ * Helper function to create a State with default gauge values
+ */
+function createState(playerHealth: number, opponentHealth: number): State {
+    return {
+        playerHealth,
+        opponentHealth,
+        playerOd: 0,
+        opponentOd: 0,
+        playerSa: 0,
+        opponentSa: 0,
+    };
+}
 
 /**
  * Helper function to create a rock-paper-scissors game tree
@@ -35,10 +49,7 @@ function createRockPaperScissorsGame(): GameTree {
         const node: Node = {
             nodeId: id,
             description: `Terminal: ${id}`,
-            state: {
-                playerHealth: 0,
-                opponentHealth: 0,
-            },
+            state: createState(0, 0),
             transitions: [],
             playerReward: {
                 value: playerReward 
@@ -114,10 +125,7 @@ function createRockPaperScissorsGame(): GameTree {
     const root: Node = {
         nodeId: 'root',
         description: 'Rock Paper Scissors',
-        state: {
-            playerHealth: 0,
-            opponentHealth: 0,
-        },
+        state: createState(0, 0),
         playerActions,
         opponentActions,
         transitions
@@ -184,10 +192,7 @@ function createBiasedRewardGame(): GameTree {
         const node: Node = {
             nodeId: id,
             description: `Terminal: ${id}`,
-            state: {
-                playerHealth: 0,
-                opponentHealth: 0,
-            },
+            state: createState(0, 0),
             transitions: [],
             playerReward: {
                 value: playerReward 
@@ -243,10 +248,7 @@ function createBiasedRewardGame(): GameTree {
     const root: Node = {
         nodeId: 'root',
         description: 'Biased Reward Game',
-        state: {
-            playerHealth: 0,
-            opponentHealth: 0,
-        },
+        state: createState(0, 0),
         playerActions,
         opponentActions,
         transitions
@@ -300,10 +302,7 @@ function createGurikoJanken(): GameTree {
     const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
         nodeId: id,
         description: `Terminal: ${id}`,
-        state: {
-            playerHealth: 0,
-            opponentHealth: 0,
-        },
+        state: createState(0, 0),
         transitions: [],
         playerReward: {
             value: playerReward 
@@ -364,10 +363,7 @@ function createGurikoJanken(): GameTree {
     const root: Node = {
         nodeId: 'root',
         description: 'Guriko Janken',
-        state: {
-            playerHealth: 0,
-            opponentHealth: 0,
-        },
+        state: createState(0, 0),
         playerActions,
         opponentActions,
         transitions,
@@ -538,10 +534,7 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 transitions: [],
                 playerReward: {
                     value: playerReward 
@@ -567,10 +560,7 @@ describe('LPSolver', () => {
             const root: Node = {
                 nodeId: 'root',
                 description: 'Single Player Action Game',
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 playerActions,
                 opponentActions,
                 transitions,
@@ -618,10 +608,7 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 transitions: [],
                 playerReward: {
                     value: playerReward 
@@ -647,10 +634,7 @@ describe('LPSolver', () => {
             const root: Node = {
                 nodeId: 'root',
                 description: 'Single Opponent Action Game',
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 playerActions,
                 opponentActions,
                 transitions,
@@ -724,10 +708,7 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 transitions: [],
                 playerReward: {
                     value: playerReward 
@@ -741,10 +722,7 @@ describe('LPSolver', () => {
             const childNode: Node = {
                 nodeId: 'child_a',
                 description: 'Single Action Child',
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 playerActions: {
                     actions: [attack] 
                 },
@@ -769,10 +747,7 @@ describe('LPSolver', () => {
             const root: Node = {
                 nodeId: 'root',
                 description: 'Root',
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 playerActions: {
                     actions: [pathA, pathB] 
                 },
@@ -883,10 +858,7 @@ describe('LPSolver', () => {
             const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
                 nodeId: id,
                 description: `Terminal: ${id}`,
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 transitions: [],
                 playerReward: {
                     value: playerReward 
@@ -922,10 +894,7 @@ describe('LPSolver', () => {
             const root: Node = {
                 nodeId: 'root',
                 description: 'Small Action ID Game',
-                state: {
-                    playerHealth: 0,
-                    opponentHealth: 0 
-                },
+                state: createState(0, 0),
                 playerActions,
                 opponentActions,
                 transitions,
