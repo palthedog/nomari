@@ -1,10 +1,10 @@
-# Nomari - a GTO solver for Fighting Games
+# Nomari - a GTO solver for Street Fighter 6
 
 [English](./README.md) / [日本語](./README-ja.md)
 
 ---
 
-Nomari is a game theory calculator for fighting games like Street Fighter 6.
+Nomari is a game theory calculator for Street Fighter 6.
 It enables you to compute game theory optimal (GTO) strategies for various situations.
 
 Nomari can help you to answer questions like:
