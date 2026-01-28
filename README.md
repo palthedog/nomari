@@ -32,4 +32,3 @@ Nomari can help you to answer questions like:
 ## Demo page
 https://palthedog.github.io/nomari/?example=marisa
 
-[How to (written in Japanese)](documents/ja)
