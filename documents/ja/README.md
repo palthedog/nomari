@@ -14,6 +14,10 @@ Nomari ではポーカーの世界で有名な GTO戦略 (Game Theory Optimal戦
 などを指定することで、各状況で数学的に最適な戦略を計算することができます。
 実際にやってみたほうが分かりやすいので、あまり実践的では無いですが1番簡単な例から始めてみましょう
 
+## 簡単なデモ
+簡単なデモを見るのが1番雰囲気がわかるかもしれません。
+https://palthedog.github.io/nomari/?example=marisa
+
 ## やってみよう
 
 まずは [Nomari 起き攻め　計算機](https://palthedog.github.io/nomari/) を開きましょう。
