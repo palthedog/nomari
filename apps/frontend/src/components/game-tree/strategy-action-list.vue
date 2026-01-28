@@ -86,6 +86,7 @@ import type { Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
 import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
+import log from 'loglevel';
 
 interface CalculationRow {
     actionName: string;
@@ -181,6 +182,7 @@ function getActionCalculation(actionId: number): CalculationRow[] {
 
         const nextNodeValues = props.expectedValues[transition.nextNodeId];
         if (!nextNodeValues) {
+            log.warn(`Expected values not found for next node: ${transition.nextNodeId}`);
             continue;
         }
 
