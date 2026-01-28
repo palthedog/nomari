@@ -27,4 +27,5 @@ Nomari can help you to answer questions like:
         - ❓️How often should we choose "Guard" to minimize the expected damage?
 
 ## Demo page
-https://palthedog.github.io/nomari/
+https://palthedog.github.io/nomari/?example=marisa
+
