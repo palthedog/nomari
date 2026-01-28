@@ -6,7 +6,8 @@
     "scripts": {
         "test": "jest",
         "build": "tsc",
-        "test:watch": "jest --watch"
+        "test:watch": "jest --watch",
+        "lint": "eslint ."
     },
     "dependencies": {
         "@nomari/game-tree": "*",

@@ -30,6 +30,9 @@ npm run build
 
 # Build for GitHub Pages
 npm run build:pages
+
+# Run linting for all packages
+npm run lint
 ```
 
 ## Architecture
@@ -75,7 +78,7 @@ npm run build:pages
 ## Development Guidelines
 
 - Always run `npm run test` after code changes to verify all packages pass
-- **Before every commit**: Run `npm run test` at the workspace root (nomari/) and verify all tests pass
+- **Before every commit**: Run `npm run test` and `npm run lint` at the workspace root (nomari/) and verify all tests pass and no lint errors
 - Solver changes require unit tests
 - UI changes require screenshots in PR
 - Ask for confirmation before proceeding when user's proposed implementation has issues

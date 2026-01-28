@@ -6,7 +6,8 @@
     "types": "game-tree.d.ts",
     "scripts": {
         "build": "tsc",
-        "test": "echo \"No tests yet\""
+        "test": "echo \"No tests yet\"",
+        "lint": "eslint ."
     },
     "devDependencies": {
         "@nomari/eslint-config": "*",
