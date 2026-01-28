@@ -204,12 +204,14 @@ export class LPSolver {
         this.nodeMap.set(node.nodeId, node);
 
         for (const transition of node.transitions) {
-            if (transition.nextNodeId) {
-                const nextNode = this.findNodeById(transition.nextNodeId);
-                if (nextNode && !this.nodeMap.has(nextNode.nodeId)) {
-                    this.collectAllNodes(nextNode);
-                }
+            if (!transition.nextNodeId) {
+                continue;
             }
+            const nextNode = this.findNodeById(transition.nextNodeId);
+            if (!nextNode || this.nodeMap.has(nextNode.nodeId)) {
+                continue;
+            }
+            this.collectAllNodes(nextNode);
         }
     }
 
