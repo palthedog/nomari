@@ -4,6 +4,7 @@
 import { LPSolver } from '@nomari/solver/lp';
 import type { GameTree } from '@nomari/game-tree/game-tree';
 import type { SolverCommand, SolverResult, StrategyData } from './solver-types';
+import log from 'loglevel';
 
 let solver: LPSolver | null = null;
 let gameTree: GameTree | null = null;
@@ -25,6 +26,7 @@ function getNodeStrategyData(nodeId: string): StrategyData | null {
 
     const node = gameTree.nodes[nodeId];
     if (!node) {
+        log.warn(`Node not found in gameTree while getting strategy: ${nodeId}`);
         return null;
     }
 
