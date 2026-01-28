@@ -53,6 +53,76 @@ interface LPResult {
 }
 
 /**
+ * Build payoff matrix for LP solver
+ */
+function buildPayoffMatrix(
+    node: LPNode,
+    forPlayer: boolean
+): number[][] {
+    const payoffMatrix: number[][] = [];
+    for (const playerAction of node.playerActions) {
+        const row: number[] = [];
+        for (const oppAction of node.opponentActions) {
+            const key = `${playerAction}-${oppAction}`;
+            const reward = node.rewards.get(key);
+            const child = node.children.get(key);
+
+            let payoff = 0;
+            if (reward) {
+                payoff = forPlayer ? reward[0] : reward[1];
+            } else if (child) {
+                payoff = forPlayer ? child.playerValue : child.opponentValue;
+            }
+            row.push(payoff);
+        }
+        payoffMatrix.push(row);
+    }
+    return payoffMatrix;
+}
+
+/**
+ * Calculate the shift needed to make all payoffs positive
+ */
+function calculatePayoffShift(payoffMatrix: number[][]): number {
+    let minPayoff = Infinity;
+    for (const row of payoffMatrix) {
+        for (const val of row) {
+            minPayoff = Math.min(minPayoff, val);
+        }
+    }
+    return minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
+}
+
+/**
+ * Extract strategy from LP result
+ */
+function extractStrategy(
+    result: LPResult,
+    actions: number[],
+    prefix: string
+): Map<number, number> {
+    const strategy = new Map<number, number>();
+    for (const action of actions) {
+        const varName = `${prefix}${action}`;
+        const prob = (result[varName] as number) ?? 0;
+        strategy.set(action, prob);
+    }
+    return strategy;
+}
+
+/**
+ * Create uniform strategy for given actions
+ */
+function createUniformStrategy(actions: number[]): Map<number, number> {
+    const strategy = new Map<number, number>();
+    const uniformProb = 1.0 / actions.length;
+    for (const action of actions) {
+        strategy.set(action, uniformProb);
+    }
+    return strategy;
+}
+
+/**
  * Internal node representation for LP solver computation
  */
 class LPNode {
@@ -269,67 +339,29 @@ export class LPSolver {
             return;
         }
 
+        log.debug('Solving player LP for node:', node.nodeId);
+
         // Special case: only one action
         if (node.playerActions.length === 1) {
             node.playerStrategy.set(node.playerActions[0], 1.0);
-            // Calculate minimax value: minimum payoff over all opponent actions
-            // (opponent will choose action that minimizes player's payoff)
             node.playerValue = this.calculateMinimaxValueForSinglePlayerAction(node);
+            log.debug('Single player action, value:', node.playerValue);
             return;
         }
 
-        // Build payoff matrix
-        const payoffMatrix: number[][] = [];
-        for (const playerAction of node.playerActions) {
-            const row: number[] = [];
-            for (const oppAction of node.opponentActions) {
-                const key = `${playerAction}-${oppAction}`;
-                const reward = node.rewards.get(key);
-                const child = node.children.get(key);
+        const payoffMatrix = buildPayoffMatrix(node, true);
+        const shift = calculatePayoffShift(payoffMatrix);
 
-                let payoff = 0;
-                if (reward) {
-                    payoff = reward[0]; // player reward
-                } else if (child) {
-                    payoff = child.playerValue; // use computed value from child
-                }
-                row.push(payoff);
-            }
-            payoffMatrix.push(row);
-        }
-
-        // Normalize payoffs to ensure they're all positive for LP solver
-        // Find minimum payoff
-        let minPayoff = Infinity;
-        for (const row of payoffMatrix) {
-            for (const val of row) {
-                minPayoff = Math.min(minPayoff, val);
-            }
-        }
-
-        // Shift all payoffs to be positive
-        const shift = minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
-
-        // Build and solve LP model
         const model = this.buildPlayerLPModel(node, payoffMatrix, shift);
         const result = solver.Solve(model) as LPResult;
 
         if (result.feasible) {
-            // Extract strategy (use prefixed variable names)
-            for (const action of node.playerActions) {
-                const varName = `${PLAYER_ACTION_PREFIX}${action}`;
-                const prob = (result[varName] as number) ?? 0;
-                node.playerStrategy.set(action, prob);
-            }
-            // Unshift the value
+            node.playerStrategy = extractStrategy(result, node.playerActions, PLAYER_ACTION_PREFIX);
             node.playerValue = (result.v ?? 0) - shift;
+            log.debug('Player LP solved, value:', node.playerValue);
         } else {
-            log.warn(`LP solver returned infeasible result for player at node "${node.nodeId}", using uniform strategy`);
-            // Fallback to uniform strategy
-            const uniformProb = 1.0 / node.playerActions.length;
-            for (const action of node.playerActions) {
-                node.playerStrategy.set(action, uniformProb);
-            }
+            log.warn(`LP solver infeasible for player at node "${node.nodeId}", using uniform strategy`);
+            node.playerStrategy = createUniformStrategy(node.playerActions);
             node.playerValue = this.calculateExpectedValue(node, true);
         }
     }
@@ -389,64 +421,29 @@ export class LPSolver {
             return;
         }
 
+        log.debug('Solving opponent LP for node:', node.nodeId);
+
         // Special case: only one action
         if (node.opponentActions.length === 1) {
             node.opponentStrategy.set(node.opponentActions[0], 1.0);
-            // Calculate minimax value: minimum payoff over all player actions
-            // (player will choose action that minimizes opponent's payoff)
             node.opponentValue = this.calculateMinimaxValueForSingleOpponentAction(node);
+            log.debug('Single opponent action, value:', node.opponentValue);
             return;
         }
 
-        // Build payoff matrix
-        const payoffMatrix: number[][] = [];
-        for (const playerAction of node.playerActions) {
-            const row: number[] = [];
-            for (const oppAction of node.opponentActions) {
-                const key = `${playerAction}-${oppAction}`;
-                const reward = node.rewards.get(key);
-                const child = node.children.get(key);
+        const payoffMatrix = buildPayoffMatrix(node, false);
+        const shift = calculatePayoffShift(payoffMatrix);
 
-                let payoff = 0;
-                if (reward) {
-                    payoff = reward[1]; // opponent reward
-                } else if (child) {
-                    payoff = child.opponentValue; // use computed value from child
-                }
-                row.push(payoff);
-            }
-            payoffMatrix.push(row);
-        }
-
-        // Normalize payoffs to ensure they're all positive for LP solver
-        let minPayoff = Infinity;
-        for (const row of payoffMatrix) {
-            for (const val of row) {
-                minPayoff = Math.min(minPayoff, val);
-            }
-        }
-
-        const shift = minPayoff < 0 ? -minPayoff + PAYOFF_SHIFT_OFFSET : 0;
-
-        // Build and solve LP model for opponent
         const model = this.buildOpponentLPModel(node, payoffMatrix, shift);
         const result = solver.Solve(model) as LPResult;
 
         if (result.feasible) {
-            // Extract strategy (use prefixed variable names)
-            for (const action of node.opponentActions) {
-                const varName = `${OPPONENT_ACTION_PREFIX}${action}`;
-                const prob = (result[varName] as number) ?? 0;
-                node.opponentStrategy.set(action, prob);
-            }
+            node.opponentStrategy = extractStrategy(result, node.opponentActions, OPPONENT_ACTION_PREFIX);
             node.opponentValue = (result.v ?? 0) - shift;
+            log.debug('Opponent LP solved, value:', node.opponentValue);
         } else {
-            log.warn(`LP solver returned infeasible result for opponent at node "${node.nodeId}", using uniform strategy`);
-            // Fallback to uniform strategy
-            const uniformProb = 1.0 / node.opponentActions.length;
-            for (const action of node.opponentActions) {
-                node.opponentStrategy.set(action, uniformProb);
-            }
+            log.warn(`LP solver infeasible for opponent at node "${node.nodeId}", using uniform strategy`);
+            node.opponentStrategy = createUniformStrategy(node.opponentActions);
             node.opponentValue = this.calculateExpectedValue(node, false);
         }
     }
@@ -584,10 +581,15 @@ export class LPSolver {
      * Returns true on success, false on error.
      */
     public solve(_iterations?: number): boolean {
+        log.debug('Starting LP solver');
+
         if (!this.initialized) {
+            log.debug('Building internal tree structure');
             if (!this.buildInternalTree()) {
+                log.error('Failed to build internal tree');
                 return false;
             }
+            log.debug('Topological order computed, nodes:', this.topologicalOrder.length);
         }
 
         for (const nodeId of this.topologicalOrder) {
@@ -600,6 +602,7 @@ export class LPSolver {
             this.solveOpponentLP(node);
         }
 
+        log.debug('LP solver completed successfully');
         return true;
     }
 

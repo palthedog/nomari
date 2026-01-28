@@ -1,4 +1,12 @@
 import {CornerState,} from '@nomari/ts-proto';
+import log from 'loglevel';
+
+// Configure log level based on environment
+if (process.env.NODE_ENV === 'development') {
+    log.setLevel('debug');
+} else {
+    log.setLevel('warn');
+}
 
 // Default base combo damage (used when not specified)
 const DEFAULT_BASE_COMBO_DAMAGE = 2000;
@@ -107,7 +115,17 @@ export function calculateRewardForWinProbabilityWithCorner(
         opponentTurnsToKill
     );
 
-    return calculateRewardForWinProbability(winProbability);
+    const reward = calculateRewardForWinProbability(winProbability);
+    log.debug('Win probability reward:', {
+        playerHealth,
+        opponentHealth,
+        playerTurns: playerTurnsToKill,
+        opponentTurns: opponentTurnsToKill,
+        winProbability,
+        reward,
+    });
+
+    return reward;
 }
 
 /**
@@ -141,8 +159,12 @@ function calculateWinProbabilityFromTurns(
     playerTurns: number,
     opponentTurns: number
 ): number {
-    console.assert(playerTurns > 0, 'playerTurns should be > 0');
-    console.assert(opponentTurns > 0, 'opponentTurns should be > 0');
+    if (playerTurns <= 0) {
+        log.warn('calculateWinProbabilityFromTurns: playerTurns should be > 0, got:', playerTurns);
+    }
+    if (opponentTurns <= 0) {
+        log.warn('calculateWinProbabilityFromTurns: opponentTurns should be > 0, got:', opponentTurns);
+    }
 
     // Win probability based on inverse of turns ratio
     // Fewer turns = higher probability
@@ -163,6 +185,13 @@ export function calculateRewardForDamageRace(
     const damageReceived = initialPlayerHealth - playerHealth;
     const damageRace = damageDealt - damageReceived;
 
-    // Use damage race value directly without scaling
+    log.debug('Damage race reward:', {
+        playerHealth,
+        opponentHealth,
+        damageDealt,
+        damageReceived,
+        reward: damageRace,
+    });
+
     return damageRace;
 }
