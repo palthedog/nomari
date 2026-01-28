@@ -21,6 +21,13 @@ export const useNotificationStore = defineStore('notification', () => {
     function hide() {
         show.value = false;
     }
-
-    return { show, message, type, showNotification, showError, hide };
+    
+    return {
+        show,
+        message,
+        type,
+        showNotification,
+        showError,
+        hide 
+    };
 });
