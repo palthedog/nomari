@@ -10,6 +10,9 @@ pnpm-lock.yaml
 # Claude Code local settings
 .claude/
 
+# Cursor local settings
+.cursor/
+
 # Vite
 .vite/
 
