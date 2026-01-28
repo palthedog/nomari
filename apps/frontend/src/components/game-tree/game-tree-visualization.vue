@@ -17,63 +17,69 @@
         :configs="configs"
         :event-handlers="eventHandlers"
       >
-        <!-- Custom node rendering with HTML -->
+        <!-- Custom node rendering with SVG -->
         <template #override-node="{ nodeId }">
-          <rect
-            :x="-nodeWidth / 2"
-            :y="-nodeHeight / 2"
-            :width="nodeWidth"
-            :height="nodeHeight"
-            :fill="getNodeFillColor(nodeId)"
-            :stroke="getNodeStrokeColor(nodeId)"
-            :stroke-width="getNodeStrokeWidth(nodeId)"
-            rx="5"
-            class="node-rect"
-          />
+          <g class="node-group">
+            <rect
+              :x="-nodeWidth / 2"
+              :y="-nodeHeight / 2"
+              :width="nodeWidth"
+              :height="nodeHeight"
+              :fill="getNodeFillColor(nodeId)"
+              :stroke="getNodeStrokeColor(nodeId)"
+              :stroke-width="getNodeStrokeWidth(nodeId)"
+              rx="5"
+              class="node-rect"
+            />
 
-          <!-- Reward info (only for terminal nodes) -->
-          <text
-            v-if="isTerminalNode(nodeId)"
-            :y="-10"
-            text-anchor="middle"
-            :fill="getRewardColor(nodeId)"
-            font-size="11"
-            font-weight="bold"
-          >
-            報酬: {{ formatReward(nodeId) }}
-          </text>
+            <!-- Reward info (only for terminal nodes) -->
+            <text
+              v-if="isTerminalNode(nodeId)"
+              :y="-10"
+              text-anchor="middle"
+              :fill="getRewardColor(nodeId)"
+              font-size="11"
+              font-weight="bold"
+              class="node-text"
+            >
+              報酬: {{ formatReward(nodeId) }}
+            </text>
 
-          <!-- Name -->
-          <text
-            v-else
-            :y="-10"
-            text-anchor="middle"
-            fill="white"
-            font-size="11"
-            font-weight="bold"
-          >
-            {{ truncate(getNodeDisplayText(nodeId), 18) }}
-          </text>
+            <!-- Name -->
+            <text
+              v-else
+              :y="-10"
+              text-anchor="middle"
+              fill="white"
+              font-size="11"
+              font-weight="bold"
+              class="node-text"
+            >
+              {{ truncate(getNodeDisplayText(nodeId), 18) }}
+            </text>
 
-          <!-- HP info -->
-          <text
-            :y="8"
-            text-anchor="middle"
-            fill="white"
-            font-size="9"
-          >
-            HP: {{ getHpInfo(nodeId) }}
-          </text>
+            <!-- HP info -->
+            <text
+              :y="8"
+              text-anchor="middle"
+              fill="white"
+              font-size="9"
+              class="node-text"
+            >
+              HP: {{ getHpInfo(nodeId) }}
+            </text>
 
-          <!-- OD/SA info -->
-          <text
-            :y="20"
-            text-anchor="middle"
-            fill="white"
-            font-size="8"
-          >
-            OD: {{ getOdInfo(nodeId) }} | SA: {{ getSaInfo(nodeId) }}
-          </text>
+            <!-- OD/SA info -->
+            <text
+              :y="20"
+              text-anchor="middle"
+              fill="white"
+              font-size="8"
+              class="node-text"
+            >
+              OD: {{ getOdInfo(nodeId) }} | SA: {{ getSaInfo(nodeId) }}
+            </text>
+          </g>
         </template>
       </v-network-graph>
     </div>
@@ -155,8 +161,15 @@ const configs = computed<UserConfigs>(() => ({
     },
 }));
 
-// Event handlers (empty since selection is handled via v-model:selected-nodes)
-const eventHandlers = computed<EventHandlers>(() => ({}));
+// Event handlers for node selection (including touch support)
+const eventHandlers = computed<EventHandlers>(() => ({
+    'node:pointerup': ({ node }) => {
+        // Handle node selection on pointer up (works for both mouse and touch)
+        if (node && selectedNodes.value[0] !== node) {
+            selectedNodes.value = [node];
+        }
+    },
+}));
 
 /**
      * Truncate a string to a specified length.
@@ -561,14 +574,31 @@ watch(
 .graph-container :deep(.v-network-graph) {
   width: 100%;
   height: 100%;
+  touch-action: manipulation;
+}
+
+.graph-container :deep(svg) {
+  touch-action: manipulation;
 }
 
 .node-rect {
   cursor: pointer;
   transition: opacity 0.2s;
+  pointer-events: all;
+  touch-action: manipulation;
 }
 
 .node-rect:hover {
   opacity: 0.8;
+}
+
+/* Ensure text elements don't block touch events */
+.node-text {
+  pointer-events: none;
+  user-select: none;
+}
+
+.node-group {
+  cursor: pointer;
 }
 </style>
