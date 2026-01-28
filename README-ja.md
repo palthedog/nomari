@@ -1,10 +1,10 @@
-# Nomari - GTO 計算機
+# Nomari - ストリートファイター6向け GTO 計算機
 
 [English](./README.md) / [日本語](./README-ja.md)
 
 ---
 
-Nomariは、ストリートファイター6などの格闘ゲーム向けのゲーム理論計算ツールです。
+Nomariは、ストリートファイター6向けのゲーム理論計算ツールです。
 様々な状況におけるゲーム理論最適（GTO）戦略を計算できます。
 
 Nomariは以下のような質問に答えるのに役立ちます：
@@ -26,5 +26,10 @@ Nomariは以下のような質問に答えるのに役立ちます：
     - GTO防御側の戦略も計算できます！
         - ❓️期待ダメージを最小化するために、「ガード」をどのくらいの頻度で選択すべきか？
 
+## 例
+![](documents/ja/images/example_4hp_gto.png)
+
 ## デモ
 https://palthedog.github.io/nomari/?example=marisa
+
+[使い方](documents/ja)
