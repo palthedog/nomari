@@ -27,4 +27,4 @@ Nomariは以下のような質問に答えるのに役立ちます：
         - ❓️期待ダメージを最小化するために、「ガード」をどのくらいの頻度で選択すべきか？
 
 ## デモ
-https://palthedog.github.io/nomari/
+https://palthedog.github.io/nomari/?example=marisa
