@@ -151,7 +151,8 @@ const expectedValues = computed<ExpectedValuesMap | null>(() => {
     try {
         return calculateExpectedValues(gameTree.value, solverStrategies.value);
     } catch (error) {
-        console.error('Error calculating expected values:', error);
+        log.error('Error calculating expected values:', error);
+        notificationStore.showError('期待値の計算中にエラーが発生しました');
         return null;
     }
 });
@@ -174,7 +175,8 @@ async function importFile() {
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        alert(`Failed to import file: ${message}`);
+        log.error('Failed to import file:', error);
+        notificationStore.showError(`ファイルのインポートに失敗しました: ${message}`);
     }
 }
 
