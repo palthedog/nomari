@@ -85,6 +85,7 @@ import { ref, computed, watch, reactive } from 'vue';
 import type { Nodes, Edges, Layouts, UserConfigs, EventHandlers } from 'v-network-graph';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import { useGameTreeStore } from '@/stores/game-tree-store';
+import log from 'loglevel';
 
 const props = defineProps<{
     gameTree: GameTree;
@@ -379,6 +380,7 @@ function bfsBuildGraphData(
 
         const node = nodes[nodeId];
         if (!node) {
+            log.warn(`Node not found during BFS traversal: ${nodeId}`);
             continue;
         }
 
@@ -434,7 +436,8 @@ function buildGraphData() {
 
     const rootNode = props.gameTree.nodes[props.gameTree.root];
     if (!rootNode) {
-        return; 
+        log.warn(`Root node not found in game tree: ${props.gameTree.root}`);
+        return;
     }
 
     const terminalNodes: string[] = [];
