@@ -1,989 +1,440 @@
 import { LPSolver } from './lp';
-import { GameTree, Node, PlayerActions, Action, NodeTransition, State } from '@nomari/game-tree/game-tree';
+import { GameTree, Node, Action, NodeTransition, State } from '@nomari/game-tree/game-tree';
+
+// =============================================================================
+// Test Helpers: Build game trees from payoff matrices
+// =============================================================================
 
 /**
- * Helper function to create a State with default gauge values
+ * Creates a minimal State for testing (health values not used by LP solver)
  */
-function createState(playerHealth: number, opponentHealth: number): State {
-    return {
-        playerHealth,
-        opponentHealth,
-        playerOd: 0,
-        opponentOd: 0,
-        playerSa: 0,
-        opponentSa: 0,
-    };
+function emptyState(): State {
+    return { playerHealth: 0, opponentHealth: 0, playerOd: 0, opponentOd: 0, playerSa: 0, opponentSa: 0 };
 }
 
 /**
- * Helper function to create a rock-paper-scissors game tree
+ * Create an Action with the given ID and name
  */
-function createRockPaperScissorsGame(): GameTree {
-    const rock: Action = {
-        actionId: 1,
-        name: 'Rock',
-        description: 'Rock' 
-    };
-    const paper: Action = {
-        actionId: 2,
-        name: 'Paper',
-        description: 'Paper' 
-    };
-    const scissors: Action = {
-        actionId: 3,
-        name: 'Scissors',
-        description: 'Scissors' 
-    };
+function action(id: number, name: string): Action {
+    return { actionId: id, name, description: name };
+}
 
-    const playerActions: PlayerActions = {
-        actions: [rock, paper, scissors]
-    };
+/**
+ * Creates a single-node matrix game from a payoff matrix.
+ *
+ * Payoff matrix format: rows = player actions, cols = opponent actions
+ * Each cell is [playerReward, opponentReward] (zero-sum: typically [x, -x])
+ *
+ * Example - Rock Paper Scissors:
+ *   createMatrixGame({
+ *       actions: ['Rock', 'Paper', 'Scissors'],
+ *       payoffs: [
+ *           [0, -1,  1],  // Rock vs Rock/Paper/Scissors
+ *           [1,  0, -1],  // Paper vs ...
+ *           [-1, 1,  0],  // Scissors vs ...
+ *       ],
+ *   })
+ */
+function createMatrixGame(params: {
+    actions: string[]; // Same actions for both players
+    payoffs: number[][]; // payoffs[playerAction][opponentAction] = player reward
+}): GameTree {
+    const { actions: actionNames, payoffs } = params;
 
-    const opponentActions: PlayerActions = {
-        actions: [rock, paper, scissors]
-    };
+    const playerActions = actionNames.map((name, i) => action(i + 1, name));
+    const oppActions = actionNames.map((name, i) => action(100 + i + 1, name));
 
-    // Create terminal nodes for each outcome
-    const terminalNodes: Map<string, Node> = new Map();
-    const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => {
-        const node: Node = {
-            nodeId: id,
-            description: `Terminal: ${id}`,
-            state: createState(0, 0),
-            transitions: [],
-            playerReward: {
-                value: playerReward 
-            },
-            opponentReward: {
-                value: opponentReward 
-            },
-        };
-        terminalNodes.set(id, node);
-        return node;
-    };
+    const nodes: Record<string, Node> = {};
+    const transitions: NodeTransition[] = [];
 
-    // Create all terminal nodes
-    createTerminalNode('rock-rock', 0, 0);
-    createTerminalNode('rock-paper', -1, 1);
-    createTerminalNode('rock-scissors', 1, -1);
-    createTerminalNode('paper-rock', 1, -1);
-    createTerminalNode('paper-paper', 0, 0);
-    createTerminalNode('paper-scissors', -1, 1);
-    createTerminalNode('scissors-rock', -1, 1);
-    createTerminalNode('scissors-paper', 1, -1);
-    createTerminalNode('scissors-scissors', 0, 0);
+    // Create terminal nodes and transitions
+    for (let pIdx = 0; pIdx < playerActions.length; pIdx++) {
+        for (let oIdx = 0; oIdx < oppActions.length; oIdx++) {
+            const terminalId = `t_${pIdx}_${oIdx}`;
+            const reward = payoffs[pIdx][oIdx];
 
-    // Create transitions
-    const transitions: NodeTransition[] = [
-        {
-            playerActionId: 1,
-            opponentActionId: 1,
-            nextNodeId: 'rock-rock' 
-        },
-        {
-            playerActionId: 1,
-            opponentActionId: 2,
-            nextNodeId: 'rock-paper' 
-        },
-        {
-            playerActionId: 1,
-            opponentActionId: 3,
-            nextNodeId: 'rock-scissors' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 1,
-            nextNodeId: 'paper-rock' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 2,
-            nextNodeId: 'paper-paper' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 3,
-            nextNodeId: 'paper-scissors' 
-        },
-        {
-            playerActionId: 3,
-            opponentActionId: 1,
-            nextNodeId: 'scissors-rock' 
-        },
-        {
-            playerActionId: 3,
-            opponentActionId: 2,
-            nextNodeId: 'scissors-paper' 
-        },
-        {
-            playerActionId: 3,
-            opponentActionId: 3,
-            nextNodeId: 'scissors-scissors' 
-        },
-    ];
+            nodes[terminalId] = {
+                nodeId: terminalId,
+                description: `${actionNames[pIdx]} vs ${actionNames[oIdx]}`,
+                state: emptyState(),
+                transitions: [],
+                playerReward: { value: reward },
+                opponentReward: { value: -reward },
+            };
 
-    const root: Node = {
-        nodeId: 'root',
-        description: 'Rock Paper Scissors',
-        state: createState(0, 0),
-        playerActions,
-        opponentActions,
-        transitions
-    };
-
-    // Build nodes map
-    const nodes: Record<string, Node> = {
-        'root': root,
-    };
-    // Add all terminal nodes
-    for (const [id, node] of terminalNodes.entries()) {
-        nodes[id] = node;
+            transitions.push({
+                playerActionId: playerActions[pIdx].actionId,
+                opponentActionId: oppActions[oIdx].actionId,
+                nextNodeId: terminalId,
+            });
+        }
     }
 
-    return {
-        id: 1,
-        root: 'root',
-        nodes
-    };
-}
-
-/**
- * Helper function to create a game with biased rewards
- */
-function createBiasedRewardGame(): GameTree {
-    const strike: Action = {
-        actionId: 1,
-        name: 'Strike',
-        description: 'Strike' 
-    };
-    const throwAction: Action = {
-        actionId: 2,
-        name: 'Throw',
-        description: 'Throw' 
-    };
-
-    const guard: Action = {
-        actionId: 101,
-        name: 'Guard',
-        description: 'Guard' 
-    };
-    const throwEscape: Action = {
-        actionId: 102,
-        name: 'Throw Escape',
-        description: 'Throw Escape' 
-    };
-    const verticalJump: Action = {
-        actionId: 103,
-        name: 'Vertical Jump',
-        description: 'Vertical Jump' 
-    };
-
-    const playerActions: PlayerActions = {
-        actions: [strike, throwAction]
-    };
-
-    const opponentActions: PlayerActions = {
-        actions: [guard, throwEscape, verticalJump]
-    };
-
-    // Create terminal nodes
-    const terminalNodes: Map<string, Node> = new Map();
-    const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => {
-        const node: Node = {
-            nodeId: id,
-            description: `Terminal: ${id}`,
-            state: createState(0, 0),
-            transitions: [],
-            playerReward: {
-                value: playerReward 
-            },
-            opponentReward: {
-                value: opponentReward 
-            },
-        };
-        terminalNodes.set(id, node);
-        return node;
-    };
-
-    createTerminalNode('strike-guard', 0, 0);
-    createTerminalNode('strike-throw_escape', 3000, -3000);
-    createTerminalNode('strike-vertical_jump', 3000, -3000);
-    createTerminalNode('throw-guard', 1000, -1000);
-    createTerminalNode('throw-throw_escape', 0, 0);
-    createTerminalNode('throw-vertical_jump', -3000, 3000);
-
-    const transitions: NodeTransition[] = [
-        {
-            playerActionId: 1,
-            opponentActionId: 101,
-            nextNodeId: 'strike-guard' 
-        },
-        {
-            playerActionId: 1,
-            opponentActionId: 102,
-            nextNodeId: 'strike-throw_escape' 
-        },
-        {
-            playerActionId: 1,
-            opponentActionId: 103,
-            nextNodeId: 'strike-vertical_jump' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 101,
-            nextNodeId: 'throw-guard' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 102,
-            nextNodeId: 'throw-throw_escape' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 103,
-            nextNodeId: 'throw-vertical_jump' 
-        },
-    ];
-
-    const root: Node = {
+    // Create root node
+    nodes['root'] = {
         nodeId: 'root',
-        description: 'Biased Reward Game',
-        state: createState(0, 0),
-        playerActions,
-        opponentActions,
-        transitions
-    };
-
-    // Build nodes map
-    const nodes: Record<string, Node> = {
-        'root': root,
-    };
-    // Add all terminal nodes
-    for (const [id, node] of terminalNodes.entries()) {
-        nodes[id] = node;
-    }
-
-    return {
-        id: 2,
-        root: 'root',
-        nodes
-    };
-}
-
-/**
- * Helper function to create Guriko Janken
- */
-function createGurikoJanken(): GameTree {
-    const rock: Action = {
-        actionId: 1,
-        name: 'Rock',
-        description: 'Rock' 
-    };
-    const paper: Action = {
-        actionId: 2,
-        name: 'Paper',
-        description: 'Paper' 
-    };
-    const scissors: Action = {
-        actionId: 3,
-        name: 'Scissors',
-        description: 'Scissors' 
-    };
-
-    const playerActions: PlayerActions = {
-        actions: [rock, paper, scissors],
-    };
-
-    const opponentActions: PlayerActions = {
-        actions: [rock, paper, scissors],
-    };
-
-    // Create terminal nodes
-    const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
-        nodeId: id,
-        description: `Terminal: ${id}`,
-        state: createState(0, 0),
-        transitions: [],
-        playerReward: {
-            value: playerReward 
-        },
-        opponentReward: {
-            value: opponentReward 
-        },
-    });
-
-    const transitions: NodeTransition[] = [
-        {
-            playerActionId: 1,
-            opponentActionId: 1,
-            nextNodeId: 'rock-rock' 
-        },
-        {
-            playerActionId: 1,
-            opponentActionId: 2,
-            nextNodeId: 'rock-paper' 
-        },
-        {
-            playerActionId: 1,
-            opponentActionId: 3,
-            nextNodeId: 'rock-scissors' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 1,
-            nextNodeId: 'paper-rock' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 2,
-            nextNodeId: 'paper-paper' 
-        },
-        {
-            playerActionId: 2,
-            opponentActionId: 3,
-            nextNodeId: 'paper-scissors' 
-        },
-        {
-            playerActionId: 3,
-            opponentActionId: 1,
-            nextNodeId: 'scissors-rock' 
-        },
-        {
-            playerActionId: 3,
-            opponentActionId: 2,
-            nextNodeId: 'scissors-paper' 
-        },
-        {
-            playerActionId: 3,
-            opponentActionId: 3,
-            nextNodeId: 'scissors-scissors' 
-        },
-    ];
-
-    const root: Node = {
-        nodeId: 'root',
-        description: 'Guriko Janken',
-        state: createState(0, 0),
-        playerActions,
-        opponentActions,
+        description: 'Game Root',
+        state: emptyState(),
+        playerActions: { actions: playerActions },
+        opponentActions: { actions: oppActions },
         transitions,
     };
 
-    // Create terminal nodes map
-    const terminalNodes: Record<string, Node> = {
-        'rock-rock': createTerminalNode('rock-rock', 0, 0),
-        'rock-paper': createTerminalNode('rock-paper', -6, 6),
-        'rock-scissors': createTerminalNode('rock-scissors', 3, -3),
-        'paper-rock': createTerminalNode('paper-rock', 6, -6),
-        'paper-paper': createTerminalNode('paper-paper', 0, 0),
-        'paper-scissors': createTerminalNode('paper-scissors', -5, 5),
-        'scissors-rock': createTerminalNode('scissors-rock', -3, 3),
-        'scissors-paper': createTerminalNode('scissors-paper', 5, -5),
-        'scissors-scissors': createTerminalNode('scissors-scissors', 0, 0),
-    };
-
-    const nodes: Record<string, Node> = {
-        'root': root,
-        ...terminalNodes,
-    };
-
-    return {
-        id: 3,
-        root: 'root',
-        nodes 
-    };
+    return { id: 1, root: 'root', nodes };
 }
+
+/**
+ * Creates an asymmetric matrix game where player and opponent have different actions.
+ */
+function createAsymmetricMatrixGame(params: {
+    playerActions: string[];
+    opponentActions: string[];
+    payoffs: number[][]; // payoffs[playerIdx][opponentIdx] = player reward
+}): GameTree {
+    const { playerActions: pNames, opponentActions: oNames, payoffs } = params;
+
+    const playerActions = pNames.map((name, i) => action(i + 1, name));
+    const oppActions = oNames.map((name, i) => action(100 + i + 1, name));
+
+    const nodes: Record<string, Node> = {};
+    const transitions: NodeTransition[] = [];
+
+    for (let pIdx = 0; pIdx < playerActions.length; pIdx++) {
+        for (let oIdx = 0; oIdx < oppActions.length; oIdx++) {
+            const terminalId = `t_${pIdx}_${oIdx}`;
+            const reward = payoffs[pIdx][oIdx];
+
+            nodes[terminalId] = {
+                nodeId: terminalId,
+                description: `${pNames[pIdx]} vs ${oNames[oIdx]}`,
+                state: emptyState(),
+                transitions: [],
+                playerReward: { value: reward },
+                opponentReward: { value: -reward },
+            };
+
+            transitions.push({
+                playerActionId: playerActions[pIdx].actionId,
+                opponentActionId: oppActions[oIdx].actionId,
+                nextNodeId: terminalId,
+            });
+        }
+    }
+
+    nodes['root'] = {
+        nodeId: 'root',
+        description: 'Game Root',
+        state: emptyState(),
+        playerActions: { actions: playerActions },
+        opponentActions: { actions: oppActions },
+        transitions,
+    };
+
+    return { id: 1, root: 'root', nodes };
+}
+
+// =============================================================================
+// Test: Rock Paper Scissors
+// =============================================================================
+// Classic symmetric zero-sum game. Nash equilibrium: uniform 1/3 each.
 
 describe('LPSolver', () => {
     describe('Rock Paper Scissors', () => {
-        it('should converge to uniform strategy for RPS', () => {
-            const gameTree = createRockPaperScissorsGame();
-            const solver = new LPSolver(gameTree);
-
-            solver.solve();
-
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
-
-            const rockProb = strategy!.get(1) ?? 0;
-            const paperProb = strategy!.get(2) ?? 0;
-            const scissorsProb = strategy!.get(3) ?? 0;
-
-            // In RPS, optimal strategy is uniform (1/3 each)
-            expect(rockProb).toBeCloseTo(1 / 3, 2);
-            expect(paperProb).toBeCloseTo(1 / 3, 2);
-            expect(scissorsProb).toBeCloseTo(1 / 3, 2);
-
-            // Probabilities should sum to 1
-            expect(rockProb + paperProb + scissorsProb).toBeCloseTo(1.0, 5);
+        const rpsGame = createMatrixGame({
+            actions: ['Rock', 'Paper', 'Scissors'],
+            //              Rock  Paper  Scissors
+            payoffs: [
+                /* Rock     */ [0, -1, 1],
+                /* Paper    */ [1, 0, -1],
+                /* Scissors */ [-1, 1, 0],
+            ],
         });
 
-        it('should have all probabilities between 0 and 1', () => {
-            const gameTree = createRockPaperScissorsGame();
-            const solver = new LPSolver(gameTree);
-
+        it('converges to uniform 1/3 strategy', () => {
+            const solver = new LPSolver(rpsGame);
             solver.solve();
 
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
+            const strategy = solver.getRootStrategy()!;
+            expect(strategy.get(1)).toBeCloseTo(1 / 3, 2); // Rock
+            expect(strategy.get(2)).toBeCloseTo(1 / 3, 2); // Paper
+            expect(strategy.get(3)).toBeCloseTo(1 / 3, 2); // Scissors
+        });
 
-            for (const [, prob] of strategy!.entries()) {
+        it('probabilities sum to 1', () => {
+            const solver = new LPSolver(rpsGame);
+            solver.solve();
+
+            const strategy = solver.getRootStrategy()!;
+            const total = Array.from(strategy.values()).reduce((a, b) => a + b, 0);
+            expect(total).toBeCloseTo(1.0, 5);
+        });
+
+        it('all probabilities in valid range [0, 1]', () => {
+            const solver = new LPSolver(rpsGame);
+            solver.solve();
+
+            const strategy = solver.getRootStrategy()!;
+            for (const prob of strategy.values()) {
                 expect(prob).toBeGreaterThanOrEqual(0);
                 expect(prob).toBeLessThanOrEqual(1);
             }
         });
     });
 
-    describe('Biased Reward Game', () => {
-        it('should prefer strike over throw due to higher reward', () => {
-            const gameTree = createBiasedRewardGame();
-            const solver = new LPSolver(gameTree);
+    // =========================================================================
+    // Test: Guriko Janken (weighted RPS)
+    // =========================================================================
+    // Japanese children's game where wins advance you by syllables of the hand name.
+    // Rock wins -> advance 3 (gu-ri-ko), Paper wins -> advance 6 (pa-i-na-tsu-pu-ru)
+    // Scissors wins -> advance 5 (chi-yo-ko-re-i-to)
+    // Nash equilibrium: Rock=5/14, Scissors=6/14, Paper=3/14
 
-            solver.solve();
-
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
-
-            const strikeProb = strategy!.get(1) ?? 0;
-            const throwProb = strategy!.get(2) ?? 0;
-
-            // Strike should have higher probability than throw
-            expect(strikeProb).toBeGreaterThan(throwProb);
-
-            // All probabilities should be positive
-            expect(strikeProb).toBeGreaterThan(0);
-            expect(throwProb).toBeGreaterThan(0);
-
-            // Probabilities should sum to 1
-            expect(strikeProb + throwProb).toBeCloseTo(1.0, 5);
+    describe('Guriko Janken (weighted RPS)', () => {
+        const gurikoGame = createMatrixGame({
+            actions: ['Rock', 'Paper', 'Scissors'],
+            //              Rock   Paper  Scissors
+            payoffs: [
+                /* Rock     */ [0, -6, 3], // lose to Paper(-6), beat Scissors(+3)
+                /* Paper    */ [6, 0, -5], // beat Rock(+6), lose to Scissors(-5)
+                /* Scissors */ [-3, 5, 0], // lose to Rock(-3), beat Paper(+5)
+            ],
         });
 
-        it('should converge to a mixed strategy', () => {
-            const gameTree = createBiasedRewardGame();
-            const solver = new LPSolver(gameTree);
-
+        it('converges to expected equilibrium: Rock=5/14, Paper=3/14, Scissors=6/14', () => {
+            const solver = new LPSolver(gurikoGame);
             solver.solve();
 
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
+            const strategy = solver.getRootStrategy()!;
+            expect(strategy.get(1)).toBeCloseTo(5 / 14, 2); // Rock
+            expect(strategy.get(2)).toBeCloseTo(3 / 14, 2); // Paper
+            expect(strategy.get(3)).toBeCloseTo(6 / 14, 2); // Scissors
+        });
+    });
 
-            // Strategy should not be pure (all probability on one action)
-            const probs = Array.from(strategy!.values());
-            const maxProb = Math.max(...probs);
+    // =========================================================================
+    // Test: Biased reward game (asymmetric actions)
+    // =========================================================================
+    // Player: Strike (high reward if opponent moves), Throw (beats guard)
+    // Opponent: Guard (blocks strike), Throw Escape, Vertical Jump
 
-            // Maximum probability should be less than 1 (mixed strategy)
-            expect(maxProb).toBeLessThan(1.0);
+    describe('Biased reward game', () => {
+        const biasedGame = createAsymmetricMatrixGame({
+            playerActions: ['Strike', 'Throw'],
+            opponentActions: ['Guard', 'ThrowEscape', 'VerticalJump'],
+            //                      Guard  ThrowEsc  VertJump
+            payoffs: [
+                /* Strike */ [0, 3000, 3000], // Strike beats escaping opponents
+                /* Throw  */ [1000, 0, -3000], // Throw beats guard, loses to jump
+            ],
+        });
 
-            // All actions should have some probability
-            for (const prob of probs) {
+        it('prefers strike over throw due to higher expected value', () => {
+            const solver = new LPSolver(biasedGame);
+            solver.solve();
+
+            const strategy = solver.getRootStrategy()!;
+            const strikeProb = strategy.get(1)!;
+            const throwProb = strategy.get(2)!;
+
+            expect(strikeProb).toBeGreaterThan(throwProb);
+        });
+
+        it('uses mixed strategy (neither action is pure)', () => {
+            const solver = new LPSolver(biasedGame);
+            solver.solve();
+
+            const strategy = solver.getRootStrategy()!;
+            for (const prob of strategy.values()) {
                 expect(prob).toBeGreaterThan(0.01);
+                expect(prob).toBeLessThan(1.0);
             }
         });
     });
 
-    describe('Guriko Janken (weighted RPS)', () => {
-        it('should converge to expected mixed strategy 5/14, 6/14, 3/14', () => {
-            const gameTree = createGurikoJanken();
-            const solver = new LPSolver(gameTree);
+    // =========================================================================
+    // Test: Single action edge cases
+    // =========================================================================
 
+    describe('single action nodes', () => {
+        it('player with one action: uses 100% that action', () => {
+            const game = createAsymmetricMatrixGame({
+                playerActions: ['Attack'],
+                opponentActions: ['Block', 'Dodge'],
+                //                Block  Dodge
+                payoffs: [
+                    /* Attack */ [-100, 100],
+                ],
+            });
+
+            const solver = new LPSolver(game);
             solver.solve();
 
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
+            const strategy = solver.getRootStrategy()!;
+            expect(strategy.get(1)).toBeCloseTo(1.0, 5);
+        });
 
-            const rockProb = strategy!.get(1) ?? 0;
-            const paperProb = strategy!.get(2) ?? 0;
-            const scissorsProb = strategy!.get(3) ?? 0;
+        it('opponent with one action: uses 100% that action', () => {
+            const game = createAsymmetricMatrixGame({
+                playerActions: ['Strike', 'Defend'],
+                opponentActions: ['Wait'],
+                //                Wait
+                payoffs: [
+                    /* Strike */ [100],
+                    /* Defend */ [-100],
+                ],
+            });
 
-            // Expected optimal mix (Rock, Scissors, Paper): 5/14, 6/14, 3/14
-            expect(rockProb).toBeCloseTo(5 / 14, 2);
-            expect(scissorsProb).toBeCloseTo(6 / 14, 2);
-            expect(paperProb).toBeCloseTo(3 / 14, 2);
+            const solver = new LPSolver(game);
+            solver.solve();
 
-            expect(rockProb + paperProb + scissorsProb).toBeCloseTo(1.0, 4);
+            const strategy = solver.getRootStrategy()!;
+            // Player should always Strike (maximizes payoff against Wait)
+            expect(strategy.get(1)).toBeCloseTo(1.0, 5);
+
+            const oppStrategy = solver.getAverageOpponentStrategy('root')!;
+            expect(oppStrategy.get(101)).toBeCloseTo(1.0, 5);
         });
     });
 
-    describe('Single action node', () => {
-        function createSinglePlayerActionGame(): GameTree {
-            const attack: Action = {
-                actionId: 1,
-                name: 'Attack',
-                description: 'Attack' 
-            };
+    // =========================================================================
+    // Test: Multi-node game tree
+    // =========================================================================
 
-            const block: Action = {
-                actionId: 101,
-                name: 'Block',
-                description: 'Block' 
-            };
-            const dodge: Action = {
-                actionId: 102,
-                name: 'Dodge',
-                description: 'Dodge' 
-            };
+    describe('multi-node game tree', () => {
+        it('propagates minimax value from child to parent correctly', () => {
+            // Root: PathA -> child node (single action), PathB -> terminal(0)
+            // Child: player has one action (Attack) vs opponent Block/Dodge
+            // Block = -100, Dodge = +100 -> minimax value = -100
+            // Player should prefer PathB (0) over PathA (-100)
 
-            const playerActions: PlayerActions = {
-                actions: [attack]
-            };
+            const nodes: Record<string, Node> = {};
 
-            const opponentActions: PlayerActions = {
-                actions: [block, dodge]
-            };
-
-            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
-                nodeId: id,
-                description: `Terminal: ${id}`,
-                state: createState(0, 0),
+            // Terminal nodes for child
+            nodes['attack-block'] = {
+                nodeId: 'attack-block',
+                description: 'Attack vs Block',
+                state: emptyState(),
                 transitions: [],
-                playerReward: {
-                    value: playerReward 
-                },
-                opponentReward: {
-                    value: opponentReward 
-                },
-            });
-
-            const transitions: NodeTransition[] = [
-                {
-                    playerActionId: 1,
-                    opponentActionId: 101,
-                    nextNodeId: 'attack-block' 
-                },
-                {
-                    playerActionId: 1,
-                    opponentActionId: 102,
-                    nextNodeId: 'attack-dodge' 
-                },
-            ];
-
-            const root: Node = {
-                nodeId: 'root',
-                description: 'Single Player Action Game',
-                state: createState(0, 0),
-                playerActions,
-                opponentActions,
-                transitions,
+                playerReward: { value: -100 },
+                opponentReward: { value: 100 },
             };
-
-            const nodes: Record<string, Node> = {
-                'root': root,
-                'attack-block': createTerminalNode('attack-block', -100, 100),
-                'attack-dodge': createTerminalNode('attack-dodge', 100, -100),
-            };
-
-            return {
-                id: 4,
-                root: 'root',
-                nodes 
-            };
-        }
-
-        function createSingleOpponentActionGame(): GameTree {
-            const strike: Action = {
-                actionId: 1,
-                name: 'Strike',
-                description: 'Strike' 
-            };
-            const defend: Action = {
-                actionId: 2,
-                name: 'Defend',
-                description: 'Defend' 
-            };
-
-            const wait: Action = {
-                actionId: 101,
-                name: 'Wait',
-                description: 'Wait' 
-            };
-
-            const playerActions: PlayerActions = {
-                actions: [strike, defend]
-            };
-
-            const opponentActions: PlayerActions = {
-                actions: [wait]
-            };
-
-            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
-                nodeId: id,
-                description: `Terminal: ${id}`,
-                state: createState(0, 0),
+            nodes['attack-dodge'] = {
+                nodeId: 'attack-dodge',
+                description: 'Attack vs Dodge',
+                state: emptyState(),
                 transitions: [],
-                playerReward: {
-                    value: playerReward 
-                },
-                opponentReward: {
-                    value: opponentReward 
-                },
-            });
-
-            const transitions: NodeTransition[] = [
-                {
-                    playerActionId: 1,
-                    opponentActionId: 101,
-                    nextNodeId: 'strike-wait' 
-                },
-                {
-                    playerActionId: 2,
-                    opponentActionId: 101,
-                    nextNodeId: 'defend-wait' 
-                },
-            ];
-
-            const root: Node = {
-                nodeId: 'root',
-                description: 'Single Opponent Action Game',
-                state: createState(0, 0),
-                playerActions,
-                opponentActions,
-                transitions,
+                playerReward: { value: 100 },
+                opponentReward: { value: -100 },
             };
 
-            const nodes: Record<string, Node> = {
-                'root': root,
-                'strike-wait': createTerminalNode('strike-wait', 100, -100),
-                'defend-wait': createTerminalNode('defend-wait', -100, 100),
-            };
-
-            return {
-                id: 5,
-                root: 'root',
-                nodes 
-            };
-        }
-
-        it('should compute correct minimax value when player has one action', () => {
-            const gameTree = createSinglePlayerActionGame();
-            const solver = new LPSolver(gameTree);
-
-            solver.solve();
-
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
-
-            // Player's only action should have probability 1
-            const attackProb = strategy!.get(1) ?? 0;
-            expect(attackProb).toBeCloseTo(1.0, 5);
-
-            // Opponent should choose block (which minimizes player's payoff)
-            const oppStrategy = solver.getAverageOpponentStrategy('root');
-            expect(oppStrategy).not.toBeNull();
-            const blockProb = oppStrategy!.get(101) ?? 0;
-            expect(blockProb).toBeCloseTo(1.0, 5);
-        });
-
-        function createGameWithSingleActionChild(): GameTree {
-            const pathA: Action = {
-                actionId: 1,
-                name: 'Path A',
-                description: 'Path A' 
-            };
-            const pathB: Action = {
-                actionId: 2,
-                name: 'Path B',
-                description: 'Path B' 
-            };
-            const attack: Action = {
-                actionId: 3,
-                name: 'Attack',
-                description: 'Attack' 
-            };
-            const block: Action = {
-                actionId: 101,
-                name: 'Block',
-                description: 'Block' 
-            };
-            const dodge: Action = {
-                actionId: 102,
-                name: 'Dodge',
-                description: 'Dodge' 
-            };
-            const pass: Action = {
-                actionId: 103,
-                name: 'Pass',
-                description: 'Pass' 
-            };
-
-            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
-                nodeId: id,
-                description: `Terminal: ${id}`,
-                state: createState(0, 0),
-                transitions: [],
-                playerReward: {
-                    value: playerReward 
-                },
-                opponentReward: {
-                    value: opponentReward 
-                },
-            });
-
-            // Single-action child node
-            const childNode: Node = {
-                nodeId: 'child_a',
-                description: 'Single Action Child',
-                state: createState(0, 0),
-                playerActions: {
-                    actions: [attack] 
-                },
-                opponentActions: {
-                    actions: [block, dodge] 
-                },
+            // Child node (single player action)
+            nodes['child'] = {
+                nodeId: 'child',
+                description: 'Child',
+                state: emptyState(),
+                playerActions: { actions: [action(10, 'Attack')] },
+                opponentActions: { actions: [action(110, 'Block'), action(111, 'Dodge')] },
                 transitions: [
-                    {
-                        playerActionId: 3,
-                        opponentActionId: 101,
-                        nextNodeId: 'attack-block' 
-                    },
-                    {
-                        playerActionId: 3,
-                        opponentActionId: 102,
-                        nextNodeId: 'attack-dodge' 
-                    },
+                    { playerActionId: 10, opponentActionId: 110, nextNodeId: 'attack-block' },
+                    { playerActionId: 10, opponentActionId: 111, nextNodeId: 'attack-dodge' },
                 ],
+            };
+
+            // Terminal for PathB
+            nodes['terminal-b'] = {
+                nodeId: 'terminal-b',
+                description: 'PathB terminal',
+                state: emptyState(),
+                transitions: [],
+                playerReward: { value: 0 },
+                opponentReward: { value: 0 },
             };
 
             // Root node
-            const root: Node = {
+            nodes['root'] = {
                 nodeId: 'root',
                 description: 'Root',
-                state: createState(0, 0),
-                playerActions: {
-                    actions: [pathA, pathB] 
-                },
-                opponentActions: {
-                    actions: [pass] 
-                },
+                state: emptyState(),
+                playerActions: { actions: [action(1, 'PathA'), action(2, 'PathB')] },
+                opponentActions: { actions: [action(101, 'Pass')] },
                 transitions: [
-                    {
-                        playerActionId: 1,
-                        opponentActionId: 103,
-                        nextNodeId: 'child_a' 
-                    },
-                    {
-                        playerActionId: 2,
-                        opponentActionId: 103,
-                        nextNodeId: 'terminal_b' 
-                    },
+                    { playerActionId: 1, opponentActionId: 101, nextNodeId: 'child' },
+                    { playerActionId: 2, opponentActionId: 101, nextNodeId: 'terminal-b' },
                 ],
             };
 
-            const nodes: Record<string, Node> = {
-                'root': root,
-                'child_a': childNode,
-                'attack-block': createTerminalNode('attack-block', -100, 100),
-                'attack-dodge': createTerminalNode('attack-dodge', 100, -100),
-                'terminal_b': createTerminalNode('terminal_b', 0, 0),
-            };
-
-            return {
-                id: 6,
-                root: 'root',
-                nodes 
-            };
-        }
-
-        it('should propagate correct minimax value from single-action child to parent', () => {
-            const gameTree = createGameWithSingleActionChild();
-            const solver = new LPSolver(gameTree);
-
+            const game: GameTree = { id: 1, root: 'root', nodes };
+            const solver = new LPSolver(game);
             solver.solve();
 
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
-
-            // Path A leads to a single-action node with minimax value -100
-            // Path B leads to terminal with value 0
-            // Player should strongly prefer Path B
-            const pathAProb = strategy!.get(1) ?? 0;
-            const pathBProb = strategy!.get(2) ?? 0;
-
-            expect(pathBProb).toBeCloseTo(1.0, 5);
-            expect(pathAProb).toBeCloseTo(0.0, 5);
-        });
-
-        it('should compute correct minimax value when opponent has one action', () => {
-            const gameTree = createSingleOpponentActionGame();
-            const solver = new LPSolver(gameTree);
-
-            solver.solve();
-
-            // Opponent's only action should have probability 1
-            const oppStrategy = solver.getAverageOpponentStrategy('root');
-            expect(oppStrategy).not.toBeNull();
-            const waitProb = oppStrategy!.get(101) ?? 0;
-            expect(waitProb).toBeCloseTo(1.0, 5);
-
-            // Player should choose strike (which maximizes player's payoff)
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
-            const strikeProb = strategy!.get(1) ?? 0;
-            expect(strikeProb).toBeCloseTo(1.0, 5);
+            const strategy = solver.getRootStrategy()!;
+            // PathB (0 reward) is better than PathA (-100 minimax)
+            expect(strategy.get(2)).toBeCloseTo(1.0, 5); // PathB
+            expect(strategy.get(1)).toBeCloseTo(0.0, 5); // PathA
         });
     });
 
-    describe('Action ID collision with reserved variable names', () => {
-        // Using numeric IDs, so collision test is less relevant but kept for coverage
-        function createGameWithSmallActionId(): GameTree {
-            const v: Action = {
-                actionId: 1,
-                name: 'V',
-                description: 'Action V' 
-            };
-            const w: Action = {
-                actionId: 2,
-                name: 'W',
-                description: 'Action W' 
-            };
+    // =========================================================================
+    // Test: 2x2 mixed strategy game
+    // =========================================================================
+    // Payoff matrix:
+    //        X     Y
+    //   V    3    -1
+    //   W   -1     2
+    // Unique Nash equilibrium: p(V) = 3/7
 
-            const x: Action = {
-                actionId: 101,
-                name: 'X',
-                description: 'Action X' 
-            };
-            const y: Action = {
-                actionId: 102,
-                name: 'Y',
-                description: 'Action Y' 
-            };
-
-            const playerActions: PlayerActions = {
-                actions: [v, w]
-            };
-
-            const opponentActions: PlayerActions = {
-                actions: [x, y]
-            };
-
-            const createTerminalNode = (id: string, playerReward: number, opponentReward: number): Node => ({
-                nodeId: id,
-                description: `Terminal: ${id}`,
-                state: createState(0, 0),
-                transitions: [],
-                playerReward: {
-                    value: playerReward 
-                },
-                opponentReward: {
-                    value: opponentReward 
-                },
-            });
-
-            const transitions: NodeTransition[] = [
-                {
-                    playerActionId: 1,
-                    opponentActionId: 101,
-                    nextNodeId: 'v-x' 
-                },
-                {
-                    playerActionId: 1,
-                    opponentActionId: 102,
-                    nextNodeId: 'v-y' 
-                },
-                {
-                    playerActionId: 2,
-                    opponentActionId: 101,
-                    nextNodeId: 'w-x' 
-                },
-                {
-                    playerActionId: 2,
-                    opponentActionId: 102,
-                    nextNodeId: 'w-y' 
-                },
-            ];
-
-            const root: Node = {
-                nodeId: 'root',
-                description: 'Small Action ID Game',
-                state: createState(0, 0),
-                playerActions,
-                opponentActions,
-                transitions,
-            };
-
-            const nodes: Record<string, Node> = {
-                'root': root,
-                'v-x': createTerminalNode('v-x', 3, -3),
-                'v-y': createTerminalNode('v-y', -1, 1),
-                'w-x': createTerminalNode('w-x', -1, 1),
-                'w-y': createTerminalNode('w-y', 2, -2),
-            };
-
-            return {
-                id: 7,
-                root: 'root',
-                nodes 
-            };
-        }
-
-        it('should handle small action IDs correctly', () => {
-            const gameTree = createGameWithSmallActionId();
-            const solver = new LPSolver(gameTree);
-
-            solver.solve();
-
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
-
-            // Both actions should have valid probabilities
-            const vProb = strategy!.get(1) ?? 0;
-            const wProb = strategy!.get(2) ?? 0;
-
-            // Probabilities should be valid (between 0 and 1)
-            expect(vProb).toBeGreaterThanOrEqual(0);
-            expect(vProb).toBeLessThanOrEqual(1);
-            expect(wProb).toBeGreaterThanOrEqual(0);
-            expect(wProb).toBeLessThanOrEqual(1);
-
-            // Probabilities should sum to 1
-            expect(vProb + wProb).toBeCloseTo(1.0, 5);
-
-            // This should be a mixed strategy (not pure)
-            expect(vProb).toBeGreaterThan(0.1);
-            expect(wProb).toBeGreaterThan(0.1);
+    describe('2x2 mixed strategy equilibrium', () => {
+        const game2x2 = createAsymmetricMatrixGame({
+            playerActions: ['V', 'W'],
+            opponentActions: ['X', 'Y'],
+            //          X   Y
+            payoffs: [
+                /* V */ [3, -1],
+                /* W */ [-1, 2],
+            ],
         });
 
-        it('should compute correct equilibrium', () => {
-            const gameTree = createGameWithSmallActionId();
-            const solver = new LPSolver(gameTree);
-
+        it('finds correct equilibrium p(V) = 3/7', () => {
+            const solver = new LPSolver(game2x2);
             solver.solve();
 
-            const strategy = solver.getRootStrategy();
-            expect(strategy).not.toBeNull();
+            const strategy = solver.getRootStrategy()!;
+            expect(strategy.get(1)).toBeCloseTo(3 / 7, 2); // V
+        });
 
-            // For the payoff matrix:
-            //        x    y
-            //   v    3   -1
-            //   w   -1    2
-            // p = 3/7
-            const vProb = strategy!.get(1) ?? 0;
-            expect(vProb).toBeCloseTo(3 / 7, 2);
+        it('both actions have non-zero probability', () => {
+            const solver = new LPSolver(game2x2);
+            solver.solve();
+
+            const strategy = solver.getRootStrategy()!;
+            expect(strategy.get(1)).toBeGreaterThan(0.1);
+            expect(strategy.get(2)).toBeGreaterThan(0.1);
         });
     });
 
-    describe('Solver interface', () => {
-        it('should have required solver methods', () => {
-            const gameTree = createRockPaperScissorsGame();
-            const solver = new LPSolver(gameTree);
+    // =========================================================================
+    // Test: Solver interface
+    // =========================================================================
 
-            // Should have solve method
+    describe('solver interface', () => {
+        const simpleGame = createMatrixGame({
+            actions: ['A', 'B'],
+            payoffs: [
+                [1, -1],
+                [-1, 1],
+            ],
+        });
+
+        it('has required methods', () => {
+            const solver = new LPSolver(simpleGame);
             expect(typeof solver.solve).toBe('function');
-
-            // Should have getRootStrategy method
             expect(typeof solver.getRootStrategy).toBe('function');
-
-            // Should have getAverageStrategy method
             expect(typeof solver.getAverageStrategy).toBe('function');
-
-            // Should have getAverageOpponentStrategy method
             expect(typeof solver.getAverageOpponentStrategy).toBe('function');
         });
 
-        it('should work with solve() called without arguments', () => {
-            const gameTree = createRockPaperScissorsGame();
-            const solver = new LPSolver(gameTree);
-
-            // Should work without iterations parameter
+        it('solve() works without arguments', () => {
+            const solver = new LPSolver(simpleGame);
             solver.solve();
 
             const strategy = solver.getRootStrategy();
