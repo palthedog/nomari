@@ -152,7 +152,7 @@ const configs = computed<UserConfigs>(() => ({
             color: entityColors.value.situation,
         },
         hover: {
-            color: '#1976D2',
+            color: '#3A7BC8',
         },
         label: {
             visible: false,
@@ -161,7 +161,7 @@ const configs = computed<UserConfigs>(() => ({
     edge: {
         selectable: false,
         normal: {
-            color: '#888888',
+            color: '#9CA3AF',
             width: 2,
         },
         marker: {
@@ -255,16 +255,16 @@ function getSaInfo(nodeId: string): string {
 function getRewardColor(nodeId: string): string {
     const node = props.gameTree.nodes[nodeId];
     if (!node) {
-        return '#FFD700'; 
+        return '#FFF8E7';
     }
     const value = node.playerReward?.value;
     if (value === undefined) {
-        return '#FFD700'; 
+        return '#FFF8E7';
     }
     if (value < 0) {
-        return '#FF6B6B'; 
+        return '#FFD4D4';
     }
-    return '#FFD700';
+    return '#FFF8E7';
 }
 
 /**
@@ -325,7 +325,7 @@ function getNodeFillColor(nodeId: string): string {
     }
 
     if (isHighlightedNode(nodeId)) {
-        return '#FFC107';
+        return '#F5B041';
     }
 
     if (nodeId === rootNodeId.value) {
@@ -353,7 +353,7 @@ function getNodeFillColor(nodeId: string): string {
      * Get the stroke color for a node.
      */
 function getNodeStrokeColor(nodeId: string): string {
-    return isSelectedNode(nodeId) ? '#FFD700' : '#333';
+    return isSelectedNode(nodeId) ? '#E6A732' : '#6B7280';
 }
 
 /**
