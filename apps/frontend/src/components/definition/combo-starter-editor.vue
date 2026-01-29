@@ -1,15 +1,5 @@
 <template>
   <div class="combo-starter-editor">
-    <div class="header-actions">
-      <button
-        type="button"
-        class="delete-btn"
-        @click="handleDelete"
-      >
-        このコンボを削除
-      </button>
-    </div>
-
     <!-- Basic Info -->
     <div class="section">
       <div
@@ -211,10 +201,6 @@ const props = defineProps<{
     availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
     isPlayerCombo: boolean;
-}>();
-
-const emit = defineEmits<{
-    (e: 'delete'): void;
 }>();
 
 // Override flags for requirements (routeIndex -> { od: boolean, sa: boolean })
@@ -447,10 +433,6 @@ function updateNextSituation(routeIndex: number, value: number) {
     model.value.routes[routeIndex].nextSituationId = value;
 }
 
-function handleDelete() {
-    emit('delete');
-}
-
 // Get override flag for a specific resource type
 function getOverrideFlag(routeIndex: number, resourceType: ResourceType): boolean {
     const override = requirementOverrides.value.get(routeIndex);
@@ -511,26 +493,6 @@ watch(() => model.value.routes.length, () => {
 <style scoped>
 .combo-starter-editor {
   padding: 20px;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
-}
-
-.delete-btn {
-  padding: 8px 16px;
-  background-color: var(--color-error);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.delete-btn:hover {
-  opacity: 0.8;
 }
 
 .section {

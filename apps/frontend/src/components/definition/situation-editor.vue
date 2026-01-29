@@ -1,15 +1,5 @@
 <template>
   <div class="situation-editor">
-    <div class="header-actions">
-      <button
-        type="button"
-        class="delete-btn"
-        @click="handleDelete"
-      >
-        この状況を削除
-      </button>
-    </div>
-
     <!-- 基本情報 -->
     <div class="section">
       <div
@@ -226,9 +216,6 @@ const props = defineProps<{
     availableTerminalSituations: TerminalSituation[];
 }>();
 
-const emit = defineEmits<{
-    (e: 'delete'): void;
-}>();
 
 const nextSituationItems = computed(() => {
     const items: Array<{ title: string;
@@ -409,39 +396,11 @@ function updateResourceConsumption(
     }
 }
 
-function handleDelete() {
-    emit('delete');
-}
 </script>
 
 <style scoped>
 .situation-editor {
   padding: 20px;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header-actions h3 {
-  margin: 0;
-}
-
-.delete-btn {
-  padding: 8px 16px;
-  background-color: var(--color-error);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.delete-btn:hover {
-  opacity: 0.8;
 }
 
 .section {

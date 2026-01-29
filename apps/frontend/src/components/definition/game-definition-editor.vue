@@ -78,7 +78,14 @@
                 :class="{ active: selectedSituationId === situation.situationId }"
                 @click="selectSituation(situation.situationId)"
               >
-                {{ situation.name || '(説明なし)' }}
+                <span class="item-name">{{ situation.name || '(説明なし)' }}</span>
+                <button
+                  type="button"
+                  class="delete-item-btn"
+                  @click.stop="confirmDeleteSituation(situation)"
+                >
+                  ×
+                </button>
               </li>
               <li
                 class="section-item add-button"
@@ -103,7 +110,14 @@
                 :class="{ active: selectedTerminalSituationId === terminal.situationId }"
                 @click="selectTerminalSituation(terminal.situationId)"
               >
-                {{ terminal.name || '(名前なし)' }}
+                <span class="item-name">{{ terminal.name || '(名前なし)' }}</span>
+                <button
+                  type="button"
+                  class="delete-item-btn"
+                  @click.stop="confirmDeleteTerminalSituation(terminal)"
+                >
+                  ×
+                </button>
               </li>
               <li
                 class="section-item add-button"
@@ -128,7 +142,14 @@
                 :class="{ active: selectedPlayerComboId === combo.situationId }"
                 @click="selectPlayerCombo(combo.situationId)"
               >
-                {{ combo.name || '(名前なし)' }}
+                <span class="item-name">{{ combo.name || '(名前なし)' }}</span>
+                <button
+                  type="button"
+                  class="delete-item-btn"
+                  @click.stop="confirmDeletePlayerCombo(combo)"
+                >
+                  ×
+                </button>
               </li>
               <li
                 class="section-item add-button"
@@ -153,7 +174,14 @@
                 :class="{ active: selectedOpponentComboId === combo.situationId }"
                 @click="selectOpponentCombo(combo.situationId)"
               >
-                {{ combo.name || '(名前なし)' }}
+                <span class="item-name">{{ combo.name || '(名前なし)' }}</span>
+                <button
+                  type="button"
+                  class="delete-item-btn"
+                  @click.stop="confirmDeleteOpponentCombo(combo)"
+                >
+                  ×
+                </button>
               </li>
               <li
                 class="section-item add-button"
@@ -179,13 +207,11 @@
             :available-situations="availableSituationsForTransition"
             :available-terminal-situations="gameDefinition.terminalSituations"
             @update:model-value="updateSituation"
-            @delete="deleteSituation"
           />
           <TerminalSituationEditor
             v-else-if="selectedTerminalSituation"
             :model-value="selectedTerminalSituation"
             @update:model-value="updateTerminalSituation"
-            @delete="deleteTerminalSituation"
           />
           <ComboStarterEditor
             v-else-if="selectedPlayerCombo"
@@ -194,7 +220,6 @@
             :available-terminal-situations="gameDefinition.terminalSituations"
             :is-player-combo="true"
             @update:model-value="updatePlayerCombo"
-            @delete="deletePlayerCombo"
           />
           <ComboStarterEditor
             v-else-if="selectedOpponentCombo"
@@ -203,7 +228,6 @@
             :available-terminal-situations="gameDefinition.terminalSituations"
             :is-player-combo="false"
             @update:model-value="updateOpponentCombo"
-            @delete="deleteOpponentCombo"
           />
           <div
             v-else
@@ -214,6 +238,34 @@
         </div>
       </div>
     </div>
+
+    <v-dialog
+      v-model="showDeleteDialog"
+      max-width="400"
+    >
+      <v-card>
+        <v-card-title>削除の確認</v-card-title>
+        <v-card-text>
+          「{{ deleteTarget?.name || '' }}」を削除しますか？
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            @click="showDeleteDialog = false"
+          >
+            キャンセル
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            @click="executeDelete"
+          >
+            削除
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-bottom-sheet v-model="showValidationErrors">
       <v-card class="validation-errors-sheet">
@@ -301,6 +353,13 @@ const selectedSituationId = ref<number | null>(null);
 const selectedTerminalSituationId = ref<number | null>(null);
 const selectedPlayerComboId = ref<number | null>(null);
 const selectedOpponentComboId = ref<number | null>(null);
+
+// Delete confirmation dialog state
+const showDeleteDialog = ref(false);
+const deleteTarget = ref<{
+    name: string;
+    onConfirm: () => void;
+} | null>(null);
 
 const situationItems = computed(() => {
     return [
@@ -641,6 +700,61 @@ function deleteOpponentCombo() {
         }
     }
 }
+
+// Delete confirmation functions
+function confirmDeleteSituation(situation: Situation) {
+    deleteTarget.value = {
+        name: situation.name || '(説明なし)',
+        onConfirm: () => {
+            selectedSituationId.value = situation.situationId;
+            deleteSituation();
+        },
+    };
+    showDeleteDialog.value = true;
+}
+
+function confirmDeleteTerminalSituation(terminal: TerminalSituation) {
+    deleteTarget.value = {
+        name: terminal.name || '(名前なし)',
+        onConfirm: () => {
+            selectedTerminalSituationId.value = terminal.situationId;
+            deleteTerminalSituation();
+        },
+    };
+    showDeleteDialog.value = true;
+}
+
+function confirmDeletePlayerCombo(combo: ComboStarter) {
+    deleteTarget.value = {
+        name: combo.name || '(名前なし)',
+        onConfirm: () => {
+            selectedPlayerComboId.value = combo.situationId;
+            deletePlayerCombo();
+        },
+    };
+    showDeleteDialog.value = true;
+}
+
+function confirmDeleteOpponentCombo(combo: ComboStarter) {
+    deleteTarget.value = {
+        name: combo.name || '(名前なし)',
+        onConfirm: () => {
+            selectedOpponentComboId.value = combo.situationId;
+            deleteOpponentCombo();
+        },
+    };
+    showDeleteDialog.value = true;
+}
+
+function executeDelete() {
+    if (!deleteTarget.value) {
+        return;
+    }
+
+    deleteTarget.value.onConfirm();
+    showDeleteDialog.value = false;
+    deleteTarget.value = null;
+}
 </script>
 
 <style scoped>
@@ -813,6 +927,47 @@ function deleteOpponentCombo() {
 
 .section-item.active {
   background-color: var(--color-accent-orange);
+  color: white;
+}
+
+.item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-item-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-tertiary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.section-item:hover .delete-item-btn {
+  opacity: 1;
+}
+
+.delete-item-btn:hover {
+  background-color: var(--color-delete);
+  color: white;
+}
+
+.section-item.active .delete-item-btn {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.section-item.active .delete-item-btn:hover {
+  background-color: var(--color-delete);
   color: white;
 }
 
