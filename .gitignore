@@ -8,7 +8,10 @@ yarn.lock
 pnpm-lock.yaml
 
 # Claude Code local settings
-.claude/
+**/.claude/*.local.*
+
+## Playwright-cli
+.playwright-cli/
 
 # Cursor local settings
 .cursor/
