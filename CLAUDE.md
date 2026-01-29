@@ -75,10 +75,24 @@ npm run lint
 - **Nesting**: Keep nesting shallow (max 4 levels); use early return pattern
 - **Inner functions**: Avoid unless necessary
 
+## Pre-commit Checklist (REQUIRED)
+
+**Every commit must pass these checks. Run them BEFORE `git commit`, not after.**
+
+```bash
+npm run test && npm run lint
+```
+
+If lint fails, fix with:
+```bash
+npm run lint:fix
+```
+
+Do NOT create separate "fix lint" commits. If you forgot to run lint before committing, amend the commit or squash.
+
 ## Development Guidelines
 
 - Always run `npm run test` after code changes to verify all packages pass
-- **Before every commit**: Run `npm run test` and `npm run lint` at the workspace root (nomari/) and verify all tests pass and no lint errors
 - Solver changes require unit tests
 - UI changes require screenshots in PR
 - Ask for confirmation before proceeding when user's proposed implementation has issues
