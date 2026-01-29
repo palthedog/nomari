@@ -13,15 +13,16 @@
         "lint:fix": "eslint . --fix"
     },
     "dependencies": {
+        "@mdi/font": "^7.4.47",
         "@nomari/game-tree": "*",
         "@nomari/game-tree-builder": "*",
         "@nomari/solver": "*",
         "@nomari/ts-proto": "*",
-        "@mdi/font": "^7.4.47",
         "loglevel": "^1.9.2",
         "pinia": "^3.0.4",
         "v-network-graph": "^0.9.17",
         "vue": "^3.5.26",
+        "vue-router": "^4.6.4",
         "vuetify": "^3.11.6"
     },
     "devDependencies": {

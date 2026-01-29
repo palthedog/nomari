@@ -154,7 +154,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
-import { exportAsJSON, exportAsProto, importGameDefinition, parseAsProto } from '@/utils/export';
+import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
@@ -166,6 +166,7 @@ import MobileSubNav from '@/components/common/mobile-sub-nav.vue';
 import { useDefinitionStore } from './stores/definition-store';
 import { useNotificationStore } from './stores/notification-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
+import { useUrlSync } from '@/composables/use-url-sync';
 import log from 'loglevel';
 
 // Mobile detection
@@ -228,6 +229,9 @@ const gameDefinition = computed(() => definitionStore.gameDefinition);
 
 // Notification store
 const notificationStore = useNotificationStore();
+
+// URL sync - handles bidirectional sync between URL and stores
+useUrlSync();
 
 const gameTree = computed(() => gameTreeStore.gameTree);
 
@@ -293,43 +297,9 @@ async function importFile() {
     }
 }
 
-// Validate example name to prevent path traversal (alphanumeric and underscore only)
-function isValidExampleName(name: string): boolean {
-    return /^[a-zA-Z0-9_]+$/.test(name);
-}
-
-async function loadExample(exampleName: string) {
-    if (!isValidExampleName(exampleName)) {
-        notificationStore.showError(`Invalid example name: ${exampleName}`);
-        return;
-    }
-    try {
-        const response = await fetch(`${import.meta.env.BASE_URL}static/examples/${exampleName}.pb`);
-        // Check response status and content type (Vite may return HTML for 404)
-        const contentType = response.headers.get('content-type') ?? '';
-        if (!response.ok || contentType.includes('text/html')) {
-            notificationStore.showError(`Failed to load example: ${exampleName}`);
-            return;
-        }
-        const buffer = await response.arrayBuffer();
-        const gameDefinition = parseAsProto(buffer);
-        definitionStore.loadGameDefinition(gameDefinition);
-    } catch (error) {
-        log.error('Failed to load example:', error);
-        notificationStore.showError(`Failed to load example: ${exampleName}`);
-    }
-}
-
-onMounted(async () => {
+onMounted(() => {
     // Add resize listener for mobile detection
     window.addEventListener('resize', handleResize);
-
-    const params = new URLSearchParams(window.location.search);
-    const exampleName = params.get('example');
-    if (!exampleName) {
-        return;
-    }
-    await loadExample(exampleName);
 });
 
 onUnmounted(() => {

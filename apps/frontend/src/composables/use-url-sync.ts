@@ -1,0 +1,271 @@
+import { watch, nextTick, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import log from 'loglevel';
+import { useViewStore, type ViewMode } from '@/stores/view-store';
+import { useGameTreeStore } from '@/stores/game-tree-store';
+import { useDefinitionStore } from '@/stores/definition-store';
+import { useNotificationStore } from '@/stores/notification-store';
+import { useSolverStore } from '@/stores/solver-store';
+import { parseAsProto } from '@/utils/export';
+
+type SourceType = 'local' | 'example';
+
+// Validate example name to prevent path traversal (alphanumeric and underscore only)
+function isValidExampleName(name: string): boolean {
+    return /^[a-zA-Z0-9_]+$/.test(name);
+}
+
+export function useUrlSync() {
+    const router = useRouter();
+    const route = useRoute();
+    const viewStore = useViewStore();
+    const gameTreeStore = useGameTreeStore();
+    const definitionStore = useDefinitionStore();
+    const notificationStore = useNotificationStore();
+    const solverStore = useSolverStore();
+
+    // Flag to prevent sync loops
+    const isUpdatingFromUrl = ref(false);
+
+    // Track loaded example to avoid reloading
+    const loadedExample = ref<string | null>(null);
+
+    // Get view mode from route name
+    function getViewModeFromRoute(): ViewMode | null {
+        const name = route.name?.toString() ?? '';
+        if (name.includes('-edit')) {
+            return 'edit';
+        }
+        if (name.includes('-strategy')) {
+            return 'strategy';
+        }
+        return null;
+    }
+
+    // Get source type from route name
+    function getSourceType(): SourceType {
+        const name = route.name?.toString() ?? '';
+        if (name.startsWith('example-')) {
+            return 'example';
+        }
+        return 'local';
+    }
+
+    // Build route name from components
+    function buildRouteName(source: SourceType, mode: ViewMode, hasNode: boolean): string {
+        const base = `${source}-${mode}`;
+        return hasNode ? `${base}-node` : base;
+    }
+
+    // Load example from URL parameter
+    async function loadExample(exampleName: string): Promise<boolean> {
+        if (!isValidExampleName(exampleName)) {
+            notificationStore.showError(`Invalid example name: ${exampleName}`);
+            return false;
+        }
+        try {
+            const response = await fetch(`${import.meta.env.BASE_URL}static/examples/${exampleName}.pb`);
+            const contentType = response.headers.get('content-type') ?? '';
+            if (!response.ok || contentType.includes('text/html')) {
+                notificationStore.showError(`Failed to load example: ${exampleName}`);
+                return false;
+            }
+            const buffer = await response.arrayBuffer();
+            const gameDefinition = parseAsProto(buffer);
+            definitionStore.loadGameDefinition(gameDefinition);
+            loadedExample.value = exampleName;
+            return true;
+        } catch (error) {
+            log.error('Failed to load example:', error);
+            notificationStore.showError(`Failed to load example: ${exampleName}`);
+            return false;
+        }
+    }
+
+    // Navigate to route with current source preserved
+    function navigateTo(mode: ViewMode, nodeId: string | null) {
+        const source = getSourceType();
+        const targetRouteName = buildRouteName(source, mode, nodeId !== null);
+
+        const params: Record<string, string> = {};
+        if (source === 'example') {
+            const exampleName = route.params.exampleName;
+            if (typeof exampleName === 'string') {
+                params.exampleName = exampleName;
+            }
+        }
+        if (nodeId !== null) {
+            params.nodeId = nodeId;
+        }
+
+        router.replace({
+            name: targetRouteName,
+            params,
+        });
+    }
+
+    // URL -> Store: Sync view mode from route
+    function syncViewModeFromRoute() {
+        const targetMode = getViewModeFromRoute();
+        if (!targetMode) {
+            return;
+        }
+
+        if (viewStore.viewMode !== targetMode) {
+            // Validate before switching to strategy mode
+            if (targetMode === 'strategy') {
+                if (!definitionStore.validateAndShowErrors()) {
+                    // Validation failed, redirect to edit
+                    const source = getSourceType();
+                    const editRouteName = buildRouteName(source, 'edit', false);
+                    const params: Record<string, string> = {};
+                    if (source === 'example') {
+                        const exampleName = route.params.exampleName;
+                        if (typeof exampleName === 'string') {
+                            params.exampleName = exampleName;
+                        }
+                    }
+                    router.replace({
+                        name: editRouteName,
+                        params,
+                    });
+                    return;
+                }
+            }
+            viewStore.setViewMode(targetMode);
+        }
+    }
+
+    // URL -> Store: Sync selected node from route params
+    function syncNodeFromRoute() {
+        const nodeId = route.params.nodeId;
+        const nodeIdStr = typeof nodeId === 'string' ? nodeId : null;
+
+        if (nodeIdStr) {
+            const gameTree = gameTreeStore.gameTree;
+            if (gameTree && gameTree.nodes[nodeIdStr]) {
+                gameTreeStore.selectNode(nodeIdStr);
+            } else if (gameTree) {
+                // Node doesn't exist, navigate to strategy without node
+                log.warn(`Node ${nodeIdStr} not found in game tree, clearing from URL`);
+                navigateTo('strategy', null);
+            }
+            // If no game tree yet, the node selection will be validated later
+        } else {
+            gameTreeStore.clearSelection();
+        }
+    }
+
+    // Watch route changes for view mode
+    watch(
+        () => route.name,
+        () => {
+            isUpdatingFromUrl.value = true;
+            syncViewModeFromRoute();
+            nextTick(() => {
+                isUpdatingFromUrl.value = false;
+            });
+        },
+        {
+            immediate: true
+        }
+    );
+
+    // Watch route params for example loading
+    watch(
+        () => route.params.exampleName,
+        async (exampleName) => {
+            if (typeof exampleName === 'string') {
+                // Only load if not already loaded
+                if (loadedExample.value !== exampleName) {
+                    const loaded = await loadExample(exampleName);
+                    if (!loaded) {
+                        // Failed to load example, redirect to local edit
+                        router.replace({
+                            name: 'local-edit' 
+                        });
+                        return;
+                    }
+                }
+                // If in strategy mode, ensure solved
+                const viewMode = getViewModeFromRoute();
+                if (viewMode === 'strategy') {
+                    solverStore.ensureSolved();
+                }
+            } else {
+                // No example in route, clear loaded example tracking
+                loadedExample.value = null;
+            }
+        },
+        {
+            immediate: true
+        }
+    );
+
+    // Watch route params for node selection
+    watch(
+        () => route.params.nodeId,
+        () => {
+            isUpdatingFromUrl.value = true;
+            syncNodeFromRoute();
+            nextTick(() => {
+                isUpdatingFromUrl.value = false;
+            });
+        },
+        {
+            immediate: true
+        }
+    );
+
+    // Store -> URL: Watch viewMode changes
+    watch(
+        () => viewStore.viewMode,
+        (mode) => {
+            if (isUpdatingFromUrl.value) {
+                return;
+            }
+            const currentMode = getViewModeFromRoute();
+            if (currentMode !== mode) {
+                // When switching mode, clear node selection
+                navigateTo(mode, null);
+            }
+        }
+    );
+
+    // Store -> URL: Watch selectedNodeId changes
+    watch(
+        () => gameTreeStore.selectedNodeId,
+        (nodeId) => {
+            if (isUpdatingFromUrl.value) {
+                return;
+            }
+            const currentNodeId = route.params.nodeId;
+            const currentNodeIdStr = typeof currentNodeId === 'string' ? currentNodeId : null;
+            if (nodeId !== currentNodeIdStr) {
+                // Only update node in strategy mode
+                if (viewStore.viewMode === 'strategy') {
+                    navigateTo('strategy', nodeId);
+                }
+            }
+        }
+    );
+
+    // Watch game tree changes - validate that the selected node still exists
+    watch(
+        () => gameTreeStore.gameTree,
+        (gameTree) => {
+            const nodeId = route.params.nodeId;
+            if (typeof nodeId === 'string' && gameTree) {
+                if (!gameTree.nodes[nodeId]) {
+                    log.warn(`Node ${nodeId} no longer exists in game tree, clearing`);
+                    navigateTo('strategy', null);
+                    gameTreeStore.clearSelection();
+                }
+            }
+        }
+    );
+
+    return {
+        loadExample,
+    };
+}
