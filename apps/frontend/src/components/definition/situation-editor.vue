@@ -66,9 +66,10 @@
       </div>
       <button
         type="button"
+        class="add-action-btn add-player-action"
         @click="addPlayerAction"
       >
-        追加
+        + 追加
       </button>
     </div>
 
@@ -111,9 +112,10 @@
       </div>
       <button
         type="button"
+        class="add-action-btn add-opponent-action"
         @click="addOpponentAction"
       >
-        追加
+        + 追加
       </button>
     </div>
 
@@ -474,6 +476,39 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .delete-action-btn:hover {
   background-color: #ffebee;
   color: #c62828;
+}
+
+.add-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 2px dashed;
+  border-radius: 4px;
+  background-color: transparent;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-player-action {
+  border-color: #81c784;
+  color: #2e7d32;
+}
+
+.add-player-action:hover {
+  background-color: #e8f5e9;
+  border-style: solid;
+}
+
+.add-opponent-action {
+  border-color: #e57373;
+  color: #c62828;
+}
+
+.add-opponent-action:hover {
+  background-color: #ffebee;
+  border-style: solid;
 }
 
 .transition-header {
