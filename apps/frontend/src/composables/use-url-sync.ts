@@ -145,12 +145,9 @@ export function useUrlSync() {
             const gameTree = gameTreeStore.gameTree;
             if (gameTree && gameTree.nodes[nodeIdStr]) {
                 gameTreeStore.selectNode(nodeIdStr);
-            } else if (gameTree) {
-                // Node doesn't exist, navigate to strategy without node
-                log.warn(`Node ${nodeIdStr} not found in game tree, clearing from URL`);
-                navigateTo('strategy', null);
             }
-            // If no game tree yet, the node selection will be validated later
+            // If node not found or no game tree yet, the game tree watcher will handle it
+            // when the tree is built/updated. Don't clear prematurely here.
         } else {
             gameTreeStore.clearSelection();
         }
@@ -250,14 +247,21 @@ export function useUrlSync() {
         }
     );
 
-    // Watch game tree changes - validate that the selected node still exists
+    // Watch game tree changes - sync node selection from URL
+    // This handles both:
+    // 1. Node from URL now exists in new tree -> select it
+    // 2. Node from URL doesn't exist in tree -> clear it
     watch(
         () => gameTreeStore.gameTree,
         (gameTree) => {
             const nodeId = route.params.nodeId;
             if (typeof nodeId === 'string' && gameTree) {
-                if (!gameTree.nodes[nodeId]) {
-                    log.warn(`Node ${nodeId} no longer exists in game tree, clearing`);
+                if (gameTree.nodes[nodeId]) {
+                    // Node exists in new tree, select it
+                    gameTreeStore.selectNode(nodeId);
+                } else {
+                    // Node doesn't exist in tree, clear from URL
+                    log.warn(`Node ${nodeId} not found in game tree, clearing`);
                     navigateTo('strategy', null);
                     gameTreeStore.clearSelection();
                 }
