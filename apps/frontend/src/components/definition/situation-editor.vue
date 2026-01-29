@@ -57,9 +57,11 @@
         />
         <button
           type="button"
+          class="delete-action-btn"
+          title="行動を削除"
           @click="removePlayerAction(index)"
         >
-          削除
+          ×
         </button>
       </div>
       <button
@@ -100,9 +102,11 @@
         />
         <button
           type="button"
+          class="delete-action-btn"
+          title="行動を削除"
           @click="removeOpponentAction(index)"
         >
-          削除
+          ×
         </button>
       </div>
       <button
@@ -451,6 +455,25 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .section h4 {
   margin-top: 0;
   margin-bottom: 15px;
+}
+
+.delete-action-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #999;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-action-btn:hover {
+  background-color: #ffebee;
+  color: #c62828;
 }
 
 .transition-header {
