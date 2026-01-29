@@ -118,7 +118,29 @@
       v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0"
       class="section"
     >
-      <h4>遷移テーブル</h4>
+      <div class="transition-header">
+        <h4>遷移テーブル</h4>
+        <div class="bulk-set-controls">
+          <v-select
+            v-model="bulkNextSituationId"
+            :items="nextSituationItems"
+            item-title="title"
+            item-value="value"
+            label="一括設定"
+            density="compact"
+            variant="outlined"
+            hide-details
+            class="bulk-select"
+          />
+          <button
+            type="button"
+            class="bulk-set-button"
+            @click="applyBulkNextSituation"
+          >
+            全てに適用
+          </button>
+        </div>
+      </div>
       <div class="player-actions-list">
         <div
           v-for="playerAction in model.playerActions?.actions || []"
@@ -208,8 +230,12 @@ import { ResourceType } from '@nomari/ts-proto';
 import { generateId } from '@/utils/game-definition-utils';
 
 const model = defineModel<Situation>({
-    required: true 
+    required: true
 });
+
+import { ref } from 'vue';
+
+const bulkNextSituationId = ref<number>(0);
 
 const props = defineProps<{
     availableSituations: Situation[];
@@ -396,6 +422,15 @@ function updateResourceConsumption(
     }
 }
 
+function applyBulkNextSituation() {
+    if (bulkNextSituationId.value === 0) {
+        return;
+    }
+    for (const transition of model.value.transitions) {
+        transition.nextSituationId = bulkNextSituationId.value;
+    }
+}
+
 </script>
 
 <style scoped>
@@ -413,6 +448,32 @@ function updateResourceConsumption(
 .section h4 {
   margin-top: 0;
   margin-bottom: 15px;
+}
+
+.transition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.transition-header h4 {
+  margin: 0;
+}
+
+.bulk-set-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.bulk-select {
+  min-width: 200px;
+}
+
+.bulk-set-button {
+  margin-top: 0 !important;
+  white-space: nowrap;
 }
 
 .form-group {
