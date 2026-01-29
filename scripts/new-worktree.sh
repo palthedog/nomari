@@ -42,6 +42,13 @@ fi
 
 echo ""
 echo "Worktree created at: $WORKTREE_PATH"
+
+# Copy .claude/ directory if it exists
+if [ -d "$PROJECT_ROOT/.claude" ]; then
+    cp -r "$PROJECT_ROOT/.claude" "$WORKTREE_PATH/.claude"
+    echo "Copied .claude/ directory (command permissions preserved)"
+fi
+
 echo ""
 echo "To start working:"
 echo "  cd $WORKTREE_PATH"
