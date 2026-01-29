@@ -9,14 +9,25 @@ import { GameTree, Node, Action, NodeTransition, State } from '@nomari/game-tree
  * Creates a minimal State for testing (health values not used by LP solver)
  */
 function emptyState(): State {
-    return { playerHealth: 0, opponentHealth: 0, playerOd: 0, opponentOd: 0, playerSa: 0, opponentSa: 0 };
+    return {
+        playerHealth: 0,
+        opponentHealth: 0,
+        playerOd: 0,
+        opponentOd: 0,
+        playerSa: 0,
+        opponentSa: 0 
+    };
 }
 
 /**
  * Create an Action with the given ID and name
  */
 function action(id: number, name: string): Action {
-    return { actionId: id, name, description: name };
+    return {
+        actionId: id,
+        name,
+        description: name 
+    };
 }
 
 /**
@@ -58,8 +69,12 @@ function createMatrixGame(params: {
                 description: `${actionNames[pIdx]} vs ${actionNames[oIdx]}`,
                 state: emptyState(),
                 transitions: [],
-                playerReward: { value: reward },
-                opponentReward: { value: -reward },
+                playerReward: {
+                    value: reward 
+                },
+                opponentReward: {
+                    value: -reward 
+                },
             };
 
             transitions.push({
@@ -75,12 +90,20 @@ function createMatrixGame(params: {
         nodeId: 'root',
         description: 'Game Root',
         state: emptyState(),
-        playerActions: { actions: playerActions },
-        opponentActions: { actions: oppActions },
+        playerActions: {
+            actions: playerActions 
+        },
+        opponentActions: {
+            actions: oppActions 
+        },
         transitions,
     };
 
-    return { id: 1, root: 'root', nodes };
+    return {
+        id: 1,
+        root: 'root',
+        nodes 
+    };
 }
 
 /**
@@ -109,8 +132,12 @@ function createAsymmetricMatrixGame(params: {
                 description: `${pNames[pIdx]} vs ${oNames[oIdx]}`,
                 state: emptyState(),
                 transitions: [],
-                playerReward: { value: reward },
-                opponentReward: { value: -reward },
+                playerReward: {
+                    value: reward 
+                },
+                opponentReward: {
+                    value: -reward 
+                },
             };
 
             transitions.push({
@@ -125,12 +152,20 @@ function createAsymmetricMatrixGame(params: {
         nodeId: 'root',
         description: 'Game Root',
         state: emptyState(),
-        playerActions: { actions: playerActions },
-        opponentActions: { actions: oppActions },
+        playerActions: {
+            actions: playerActions 
+        },
+        opponentActions: {
+            actions: oppActions 
+        },
         transitions,
     };
 
-    return { id: 1, root: 'root', nodes };
+    return {
+        id: 1,
+        root: 'root',
+        nodes 
+    };
 }
 
 // =============================================================================
@@ -315,16 +350,24 @@ describe('LPSolver', () => {
                 description: 'Attack vs Block',
                 state: emptyState(),
                 transitions: [],
-                playerReward: { value: -100 },
-                opponentReward: { value: 100 },
+                playerReward: {
+                    value: -100 
+                },
+                opponentReward: {
+                    value: 100 
+                },
             };
             nodes['attack-dodge'] = {
                 nodeId: 'attack-dodge',
                 description: 'Attack vs Dodge',
                 state: emptyState(),
                 transitions: [],
-                playerReward: { value: 100 },
-                opponentReward: { value: -100 },
+                playerReward: {
+                    value: 100 
+                },
+                opponentReward: {
+                    value: -100 
+                },
             };
 
             // Child node (single player action)
@@ -332,11 +375,23 @@ describe('LPSolver', () => {
                 nodeId: 'child',
                 description: 'Child',
                 state: emptyState(),
-                playerActions: { actions: [action(10, 'Attack')] },
-                opponentActions: { actions: [action(110, 'Block'), action(111, 'Dodge')] },
+                playerActions: {
+                    actions: [action(10, 'Attack')] 
+                },
+                opponentActions: {
+                    actions: [action(110, 'Block'), action(111, 'Dodge')] 
+                },
                 transitions: [
-                    { playerActionId: 10, opponentActionId: 110, nextNodeId: 'attack-block' },
-                    { playerActionId: 10, opponentActionId: 111, nextNodeId: 'attack-dodge' },
+                    {
+                        playerActionId: 10,
+                        opponentActionId: 110,
+                        nextNodeId: 'attack-block' 
+                    },
+                    {
+                        playerActionId: 10,
+                        opponentActionId: 111,
+                        nextNodeId: 'attack-dodge' 
+                    },
                 ],
             };
 
@@ -346,8 +401,12 @@ describe('LPSolver', () => {
                 description: 'PathB terminal',
                 state: emptyState(),
                 transitions: [],
-                playerReward: { value: 0 },
-                opponentReward: { value: 0 },
+                playerReward: {
+                    value: 0 
+                },
+                opponentReward: {
+                    value: 0 
+                },
             };
 
             // Root node
@@ -355,15 +414,31 @@ describe('LPSolver', () => {
                 nodeId: 'root',
                 description: 'Root',
                 state: emptyState(),
-                playerActions: { actions: [action(1, 'PathA'), action(2, 'PathB')] },
-                opponentActions: { actions: [action(101, 'Pass')] },
+                playerActions: {
+                    actions: [action(1, 'PathA'), action(2, 'PathB')] 
+                },
+                opponentActions: {
+                    actions: [action(101, 'Pass')] 
+                },
                 transitions: [
-                    { playerActionId: 1, opponentActionId: 101, nextNodeId: 'child' },
-                    { playerActionId: 2, opponentActionId: 101, nextNodeId: 'terminal-b' },
+                    {
+                        playerActionId: 1,
+                        opponentActionId: 101,
+                        nextNodeId: 'child' 
+                    },
+                    {
+                        playerActionId: 2,
+                        opponentActionId: 101,
+                        nextNodeId: 'terminal-b' 
+                    },
                 ],
             };
 
-            const game: GameTree = { id: 1, root: 'root', nodes };
+            const game: GameTree = {
+                id: 1,
+                root: 'root',
+                nodes 
+            };
             const solver = new LPSolver(game);
             solver.solve();
 

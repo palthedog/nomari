@@ -15,11 +15,31 @@ import {
 
 describe('calculateRewardForWinProbability', () => {
     it.each([
-        { winProbability: 1.0, expected: 10000, label: 'certain win' },
-        { winProbability: 0.5, expected: 0, label: 'even match' },
-        { winProbability: 0.0, expected: -10000, label: 'certain loss' },
-        { winProbability: 0.75, expected: 5000, label: 'favorable (75%)' },
-        { winProbability: 0.25, expected: -5000, label: 'unfavorable (25%)' },
+        {
+            winProbability: 1.0,
+            expected: 10000,
+            label: 'certain win' 
+        },
+        {
+            winProbability: 0.5,
+            expected: 0,
+            label: 'even match' 
+        },
+        {
+            winProbability: 0.0,
+            expected: -10000,
+            label: 'certain loss' 
+        },
+        {
+            winProbability: 0.75,
+            expected: 5000,
+            label: 'favorable (75%)' 
+        },
+        {
+            winProbability: 0.25,
+            expected: -5000,
+            label: 'unfavorable (25%)' 
+        },
     ])('$label -> $expected', ({ winProbability, expected }) => {
         expect(calculateRewardForWinProbability(winProbability)).toBe(expected);
     });
@@ -80,7 +100,12 @@ describe('calculateRewardForDamageRace', () => {
             expected: 1000,
         },
     ])('$label -> $expected', ({ playerHp, opponentHp, initialPlayerHp, initialOpponentHp, expected }) => {
-        expect(damageRace({ playerHp, opponentHp, initialPlayerHp, initialOpponentHp })).toBe(expected);
+        expect(damageRace({
+            playerHp,
+            opponentHp,
+            initialPlayerHp,
+            initialOpponentHp 
+        })).toBe(expected);
     });
 });
 
@@ -120,7 +145,10 @@ describe('calculateRewardForWinProbabilityWithCorner', () => {
         saBonus?: number;
         baseComboDamage?: number;
     }) => {
-        const p = { ...defaults, ...params };
+        const p = {
+            ...defaults,
+            ...params 
+        };
         return calculateRewardForWinProbabilityWithCorner(
             params.playerHp,
             params.opponentHp,
@@ -138,7 +166,10 @@ describe('calculateRewardForWinProbabilityWithCorner', () => {
 
     describe('equal HP (symmetric scenarios)', () => {
         it('both 10000 HP, no bonuses -> reward = 0', () => {
-            expect(winProbReward({ playerHp: 10000, opponentHp: 10000 })).toBe(0);
+            expect(winProbReward({
+                playerHp: 10000,
+                opponentHp: 10000 
+            })).toBe(0);
         });
 
         it('both 8000 HP with equal gauges -> reward = 0', () => {
@@ -160,12 +191,18 @@ describe('calculateRewardForWinProbabilityWithCorner', () => {
             // Player: 2 turns to kill (4000 / 2000)
             // Opponent: 5 turns to kill (10000 / 2000)
             // Win prob = 5/7 ≈ 0.714 -> reward > 0
-            const reward = winProbReward({ playerHp: 10000, opponentHp: 4000 });
+            const reward = winProbReward({
+                playerHp: 10000,
+                opponentHp: 4000 
+            });
             expect(reward).toBeGreaterThan(0);
         });
 
         it('player 4000 vs opponent 10000 -> negative reward', () => {
-            const reward = winProbReward({ playerHp: 4000, opponentHp: 10000 });
+            const reward = winProbReward({
+                playerHp: 4000,
+                opponentHp: 10000 
+            });
             expect(reward).toBeLessThan(0);
         });
     });
@@ -174,7 +211,11 @@ describe('calculateRewardForWinProbabilityWithCorner', () => {
         // cornerBonus = 500 adds to base damage when attacking cornered opponent
 
         it('opponent in corner -> player advantage', () => {
-            const noCorner = winProbReward({ playerHp: 5000, opponentHp: 5000, cornerBonus: 500 });
+            const noCorner = winProbReward({
+                playerHp: 5000,
+                opponentHp: 5000,
+                cornerBonus: 500 
+            });
             const withCorner = winProbReward({
                 playerHp: 5000,
                 opponentHp: 5000,
@@ -185,7 +226,11 @@ describe('calculateRewardForWinProbabilityWithCorner', () => {
         });
 
         it('player in corner -> opponent advantage', () => {
-            const noCorner = winProbReward({ playerHp: 5000, opponentHp: 5000, cornerBonus: 500 });
+            const noCorner = winProbReward({
+                playerHp: 5000,
+                opponentHp: 5000,
+                cornerBonus: 500 
+            });
             const withCorner = winProbReward({
                 playerHp: 5000,
                 opponentHp: 5000,
