@@ -61,9 +61,10 @@
           <button
             type="button"
             class="delete-route-btn"
+            title="ルートを削除"
             @click="removeRoute(routeIndex)"
           >
-            削除
+            ×
           </button>
         </div>
 
@@ -552,13 +553,21 @@ watch(() => model.value.routes.length, () => {
 }
 
 .delete-route-btn {
-  padding: 8px 16px;
-  background-color: var(--color-error);
-  color: white;
-  border: none;
+  padding: 4px 8px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.delete-route-btn:hover {
+  background-color: #ffebee;
+  color: #c62828;
+  border-color: #e57373;
 }
 
 .route-subsection {
