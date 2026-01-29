@@ -141,79 +141,67 @@
           </button>
         </div>
       </div>
-      <div class="player-actions-list">
-        <div
-          v-for="playerAction in model.playerActions?.actions || []"
-          :key="playerAction.actionId"
-          class="player-action-section"
-        >
-          <div class="player-action-header">
-            <strong>{{ playerAction.name || '(行動名説明なし)' }}</strong>
-          </div>
-          <div class="opponent-actions-list">
-            <div
-              v-for="oppAction in model.opponentActions?.actions || []"
-              :key="oppAction.actionId"
-              class="opponent-action-item"
+      <!-- Matrix view for transitions -->
+      <div class="transition-matrix">
+        <table>
+          <thead>
+            <tr>
+              <th class="corner-cell">
+                P＼O
+              </th>
+              <th
+                v-for="oppAction in model.opponentActions?.actions || []"
+                :key="oppAction.actionId"
+                class="opponent-header"
+              >
+                {{ oppAction.name || '?' }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="playerAction in model.playerActions?.actions || []"
+              :key="playerAction.actionId"
             >
-              <div class="opponent-action-label">
-                {{ playerAction.name || '(行動名なし)' }} v.s. {{ oppAction.name || '(行動名なし)' }}
-              </div>
-              <div class="transition-inputs">
-                <div class="next-situation-row">
-                  <v-select
-                    :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
-                    :items="nextSituationItems"
-                    item-title="title"
-                    item-value="value"
-                    label="次の状況"
-                    density="compact"
-                    variant="outlined"
-                    hide-details
-                    @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
-                  />
-                </div>
-                <div class="resource-consumptions">
-                  <!--label>Resource Consumptions:</label-->
-                  <div
-                    v-for="(consumption, idx) in getTransition(playerAction.actionId, oppAction.actionId)?.resourceConsumptions || []"
-                    :key="idx"
-                    class="consumption-row"
+              <th class="player-header">
+                {{ playerAction.name || '?' }}
+              </th>
+              <td
+                v-for="oppAction in model.opponentActions?.actions || []"
+                :key="oppAction.actionId"
+                class="transition-cell"
+              >
+                <v-select
+                  :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
+                  :items="nextSituationItems"
+                  item-title="title"
+                  item-value="value"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  class="transition-select"
+                  @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
+                />
+                <div class="damage-inputs">
+                  <input
+                    type="number"
+                    class="damage-input"
+                    placeholder="与ダメ"
+                    :value="getOpponentDamage(playerAction.actionId, oppAction.actionId)"
+                    @input="setOpponentDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
                   >
-                    <v-select
-                      :model-value="consumption.resourceType"
-                      :items="resourceTypeItems"
-                      item-title="title"
-                      item-value="value"
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      @update:model-value="(value: number) => updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'type', value)"
-                    />
-                    <input
-                      type="number"
-                      :value="consumption.value"
-                      placeholder="Value"
-                      @input="updateResourceConsumption(playerAction.actionId, oppAction.actionId, idx, 'value', parseFloat(($event.target as HTMLInputElement).value) || 0)"
-                    >
-                    <button
-                      type="button"
-                      @click="removeResourceConsumption(playerAction.actionId, oppAction.actionId, idx)"
-                    >
-                      削除
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    @click="addResourceConsumption(playerAction.actionId, oppAction.actionId)"
+                  <input
+                    type="number"
+                    class="damage-input"
+                    placeholder="被ダメ"
+                    :value="getPlayerDamage(playerAction.actionId, oppAction.actionId)"
+                    @input="setPlayerDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
                   >
-                    ダメージ等を追加
-                  </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -268,17 +256,6 @@ const nextSituationItems = computed(() => {
 
     return items;
 });
-
-const resourceTypeItems = computed(() => [
-    {
-        title: 'プレイヤーのダメージ',
-        value: ResourceType.PLAYER_HEALTH 
-    },
-    {
-        title: '相手のダメージ',
-        value: ResourceType.OPPONENT_HEALTH 
-    },
-]);
 
 function addPlayerAction() {
     if (!model.value.playerActions) {
@@ -380,54 +357,76 @@ function updateNextSituationId(
     }
 }
 
-function addResourceConsumption(playerActionId: number, opponentActionId: number) {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (transition) {
-        if (!transition.resourceConsumptions) {
-            transition.resourceConsumptions = [];
-        }
-        transition.resourceConsumptions.push({
-            resourceType: ResourceType.OPPONENT_HEALTH,
-            value: 1000,
-        });
-    }
-}
-
-function removeResourceConsumption(
-    playerActionId: number,
-    opponentActionId: number,
-    index: number
-) {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (transition && transition.resourceConsumptions) {
-        transition.resourceConsumptions.splice(index, 1);
-    }
-}
-
-function updateResourceConsumption(
-    playerActionId: number,
-    opponentActionId: number,
-    index: number,
-    field: 'type' | 'value',
-    value: number
-) {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (transition && transition.resourceConsumptions && transition.resourceConsumptions[index]) {
-        const consumption = transition.resourceConsumptions[index];
-        if (field === 'type') {
-            consumption.resourceType = value as ResourceType;
-        } else {
-            consumption.value = value;
-        }
-    }
-}
-
 function applyBulkNextSituation() {
     if (bulkNextSituationId.value === 0) {
         return;
     }
     for (const transition of model.value.transitions) {
         transition.nextSituationId = bulkNextSituationId.value;
+    }
+}
+
+function getOpponentDamage(playerActionId: number, opponentActionId: number): number {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (!transition?.resourceConsumptions) {
+        return 0;
+    }
+    const consumption = transition.resourceConsumptions.find(
+        (c) => c.resourceType === ResourceType.OPPONENT_HEALTH
+    );
+    return consumption?.value || 0;
+}
+
+function setOpponentDamage(playerActionId: number, opponentActionId: number, value: number) {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (!transition) {
+        return;
+    }
+    if (!transition.resourceConsumptions) {
+        transition.resourceConsumptions = [];
+    }
+    const existing = transition.resourceConsumptions.find(
+        (c) => c.resourceType === ResourceType.OPPONENT_HEALTH
+    );
+    if (existing) {
+        existing.value = value;
+    } else if (value !== 0) {
+        transition.resourceConsumptions.push({
+            resourceType: ResourceType.OPPONENT_HEALTH,
+            value: value,
+        });
+    }
+}
+
+function getPlayerDamage(playerActionId: number, opponentActionId: number): number {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (!transition?.resourceConsumptions) {
+        return 0;
+    }
+    const consumption = transition.resourceConsumptions.find(
+        (c) => c.resourceType === ResourceType.PLAYER_HEALTH
+    );
+    return consumption?.value || 0;
+}
+
+function setPlayerDamage(playerActionId: number, opponentActionId: number, value: number) {
+    const transition = getTransition(playerActionId, opponentActionId);
+    if (!transition) {
+        return;
+    }
+    if (!transition.resourceConsumptions) {
+        transition.resourceConsumptions = [];
+    }
+    const existing = transition.resourceConsumptions.find(
+        (c) => c.resourceType === ResourceType.PLAYER_HEALTH
+    );
+    if (existing) {
+        existing.value = value;
+    } else if (value !== 0) {
+        transition.resourceConsumptions.push({
+            resourceType: ResourceType.PLAYER_HEALTH,
+            value: value,
+        });
     }
 }
 
@@ -474,6 +473,73 @@ function applyBulkNextSituation() {
 .bulk-set-button {
   margin-top: 0 !important;
   white-space: nowrap;
+}
+
+.transition-matrix {
+  overflow-x: auto;
+  margin-top: 15px;
+}
+
+.transition-matrix table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: max-content;
+}
+
+.transition-matrix th,
+.transition-matrix td {
+  border: 1px solid var(--border-primary);
+  padding: 8px;
+  text-align: center;
+  vertical-align: top;
+}
+
+.transition-matrix .corner-cell {
+  background-color: var(--bg-tertiary);
+  font-weight: bold;
+  min-width: 60px;
+}
+
+.transition-matrix .player-header {
+  background-color: var(--bg-secondary);
+  font-weight: bold;
+  text-align: right;
+  padding-right: 12px;
+  min-width: 80px;
+}
+
+.transition-matrix .opponent-header {
+  background-color: var(--bg-secondary);
+  font-weight: bold;
+  min-width: 120px;
+}
+
+.transition-matrix .transition-cell {
+  min-width: 150px;
+  padding: 6px;
+}
+
+.transition-matrix .transition-select {
+  margin-bottom: 6px;
+}
+
+.transition-matrix .damage-inputs {
+  display: flex;
+  gap: 4px;
+}
+
+.transition-matrix .damage-input {
+  width: 70px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: right;
+}
+
+.transition-matrix .damage-input::placeholder {
+  font-size: 11px;
+  text-align: center;
 }
 
 .form-group {
