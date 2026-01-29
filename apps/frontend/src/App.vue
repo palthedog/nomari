@@ -247,7 +247,11 @@ const selectedNodeStrategy = computed(() => {
 
 // Calculate expected values for all nodes
 const expectedValues = computed<ExpectedValuesMap | null>(() => {
-    if (!gameTree.value || Object.keys(solverStrategies.value).length === 0) {
+    // Ensure solver has completed for the current game tree
+    const isStrategiesForCurrentTree =
+        solverStore.status === 'complete' &&
+        solverStore.solvedFromGameTreeVersion === gameTreeStore.gameTreeVersion;
+    if (!gameTree.value || !isStrategiesForCurrentTree) {
         return null;
     }
     try {

@@ -87,6 +87,11 @@ export const useSolverStore = defineStore('solver', () => {
      * @param onComplete - Optional callback to be called when solving is complete
      */
     function startSolving(gameTree: GameTree, onComplete?: () => void): void {
+        // Terminate any existing worker to prevent stale results
+        if (worker.value) {
+            worker.value.terminate();
+            worker.value = null;
+        }
         const w = initWorker();
         status.value = 'running';
         error.value = null;
@@ -145,6 +150,7 @@ export const useSolverStore = defineStore('solver', () => {
         status,
         strategies,
         error,
+        solvedFromGameTreeVersion,
         startSolving,
         getNodeStrategy,
         terminate,
