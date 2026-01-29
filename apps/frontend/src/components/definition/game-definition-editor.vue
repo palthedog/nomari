@@ -75,9 +75,17 @@
                 v-for="situation in gameDefinition.situations"
                 :key="situation.situationId"
                 class="section-item situation-item"
-                :class="{ active: selectedSituationId === situation.situationId }"
+                :class="{
+                  active: selectedSituationId === situation.situationId,
+                  'is-root': gameDefinition.rootSituationId === situation.situationId
+                }"
                 @click="selectSituation(situation.situationId)"
               >
+                <span
+                  v-if="gameDefinition.rootSituationId === situation.situationId"
+                  class="root-badge"
+                  title="初期状況"
+                >★</span>
                 <span class="item-name">{{ situation.name || '(説明なし)' }}</span>
                 <button
                   type="button"
@@ -1033,6 +1041,20 @@ function executeDelete() {
   background-color: var(--situation);
   color: white;
   border-left-color: var(--situation);
+}
+
+.situation-item.is-root {
+  font-weight: bold;
+}
+
+.root-badge {
+  color: #ffd700;
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.situation-item.active .root-badge {
+  color: #fff;
 }
 
 .terminal-situation-item {
