@@ -30,5 +30,5 @@ Nomari can help you to answer questions like:
 ![](documents/ja/images/example_4hp_gto.png)
 
 ## Demo page
-https://palthedog.github.io/nomari/?example=marisa
+https://palthedog.github.io/nomari/#/example/marisa/
 
