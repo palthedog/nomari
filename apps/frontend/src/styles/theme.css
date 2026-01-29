@@ -7,6 +7,19 @@
     --color-accent-coral: #e87366;
     --color-accent-coral-hover: #d65f53;
 
+    /* Entity type colors (strong / light) */
+    --situation: #2196F3;
+    --situation-light: #E3F2FD;
+
+    --terminal: #FF9800;
+    --terminal-light: #FFF3E0;
+
+    --player-combo: #4CAF50;
+    --player-combo-light: #E8F5E9;
+
+    --opponent-combo: #F44336;
+    --opponent-combo-light: #FFEBEE;
+
     /* Status colors */
     --color-success: #4CAF50;
     --color-error: #f44336;

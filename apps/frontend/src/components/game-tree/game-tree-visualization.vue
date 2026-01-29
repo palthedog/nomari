@@ -107,6 +107,19 @@ const nodeHeight = 55;
 const levelGap = 160;
 const nodeGap = 80;
 
+// Get CSS variable value from root element
+function getCssVar(name: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// Entity type colors from CSS variables
+const entityColors = computed(() => ({
+    situation: getCssVar('--situation'),
+    terminal: getCssVar('--terminal'),
+    playerCombo: getCssVar('--player-combo'),
+    opponentCombo: getCssVar('--opponent-combo'),
+}));
+
 // Reactive data for v-network-graph
 const graphNodes = reactive<Nodes>({});
 const graphEdges = reactive<Edges>({});
@@ -136,7 +149,7 @@ const configs = computed<UserConfigs>(() => ({
             width: nodeWidth,
             height: nodeHeight,
             borderRadius: 5,
-            color: '#2196F3',
+            color: entityColors.value.situation,
         },
         hover: {
             color: '#1976D2',
@@ -306,8 +319,9 @@ function isSelectedNode(nodeId: string): boolean {
      */
 function getNodeFillColor(nodeId: string): string {
     const node = props.gameTree.nodes[nodeId];
+    const colors = entityColors.value;
     if (!node) {
-        return '#2196F3'; 
+        return colors.situation;
     }
 
     if (isHighlightedNode(nodeId)) {
@@ -315,24 +329,24 @@ function getNodeFillColor(nodeId: string): string {
     }
 
     if (nodeId === rootNodeId.value) {
-        return '#4CAF50';
+        return colors.playerCombo;
     }
 
     if (isPlayerHealthZero(node) && !isOpponentHealthZero(node)) {
-        return '#E53935';
+        return colors.opponentCombo;
     }
     if (isOpponentHealthZero(node) && !isPlayerHealthZero(node)) {
-        return '#43A047';
+        return colors.playerCombo;
     }
     if (isPlayerHealthZero(node) && isOpponentHealthZero(node)) {
-        return '#FF9800';
+        return colors.terminal;
     }
 
     if (isOtherTerminalNode(node)) {
-        return '#616161';
+        return colors.terminal;
     }
 
-    return '#2196F3';
+    return colors.situation;
 }
 
 /**

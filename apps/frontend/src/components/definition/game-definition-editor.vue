@@ -990,10 +990,24 @@ function executeDelete() {
   color: white;
 }
 
+.situation-item {
+  background-color: var(--situation-light);
+  border-left: 4px solid var(--situation);
+}
+
+.situation-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.situation-item.active {
+  background-color: var(--situation);
+  color: white;
+  border-left-color: var(--situation);
+}
 
 .terminal-situation-item {
-  background-color: var(--bg-warning);
-  border-left: 4px solid var(--color-warning);
+  background-color: var(--terminal-light);
+  border-left: 4px solid var(--terminal);
 }
 
 .terminal-situation-item:hover {
@@ -1001,15 +1015,15 @@ function executeDelete() {
 }
 
 .terminal-situation-item.active {
-  background-color: var(--color-warning);
+  background-color: var(--terminal);
   color: white;
-  border-left-color: var(--color-warning);
+  border-left-color: var(--terminal);
 }
 
 .terminal-badge {
   display: inline-block;
   padding: 2px 8px;
-  background-color: var(--color-warning);
+  background-color: var(--terminal);
   color: white;
   border-radius: 12px;
   font-size: 11px;
@@ -1022,8 +1036,8 @@ function executeDelete() {
 }
 
 .player-combo-item {
-  background-color: var(--bg-success);
-  border-left: 4px solid var(--color-success);
+  background-color: var(--player-combo-light);
+  border-left: 4px solid var(--player-combo);
 }
 
 .player-combo-item:hover {
@@ -1031,14 +1045,14 @@ function executeDelete() {
 }
 
 .player-combo-item.active {
-  background-color: var(--color-success);
+  background-color: var(--player-combo);
   color: white;
-  border-left-color: var(--color-success);
+  border-left-color: var(--player-combo);
 }
 
 .opponent-combo-item {
-  background-color: var(--bg-error);
-  border-left: 4px solid var(--color-error);
+  background-color: var(--opponent-combo-light);
+  border-left: 4px solid var(--opponent-combo);
 }
 
 .opponent-combo-item:hover {
@@ -1046,9 +1060,9 @@ function executeDelete() {
 }
 
 .opponent-combo-item.active {
-  background-color: var(--color-error);
+  background-color: var(--opponent-combo);
   color: white;
-  border-left-color: var(--color-error);
+  border-left-color: var(--opponent-combo);
 }
 
 .add-button {
