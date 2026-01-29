@@ -43,9 +43,11 @@ fi
 echo ""
 echo "Worktree created at: $WORKTREE_PATH"
 
-# Copy .claude/ directory if it exists
+# Copy .claude/ directory if it exists (including gitignored files like settings.local.json)
 if [ -d "$PROJECT_ROOT/.claude" ]; then
-    cp -r "$PROJECT_ROOT/.claude" "$WORKTREE_PATH/.claude"
+    # Use cp -rT to merge into existing directory (worktree may already have tracked files)
+    mkdir -p "$WORKTREE_PATH/.claude"
+    cp -rT "$PROJECT_ROOT/.claude" "$WORKTREE_PATH/.claude"
     echo "Copied .claude/ directory (command permissions preserved)"
 fi
 
