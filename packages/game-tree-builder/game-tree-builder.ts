@@ -657,7 +657,7 @@ function buildComboStarterNode(
     nodeKey: string,
     comboStarter: ComboStarter,
     state: DynamicState,
-    ctx: BuildContext,
+    _ctx: BuildContext,
     getOrCreateNodeFn: (situationId: number, state: DynamicState) => Node | GameTreeBuildError
 ): Node | GameTreeBuildError {
     log.debug('Building combo starter node:', nodeKey, 'name:', comboStarter.name);
