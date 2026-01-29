@@ -316,8 +316,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useViewStore } from '@/stores/view-store';
+import { useGameTreeStore } from '@/stores/game-tree-store';
 import type {
     Situation,
     TerminalSituation,
@@ -347,6 +349,9 @@ const definitionStore = useDefinitionStore();
 const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
 const { closeValidationErrors } = definitionStore;
 
+const viewStore = useViewStore();
+const gameTreeStore = useGameTreeStore();
+
 type SelectionType = 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
 const selectedItemType = ref<SelectionType>(null);
 const selectedSituationId = ref<number | null>(null);
@@ -360,6 +365,45 @@ const deleteTarget = ref<{
     name: string;
     onConfirm: () => void;
 } | null>(null);
+
+// Watch for switching from strategy to edit mode with a selected node
+watch(
+    () => viewStore.viewMode,
+    (newMode, oldMode) => {
+        if (newMode !== 'edit' || oldMode !== 'strategy') {
+            return;
+        }
+        const nodeId = gameTreeStore.selectedNodeId;
+        if (!nodeId) {
+            return;
+        }
+        const node = gameTreeStore.gameTree?.nodes[nodeId];
+        const situationId = node?.state.situation_id;
+        if (situationId == null) {
+            return;
+        }
+        selectSituationById(situationId);
+    }
+);
+
+function selectSituationById(situationId: number) {
+    if (gameDefinition.value.situations.find((s) => s.situationId === situationId)) {
+        selectSituation(situationId);
+        return;
+    }
+    if (gameDefinition.value.terminalSituations.find((t) => t.situationId === situationId)) {
+        selectTerminalSituation(situationId);
+        return;
+    }
+    if (gameDefinition.value.playerComboStarters.find((c) => c.situationId === situationId)) {
+        selectPlayerCombo(situationId);
+        return;
+    }
+    if (gameDefinition.value.opponentComboStarters.find((c) => c.situationId === situationId)) {
+        selectOpponentCombo(situationId);
+        return;
+    }
+}
 
 const situationItems = computed(() => {
     return [
