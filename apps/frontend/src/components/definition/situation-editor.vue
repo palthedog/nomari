@@ -619,50 +619,59 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .transition-matrix .corner-cell {
   background-color: var(--bg-tertiary);
   font-weight: bold;
-  min-width: 60px;
+  min-width: 50px;
+  font-size: 11px;
 }
 
 .transition-matrix .player-header {
   background-color: #e8f5e9;
   font-weight: bold;
   text-align: right;
-  padding-right: 12px;
-  min-width: 80px;
+  padding-right: 8px;
+  min-width: 70px;
   color: #2e7d32;
+  font-size: 12px;
 }
 
 .transition-matrix .opponent-header {
   background-color: #ffebee;
   font-weight: bold;
-  min-width: 120px;
+  min-width: 100px;
   color: #c62828;
+  font-size: 12px;
 }
 
 .transition-matrix .transition-cell {
-  min-width: 150px;
-  padding: 6px;
+  min-width: 120px;
+  padding: 4px;
 }
 
 .transition-matrix .transition-select {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.transition-matrix .transition-select :deep(.v-field__input) {
+  font-size: 11px;
+  padding: 4px 8px;
+  min-height: 28px;
 }
 
 .transition-matrix .damage-inputs {
   display: flex;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 2px;
+  margin-top: 2px;
 }
 
 .transition-matrix .damage-field {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
 }
 
 .transition-matrix .damage-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
-  min-width: 14px;
+  min-width: 12px;
 }
 
 .transition-matrix .damage-deal .damage-label {
@@ -674,11 +683,11 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .damage-input {
-  width: 55px;
-  padding: 3px 4px;
+  width: 45px;
+  padding: 2px 3px;
   border: 1px solid var(--border-input);
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: 3px;
+  font-size: 11px;
   text-align: right;
 }
 
