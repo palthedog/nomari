@@ -1,5 +1,8 @@
 <template>
-  <div class="combo-starter-editor">
+  <div
+    class="combo-starter-editor"
+    :class="{ 'player-combo': props.isPlayerCombo, 'opponent-combo': !props.isPlayerCombo }"
+  >
     <!-- Basic Info -->
     <div class="section">
       <div
@@ -505,6 +508,22 @@ watch(() => model.value.routes.length, () => {
 .section h4 {
   margin-top: 0;
   margin-bottom: 15px;
+}
+
+.player-combo .section {
+  border-left: 4px solid #4caf50;
+}
+
+.player-combo .section h4 {
+  color: #2e7d32;
+}
+
+.opponent-combo .section {
+  border-left: 4px solid #f44336;
+}
+
+.opponent-combo .section h4 {
+  color: #c62828;
 }
 
 .form-group {
