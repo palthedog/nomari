@@ -241,25 +241,69 @@ const props = defineProps<{
 }>();
 
 
+type SelectItem = { title: string;
+    value: number } | { type: 'subheader';
+        title: string };
+
 const nextSituationItems = computed(() => {
-    const items: Array<{ title: string;
-        value: number }> = [
+    const items: SelectItem[] = [
         {
             title: '次の状況を選択してください',
-            value: 0 
+            value: 0
         },
     ];
 
-    if (props.availableSituations.length > 0) {
-        items.push(...props.availableSituations.map((s) => ({
-            title: `${s.name || '(説明なし)'}`,
+    // Filter and categorize available situations
+    const regularSituations = props.availableSituations.filter(
+        (s) => !s.name?.startsWith('[コンボ]') && !s.name?.startsWith('[相手コンボ]')
+    );
+    const playerCombos = props.availableSituations.filter(
+        (s) => s.name?.startsWith('[コンボ]')
+    );
+    const opponentCombos = props.availableSituations.filter(
+        (s) => s.name?.startsWith('[相手コンボ]')
+    );
+
+    if (regularSituations.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── 状況 ──' 
+        });
+        items.push(...regularSituations.map((s) => ({
+            title: s.name || '(名前なし)',
+            value: s.situationId,
+        })));
+    }
+
+    if (playerCombos.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── プレイヤーコンボ ──' 
+        });
+        items.push(...playerCombos.map((s) => ({
+            title: s.name?.replace('[コンボ] ', '') || '(名前なし)',
+            value: s.situationId,
+        })));
+    }
+
+    if (opponentCombos.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── 相手コンボ ──' 
+        });
+        items.push(...opponentCombos.map((s) => ({
+            title: s.name?.replace('[相手コンボ] ', '') || '(名前なし)',
             value: s.situationId,
         })));
     }
 
     if (props.availableTerminalSituations.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── 終了条件 ──' 
+        });
         items.push(...props.availableTerminalSituations.map((t) => ({
-            title: `${t.name || '(名前なし)'}`,
+            title: t.name || '(名前なし)',
             value: t.situationId,
         })));
     }
