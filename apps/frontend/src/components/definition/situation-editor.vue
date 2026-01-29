@@ -183,20 +183,24 @@
                   @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
                 />
                 <div class="damage-inputs">
-                  <input
-                    type="number"
-                    class="damage-input"
-                    placeholder="与ダメ"
-                    :value="getOpponentDamage(playerAction.actionId, oppAction.actionId)"
-                    @input="setOpponentDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-                  >
-                  <input
-                    type="number"
-                    class="damage-input"
-                    placeholder="被ダメ"
-                    :value="getPlayerDamage(playerAction.actionId, oppAction.actionId)"
-                    @input="setPlayerDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-                  >
+                  <div class="damage-field damage-deal">
+                    <span class="damage-label">与</span>
+                    <input
+                      type="number"
+                      class="damage-input"
+                      :value="getOpponentDamage(playerAction.actionId, oppAction.actionId) || ''"
+                      @input="setOpponentDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+                    >
+                  </div>
+                  <div class="damage-field damage-receive">
+                    <span class="damage-label">被</span>
+                    <input
+                      type="number"
+                      class="damage-input"
+                      :value="getPlayerDamage(playerAction.actionId, oppAction.actionId) || ''"
+                      @input="setPlayerDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
+                    >
+                  </div>
                 </div>
               </td>
             </tr>
@@ -526,20 +530,44 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .transition-matrix .damage-inputs {
   display: flex;
   gap: 4px;
+  margin-top: 4px;
+}
+
+.transition-matrix .damage-field {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.transition-matrix .damage-label {
+  font-size: 11px;
+  font-weight: bold;
+  min-width: 14px;
+}
+
+.transition-matrix .damage-deal .damage-label {
+  color: #2e7d32;
+}
+
+.transition-matrix .damage-receive .damage-label {
+  color: #c62828;
 }
 
 .transition-matrix .damage-input {
-  width: 70px;
-  padding: 4px 6px;
+  width: 55px;
+  padding: 3px 4px;
   border: 1px solid var(--border-input);
   border-radius: 4px;
   font-size: 12px;
   text-align: right;
 }
 
-.transition-matrix .damage-input::placeholder {
-  font-size: 11px;
-  text-align: center;
+.transition-matrix .damage-deal .damage-input {
+  border-color: #81c784;
+}
+
+.transition-matrix .damage-receive .damage-input {
+  border-color: #e57373;
 }
 
 .form-group {
