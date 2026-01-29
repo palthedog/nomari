@@ -28,7 +28,7 @@
     </div>
 
     <!-- プレイヤー選択肢 -->
-    <div class="section">
+    <div class="section player-section">
       <h4>プレイヤー選択肢</h4>
       <div
         v-for="(action, index) in model.playerActions?.actions || []"
@@ -71,7 +71,7 @@
     </div>
 
     <!-- 相手選択肢 -->
-    <div class="section">
+    <div class="section opponent-section">
       <h4>相手選択肢</h4>
       <div
         v-for="(action, index) in model.opponentActions?.actions || []"
@@ -477,6 +477,22 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .bulk-set-button {
   margin-top: 0 !important;
   white-space: nowrap;
+}
+
+.player-section {
+  border-left: 4px solid #4caf50;
+}
+
+.player-section h4 {
+  color: #2e7d32;
+}
+
+.opponent-section {
+  border-left: 4px solid #f44336;
+}
+
+.opponent-section h4 {
+  color: #c62828;
 }
 
 .transition-matrix {
