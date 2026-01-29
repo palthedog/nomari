@@ -1,5 +1,7 @@
 {
   "enabledPlugins": {
-    "playwright-cli@playwright-cli": true
+    "playwright-cli@playwright-cli": true,
+    "frontend-design@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true
   }
 }
