@@ -139,7 +139,7 @@
 
           <!-- Player Combos -->
           <div class="section-group">
-            <div class="section-header">
+            <div class="section-header player-combo-header">
               <h4>プレイヤーコンボ</h4>
             </div>
             <ul class="section-list">
@@ -171,7 +171,7 @@
 
           <!-- Opponent Combos -->
           <div class="section-group">
-            <div class="section-header">
+            <div class="section-header opponent-combo-header">
               <h4>相手コンボ</h4>
             </div>
             <ul class="section-list">
@@ -934,6 +934,14 @@ function executeDelete() {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.player-combo-header h4 {
+  color: #2e7d32;
+}
+
+.opponent-combo-header h4 {
+  color: #c62828;
 }
 
 .section-list {
