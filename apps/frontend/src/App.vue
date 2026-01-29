@@ -3,20 +3,6 @@
     <header class="app-header">
       <h1>Nomari 起き攻め 計算機</h1>
       <div class="header-content">
-        <!-- View mode toggle -->
-        <div class="view-mode-toggle">
-          <button
-            v-for="mode in viewModes"
-            :key="mode.id"
-            type="button"
-            class="mode-btn"
-            :class="{ active: viewMode === mode.id }"
-            @click="viewStore.setViewMode(mode.id)"
-          >
-            {{ mode.label }}
-          </button>
-        </div>
-
         <div class="header-actions">
           <button
             type="button"
@@ -158,7 +144,7 @@ import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/expor
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
-import { useViewStore, VIEW_MODES } from '@/stores/view-store';
+import { useViewStore } from '@/stores/view-store';
 import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
@@ -221,7 +207,6 @@ function handleMobileNavigation(index: number) {
 // View store
 const viewStore = useViewStore();
 const viewMode = computed(() => viewStore.viewMode);
-const viewModes = VIEW_MODES;
 
 // Game definition and tree state
 const definitionStore = useDefinitionStore();
@@ -399,35 +384,6 @@ body {
   gap: 20px;
 }
 
-.view-mode-toggle {
-  display: flex;
-  gap: 0;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  padding: 2px;
-}
-
-.mode-btn {
-  padding: 6px 16px;
-  background-color: transparent;
-  color: white;
-  border: none;
-  border-radius: 2px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.mode-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.mode-btn.active {
-  background-color: white;
-  color: var(--color-accent-blue);
-}
-
 .header-actions {
   display: flex;
   gap: 10px;
@@ -566,11 +522,6 @@ body {
     width: 100%;
     justify-content: space-between;
     gap: 10px;
-  }
-
-  .mode-btn {
-    padding: 6px 12px;
-    font-size: 13px;
   }
 
   .header-actions button {
