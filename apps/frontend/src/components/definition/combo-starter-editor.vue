@@ -512,19 +512,19 @@ watch(() => model.value.routes.length, () => {
 }
 
 .player-combo .section {
-  border-left: 4px solid #4caf50;
+  border-left: 4px solid var(--player-color);
 }
 
 .player-combo .section h4 {
-  color: #2e7d32;
+  color: var(--player-color-dark);
 }
 
 .opponent-combo .section {
-  border-left: 4px solid #f44336;
+  border-left: 4px solid var(--opponent-color);
 }
 
 .opponent-combo .section h4 {
-  color: #c62828;
+  color: var(--opponent-color-dark);
 }
 
 .form-group {
@@ -553,21 +553,23 @@ watch(() => model.value.routes.length, () => {
 }
 
 .delete-route-btn {
-  padding: 4px 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
   background-color: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
+  color: var(--text-tertiary);
+  font-size: 18px;
   line-height: 1;
-  transition: all 0.2s;
+  cursor: pointer;
+  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
 }
 
 .delete-route-btn:hover {
-  background-color: #ffebee;
-  color: #c62828;
-  border-color: #e57373;
+  background-color: var(--color-delete);
+  color: white;
 }
 
 .route-subsection {

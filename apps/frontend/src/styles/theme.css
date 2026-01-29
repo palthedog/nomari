@@ -20,6 +20,17 @@
     --opponent-combo: #D85858;
     --opponent-combo-light: #FCEBEB;
 
+    /* Player/Opponent UI colors */
+    --player-color: #4caf50;
+    --player-color-dark: #2e7d32;
+    --player-bg: #e8f5e9;
+    --player-border: #81c784;
+
+    --opponent-color: #f44336;
+    --opponent-color-dark: #c62828;
+    --opponent-bg: #ffebee;
+    --opponent-border: #e57373;
+
     /* Status colors */
     --color-success: #4CAF50;
     --color-error: #f44336;

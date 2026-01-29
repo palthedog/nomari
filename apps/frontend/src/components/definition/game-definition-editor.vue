@@ -160,7 +160,7 @@
                 </button>
               </li>
               <li
-                class="section-item add-button add-player-combo"
+                class="section-item add-button"
                 @click="addPlayerCombo"
               >
                 <span class="add-icon">+</span>
@@ -192,7 +192,7 @@
                 </button>
               </li>
               <li
-                class="section-item add-button add-opponent-combo"
+                class="section-item add-button"
                 @click="addOpponentCombo"
               >
                 <span class="add-icon">+</span>
@@ -937,11 +937,11 @@ function executeDelete() {
 }
 
 .player-combo-header h4 {
-  color: #2e7d32;
+  color: var(--player-color-dark);
 }
 
 .opponent-combo-header h4 {
-  color: #c62828;
+  color: var(--opponent-color-dark);
 }
 
 .section-list {
@@ -1136,14 +1136,6 @@ function executeDelete() {
 .add-button:hover {
   background-color: var(--color-primary);
   color: white;
-}
-
-.add-player-combo:hover {
-  background-color: #4caf50;
-}
-
-.add-opponent-combo:hover {
-  background-color: #f44336;
 }
 
 .add-icon {

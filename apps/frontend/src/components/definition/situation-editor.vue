@@ -124,29 +124,7 @@
       v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0"
       class="section"
     >
-      <div class="transition-header">
-        <h4>遷移テーブル</h4>
-        <div class="bulk-set-controls">
-          <v-select
-            v-model="bulkNextSituationId"
-            :items="nextSituationItems"
-            item-title="title"
-            item-value="value"
-            label="一括設定"
-            density="compact"
-            variant="outlined"
-            hide-details
-            class="bulk-select"
-          />
-          <button
-            type="button"
-            class="bulk-set-button"
-            @click="applyBulkNextSituation"
-          >
-            全てに適用
-          </button>
-        </div>
-      </div>
+      <h4>遷移テーブル</h4>
       <!-- Matrix view for transitions -->
       <div class="transition-matrix">
         <table>
@@ -230,10 +208,6 @@ import { generateId } from '@/utils/game-definition-utils';
 const model = defineModel<Situation>({
     required: true
 });
-
-import { ref } from 'vue';
-
-const bulkNextSituationId = ref<number>(0);
 
 const props = defineProps<{
     availableSituations: Situation[];
@@ -411,15 +385,6 @@ function updateNextSituationId(
     }
 }
 
-function applyBulkNextSituation() {
-    if (bulkNextSituationId.value === 0) {
-        return;
-    }
-    for (const transition of model.value.transitions) {
-        transition.nextSituationId = bulkNextSituationId.value;
-    }
-}
-
 function getOpponentDamage(playerActionId: number, opponentActionId: number): number {
     const transition = getTransition(playerActionId, opponentActionId);
     if (!transition?.resourceConsumptions) {
@@ -504,22 +469,23 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .delete-action-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: none;
   border-radius: 50%;
   background-color: transparent;
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+  flex-shrink: 0;
 }
 
 .delete-action-btn:hover {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: var(--color-delete);
+  color: white;
 }
 
 .add-action-btn {
@@ -527,74 +493,51 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border: 2px dashed;
+  border: 1px solid;
   border-radius: 4px;
-  background-color: transparent;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .add-player-action {
-  border-color: #81c784;
-  color: #2e7d32;
+  border-color: var(--player-border);
+  color: var(--player-color-dark);
+  background-color: var(--player-bg);
 }
 
 .add-player-action:hover {
-  background-color: #e8f5e9;
-  border-style: solid;
+  background-color: var(--player-color);
+  border-color: var(--player-color);
+  color: white;
 }
 
 .add-opponent-action {
-  border-color: #e57373;
-  color: #c62828;
+  border-color: var(--opponent-border);
+  color: var(--opponent-color-dark);
+  background-color: var(--opponent-bg);
 }
 
 .add-opponent-action:hover {
-  background-color: #ffebee;
-  border-style: solid;
-}
-
-.transition-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.transition-header h4 {
-  margin: 0;
-}
-
-.bulk-set-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.bulk-select {
-  min-width: 200px;
-}
-
-.bulk-set-button {
-  margin-top: 0 !important;
-  white-space: nowrap;
+  background-color: var(--opponent-color);
+  border-color: var(--opponent-color);
+  color: white;
 }
 
 .player-section {
-  border-left: 4px solid #4caf50;
+  border-left: 4px solid var(--player-color);
 }
 
 .player-section h4 {
-  color: #2e7d32;
+  color: var(--player-color-dark);
 }
 
 .opponent-section {
-  border-left: 4px solid #f44336;
+  border-left: 4px solid var(--opponent-color);
 }
 
 .opponent-section h4 {
-  color: #c62828;
+  color: var(--opponent-color-dark);
 }
 
 .transition-matrix {
@@ -624,20 +567,20 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .player-header {
-  background-color: #e8f5e9;
+  background-color: var(--player-bg);
   font-weight: bold;
   text-align: right;
   padding-right: 8px;
   min-width: 70px;
-  color: #2e7d32;
+  color: var(--player-color-dark);
   font-size: 12px;
 }
 
 .transition-matrix .opponent-header {
-  background-color: #ffebee;
+  background-color: var(--opponent-bg);
   font-weight: bold;
   min-width: 100px;
-  color: #c62828;
+  color: var(--opponent-color-dark);
   font-size: 12px;
 }
 
@@ -675,11 +618,11 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .damage-deal .damage-label {
-  color: #2e7d32;
+  color: var(--player-color-dark);
 }
 
 .transition-matrix .damage-receive .damage-label {
-  color: #c62828;
+  color: var(--opponent-color-dark);
 }
 
 .transition-matrix .damage-input {
@@ -692,11 +635,11 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .damage-deal .damage-input {
-  border-color: #81c784;
+  border-color: var(--player-border);
 }
 
 .transition-matrix .damage-receive .damage-input {
-  border-color: #e57373;
+  border-color: var(--opponent-border);
 }
 
 .form-group {
@@ -753,14 +696,7 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
   flex: 3;
 }
 
-.form-row button {
-  padding: 8px 15px;
-  background-color: var(--color-error);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+/* delete-action-btn styles are defined separately */
 
 button {
   padding: 8px 15px;
