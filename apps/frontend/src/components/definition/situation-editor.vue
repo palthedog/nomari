@@ -521,17 +521,19 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .player-header {
-  background-color: var(--bg-secondary);
+  background-color: #e8f5e9;
   font-weight: bold;
   text-align: right;
   padding-right: 12px;
   min-width: 80px;
+  color: #2e7d32;
 }
 
 .transition-matrix .opponent-header {
-  background-color: var(--bg-secondary);
+  background-color: #ffebee;
   font-weight: bold;
   min-width: 120px;
+  color: #c62828;
 }
 
 .transition-matrix .transition-cell {
