@@ -316,10 +316,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useViewStore } from '@/stores/view-store';
-import { useGameTreeStore } from '@/stores/game-tree-store';
 import type {
     Situation,
     TerminalSituation,
@@ -350,7 +349,6 @@ const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(d
 const { closeValidationErrors } = definitionStore;
 
 const viewStore = useViewStore();
-const gameTreeStore = useGameTreeStore();
 
 type SelectionType = 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
 const selectedItemType = ref<SelectionType>(null);
@@ -366,25 +364,13 @@ const deleteTarget = ref<{
     onConfirm: () => void;
 } | null>(null);
 
-// Watch for switching from strategy to edit mode with a selected node
-watch(
-    () => viewStore.viewMode,
-    (newMode, oldMode) => {
-        if (newMode !== 'edit' || oldMode !== 'strategy') {
-            return;
-        }
-        const nodeId = gameTreeStore.selectedNodeId;
-        if (!nodeId) {
-            return;
-        }
-        const node = gameTreeStore.gameTree?.nodes[nodeId];
-        const situationId = node?.state.situation_id;
-        if (situationId == null) {
-            return;
-        }
+// On mount, select the situation that was selected in strategy mode
+onMounted(() => {
+    const situationId = viewStore.selectedSituationId;
+    if (situationId != null) {
         selectSituationById(situationId);
     }
-);
+});
 
 function selectSituationById(situationId: number) {
     if (gameDefinition.value.situations.find((s) => s.situationId === situationId)) {

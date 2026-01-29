@@ -22,6 +22,9 @@ export const VIEW_MODES: ViewModeConfig[] = [
 export const useViewStore = defineStore('view', () => {
     const viewMode = ref<ViewMode>('edit');
 
+    // Currently selected situation ID (updated when nodes are selected in strategy mode)
+    const selectedSituationId = ref<number | null>(null);
+
     function setViewMode(mode: ViewMode) {
         viewMode.value = mode;
     }
@@ -34,10 +37,16 @@ export const useViewStore = defineStore('view', () => {
         viewMode.value = 'strategy';
     }
 
+    function setSelectedSituationId(id: number | null) {
+        selectedSituationId.value = id;
+    }
+
     return {
         viewMode,
+        selectedSituationId,
         setViewMode,
         switchToEdit,
         switchToStrategy,
+        setSelectedSituationId,
     };
 });

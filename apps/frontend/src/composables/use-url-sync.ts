@@ -221,10 +221,26 @@ export function useUrlSync() {
             if (isUpdatingFromUrl.value) {
                 return;
             }
+
             const currentMode = getViewModeFromRoute();
             if (currentMode !== mode) {
                 // When switching mode, clear node selection
                 navigateTo(mode, null);
+            }
+        }
+    );
+
+    // Update selectedSituationId when node selection changes
+    watch(
+        () => gameTreeStore.selectedNodeId,
+        (nodeId) => {
+            if (!nodeId) {
+                return;
+            }
+            const node = gameTreeStore.gameTree?.nodes[nodeId];
+            const situationId = node?.state.situation_id;
+            if (situationId != null) {
+                viewStore.setSelectedSituationId(situationId);
             }
         }
     );
@@ -255,17 +271,28 @@ export function useUrlSync() {
         () => gameTreeStore.gameTree,
         (gameTree) => {
             const nodeId = route.params.nodeId;
-            if (typeof nodeId === 'string' && gameTree) {
-                if (gameTree.nodes[nodeId]) {
-                    // Node exists in new tree, select it
-                    gameTreeStore.selectNode(nodeId);
-                } else {
-                    // Node doesn't exist in tree, clear from URL
-                    log.warn(`Node ${nodeId} not found in game tree, clearing`);
-                    navigateTo('strategy', null);
-                    gameTreeStore.clearSelection();
-                }
+            if (typeof nodeId !== 'string' || !gameTree) {
+                return;
             }
+
+            // If example route but example not yet loaded, wait for it
+            const source = getSourceType();
+            if (source === 'example' && loadedExample.value === null) {
+                return;
+            }
+
+            if (gameTree.nodes[nodeId]) {
+                // Node exists in new tree, select it
+                gameTreeStore.selectNode(nodeId);
+            } else {
+                // Node doesn't exist in tree, clear from URL
+                log.warn(`Node ${nodeId} not found in game tree, clearing`);
+                navigateTo('strategy', null);
+                gameTreeStore.clearSelection();
+            }
+        },
+        {
+            immediate: true
         }
     );
 
