@@ -104,13 +104,16 @@ function updateResourceValue(index: number, value: number) {
 .initial-dynamic-state-editor {
   padding: 15px;
   border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  background-color: white;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-elevated);
 }
 
 .initial-dynamic-state-editor h4 {
   margin-top: 0;
   margin-bottom: 15px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .resources-section {
@@ -144,8 +147,15 @@ function updateResourceValue(index: number, value: number) {
   width: 100%;
   padding: 8px;
   border: 1px solid var(--border-input);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   box-sizing: border-box;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.resource-value input:focus {
+  outline: none;
+  border-color: var(--border-focus);
 }
 
 .resources-section>button {

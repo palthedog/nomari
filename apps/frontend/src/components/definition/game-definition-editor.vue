@@ -796,25 +796,37 @@ function executeDelete() {
 </script>
 
 <style scoped>
+/* ═══════════════════════════════════════════════════════════════════
+   GAME DEFINITION EDITOR - Roman Arena Style
+   ═══════════════════════════════════════════════════════════════════ */
+
 .game-definition-editor {
   display: flex;
   flex-direction: column;
   height: 100%;
+  font-family: var(--font-family-ui);
+  background-color: var(--bg-primary);
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   HEADER - Control Panel
+   ─────────────────────────────────────────────────────────────────── */
+
 .header {
-  padding: 20px;
-  background-color: var(--bg-quaternary);
-  border-bottom: 1px solid var(--border-primary);
+  padding: 16px 20px;
+  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border-bottom: 2px solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .header h2 {
   margin: 0 0 15px 0;
+  font-family: var(--font-family-display);
 }
 
 .header-controls {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
@@ -845,17 +857,32 @@ function executeDelete() {
 }
 
 .form-group label {
-  font-weight: bold;
+  font-weight: 500;
   white-space: nowrap;
+  color: var(--text-secondary);
 }
 
 .form-group input,
 .form-group select {
   padding: 8px;
   border: 1px solid var(--border-input);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   min-width: 150px;
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+  outline: none;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   CONTENT LAYOUT
+   ─────────────────────────────────────────────────────────────────── */
 
 .content {
   display: flex;
@@ -869,6 +896,7 @@ function executeDelete() {
   flex-direction: column;
   border-right: 1px solid var(--border-primary);
   overflow: hidden;
+  background-color: var(--bg-primary);
 }
 
 .right-panel {
@@ -876,11 +904,12 @@ function executeDelete() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: var(--bg-primary);
 }
 
 .panel-header {
-  padding: 15px 20px;
-  background-color: var(--bg-tertiary);
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
   display: flex;
   justify-content: space-between;
@@ -889,78 +918,105 @@ function executeDelete() {
 
 .panel-header h3 {
   margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-family-display);
 }
 
 .header-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .panel-header button {
   padding: 8px 16px;
-  background-color: var(--color-primary);
+  background-color: var(--color-header);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--transition-fast);
 }
 
 .panel-header button:hover {
-  opacity: 0.8;
+  background-color: var(--color-header-hover);
+  transform: translateY(-1px);
 }
 
 .panel-content {
   flex: 1;
   overflow-y: auto;
-  padding: 15px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   SECTION GROUPS - Arena Categories
+   ─────────────────────────────────────────────────────────────────── */
+
 .section-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .section-header {
   margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-secondary);
 }
 
 .section-header h4 {
   margin: 0;
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+}
+
+.player-combo-header {
+  border-color: var(--player-combo);
 }
 
 .player-combo-header h4 {
-  color: var(--player-color-dark);
+  color: var(--player-color);
+}
+
+.opponent-combo-header {
+  border-color: var(--opponent-combo);
 }
 
 .opponent-combo-header h4 {
-  color: var(--opponent-color-dark);
+  color: var(--opponent-color);
 }
+
+/* ───────────────────────────────────────────────────────────────────
+   SECTION LIST - Battle Roster
+   ─────────────────────────────────────────────────────────────────── */
 
 .section-list {
   list-style: none;
   padding: 0;
   margin: 0;
   border: 1px solid var(--border-primary);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   overflow: hidden;
+  background-color: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
 }
 
 .section-item {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid var(--border-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-fast);
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 .section-item:last-child {
@@ -971,18 +1027,15 @@ function executeDelete() {
   background-color: var(--bg-hover);
 }
 
-.section-item.active {
-  background-color: var(--color-accent-orange);
-  color: white;
-}
-
 .item-name {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
+/* Delete button - Arena style */
 .delete-item-btn {
   width: 24px;
   height: 24px;
@@ -991,12 +1044,15 @@ function executeDelete() {
   border-radius: 50%;
   background-color: transparent;
   color: var(--text-tertiary);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+  transition: all var(--transition-fast);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .section-item:hover .delete-item-btn {
@@ -1010,10 +1066,11 @@ function executeDelete() {
 
 .section-item.active .delete-item-btn {
   color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
 }
 
 .section-item.active .delete-item-btn:hover {
-  background-color: var(--color-delete);
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
@@ -1023,8 +1080,8 @@ function executeDelete() {
 
 .initial-state-item {
   border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  background-color: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-secondary);
 }
 
 .initial-state-item:hover {
@@ -1036,9 +1093,13 @@ function executeDelete() {
   color: white;
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   SITUATION ITEMS - Imperial Blue
+   ─────────────────────────────────────────────────────────────────── */
+
 .situation-item {
-  background-color: var(--situation-light);
-  border-left: 4px solid var(--situation);
+  background-color: var(--situation-bg);
+  border-left: 3px solid var(--situation);
 }
 
 .situation-item:hover {
@@ -1048,26 +1109,31 @@ function executeDelete() {
 .situation-item.active {
   background-color: var(--situation);
   color: white;
-  border-left-color: var(--situation);
+  border-left-color: var(--color-gold);
 }
 
 .situation-item.is-root {
-  font-weight: bold;
+  font-weight: 600;
 }
 
+/* Gold star for root badge - Marisa accent */
 .root-badge {
-  color: #ffd700;
+  color: var(--color-gold);
   margin-right: 4px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .situation-item.active .root-badge {
-  color: #fff;
+  color: var(--color-gold-light);
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   TERMINAL ITEMS - Victory Bronze
+   ─────────────────────────────────────────────────────────────────── */
+
 .terminal-situation-item {
-  background-color: var(--terminal-light);
-  border-left: 4px solid var(--terminal);
+  background-color: var(--terminal-bg);
+  border-left: 3px solid var(--terminal);
 }
 
 .terminal-situation-item:hover {
@@ -1077,7 +1143,7 @@ function executeDelete() {
 .terminal-situation-item.active {
   background-color: var(--terminal);
   color: white;
-  border-left-color: var(--terminal);
+  border-left-color: var(--color-gold);
 }
 
 .terminal-badge {
@@ -1086,18 +1152,23 @@ function executeDelete() {
   background-color: var(--terminal);
   color: white;
   border-radius: 12px;
-  font-size: 11px;
-  font-weight: bold;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .terminal-situation-item.active .terminal-badge {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.25);
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   PLAYER COMBO ITEMS - Triumphant Green
+   ─────────────────────────────────────────────────────────────────── */
+
 .player-combo-item {
-  background-color: var(--player-combo-light);
-  border-left: 4px solid var(--player-combo);
+  background-color: var(--player-combo-bg);
+  border-left: 3px solid var(--player-combo);
 }
 
 .player-combo-item:hover {
@@ -1107,12 +1178,16 @@ function executeDelete() {
 .player-combo-item.active {
   background-color: var(--player-combo);
   color: white;
-  border-left-color: var(--player-combo);
+  border-left-color: var(--color-gold);
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   OPPONENT COMBO ITEMS - Challenger Red
+   ─────────────────────────────────────────────────────────────────── */
+
 .opponent-combo-item {
-  background-color: var(--opponent-combo-light);
-  border-left: 4px solid var(--opponent-combo);
+  background-color: var(--opponent-combo-bg);
+  border-left: 3px solid var(--opponent-combo);
 }
 
 .opponent-combo-item:hover {
@@ -1122,15 +1197,20 @@ function executeDelete() {
 .opponent-combo-item.active {
   background-color: var(--opponent-combo);
   color: white;
-  border-left-color: var(--opponent-combo);
+  border-left-color: var(--color-gold);
 }
 
+/* ───────────────────────────────────────────────────────────────────
+   ADD BUTTON
+   ─────────────────────────────────────────────────────────────────── */
+
 .add-button {
-  background-color: var(--bg-quaternary);
+  background-color: var(--bg-tertiary);
   color: var(--text-secondary);
   font-weight: 500;
   justify-content: center;
-  border-top: 2px solid var(--border-primary);
+  border-left: 3px solid transparent;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .add-button:hover {
@@ -1139,16 +1219,29 @@ function executeDelete() {
 }
 
 .add-icon {
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 600;
   line-height: 1;
+  margin-right: 4px;
 }
+
+/* ───────────────────────────────────────────────────────────────────
+   NO SELECTION STATE
+   ─────────────────────────────────────────────────────────────────── */
 
 .no-selection {
   padding: 40px;
   text-align: center;
   color: var(--text-tertiary);
 }
+
+.no-selection p {
+  font-size: 13px;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   VALIDATION ERRORS
+   ─────────────────────────────────────────────────────────────────── */
 
 .validation-errors-sheet {
   max-height: 50vh;
@@ -1173,6 +1266,11 @@ function executeDelete() {
 
 .validation-error-item {
   border-bottom: 1px solid var(--border-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.validation-error-item:hover {
+  background-color: var(--bg-hover);
 }
 
 .validation-error-item:last-child {
@@ -1182,20 +1280,23 @@ function executeDelete() {
 .error-field {
   font-weight: 600;
   color: var(--color-error-dark);
+  font-family: var(--font-family-mono);
 }
 
 .error-message {
   color: var(--text-secondary);
 }
 
-/* Mobile full height for single-view mode */
+/* ───────────────────────────────────────────────────────────────────
+   MOBILE STYLES
+   ─────────────────────────────────────────────────────────────────── */
+
 .mobile-full-height {
   flex: 1 !important;
   max-height: none !important;
   height: 100%;
 }
 
-/* Mobile responsive styles */
 @media (max-width: 768px) {
   .header-controls {
     flex-direction: column;
@@ -1238,20 +1339,28 @@ function executeDelete() {
 
   .panel-header button {
     padding: 6px 12px;
-    font-size: 13px;
-  }
-
-  .panel-content {
-    padding: 10px;
-  }
-
-  .section-group h4 {
     font-size: 12px;
   }
 
+  .panel-content {
+    padding: 12px;
+  }
+
+  .section-header {
+    padding: 6px 10px;
+  }
+
+  .section-header h4 {
+    font-size: 10px;
+  }
+
   .section-item {
-    font-size: 13px;
-    padding: 8px 10px;
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+
+  .section-item:hover {
+    padding-left: 14px;
   }
 }
 </style>

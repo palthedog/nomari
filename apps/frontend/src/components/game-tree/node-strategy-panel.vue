@@ -210,15 +210,19 @@ function formatDamage(value: number): string {
     display: flex;
     flex-direction: column;
     background-color: var(--bg-primary);
-    border-left: 1px solid var(--border-secondary);
+    border-left: 1px solid var(--border-primary);
+    font-family: var(--font-family-ui);
 }
 
 .node-strategy-panel h3 {
     margin: 0;
-    padding: 16px;
-    font-size: 16px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--text-primary);
-    border-bottom: 1px solid var(--border-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    background-color: var(--bg-secondary);
+    letter-spacing: 0.5px;
 }
 
 .no-selection {
@@ -227,19 +231,20 @@ function formatDamage(value: number): string {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--text-disabled);
+    color: var(--text-tertiary);
     text-align: center;
-    padding: 20px;
+    padding: 24px;
 }
 
 .no-selection-icon {
-    font-size: 48px;
+    font-size: 40px;
     margin-bottom: 16px;
+    opacity: 0.6;
 }
 
 .no-selection p {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .node-details {
@@ -249,10 +254,11 @@ function formatDamage(value: number): string {
 }
 
 .node-info {
-    background-color: var(--bg-quaternary);
-    border-radius: 4px;
-    padding: 12px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 14px;
     margin-bottom: 16px;
+    border: 1px solid var(--border-secondary);
 }
 
 .info-row {
@@ -266,38 +272,45 @@ function formatDamage(value: number): string {
 }
 
 .info-row .label {
-    color: var(--text-secondary);
-    min-width: 80px;
+    color: var(--text-tertiary);
+    min-width: 50px;
+    font-size: 12px;
 }
 
 .info-row .value {
     color: var(--text-primary);
     font-weight: 500;
     word-break: break-all;
+    font-family: var(--font-family-mono);
+    font-size: 12px;
 }
 
 .terminal-indicator {
     text-align: center;
     padding: 16px;
     background-color: var(--bg-warning);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     margin-bottom: 16px;
+    border: 1px solid var(--terminal);
 }
 
 .terminal-badge {
     display: inline-block;
     padding: 4px 12px;
-    background-color: var(--color-warning);
+    background-color: var(--terminal);
     color: white;
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
     border-radius: 12px;
     margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .rewards {
     font-size: 14px;
     color: var(--text-secondary);
+    font-family: var(--font-family-mono);
 }
 
 .strategy-section {
@@ -306,12 +319,13 @@ function formatDamage(value: number): string {
 
 .node-expected-value {
     background-color: var(--bg-secondary);
-    border-radius: 4px;
-    padding: 12px;
+    border-radius: var(--radius-md);
+    padding: 14px;
     margin-bottom: 16px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
+    border: 1px solid var(--border-secondary);
 }
 
 .expected-value-row {
@@ -320,16 +334,23 @@ function formatDamage(value: number): string {
     align-items: center;
 }
 
+.expected-value-row:first-child {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-secondary);
+    margin-bottom: 4px;
+}
+
 .expected-value-label {
-    font-size: 13px;
-    color: var(--text-secondary);
+    font-size: 12px;
+    color: var(--text-tertiary);
     font-weight: 500;
 }
 
 .expected-value-number {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    color: var(--color-accent-blue);
+    font-family: var(--font-family-mono);
+    color: var(--color-gold);
 }
 
 .opponent-value {
@@ -338,7 +359,7 @@ function formatDamage(value: number): string {
 
 .damage-expected-value {
     background-color: var(--bg-tertiary);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     padding: 12px;
     margin-bottom: 16px;
     display: flex;
@@ -347,17 +368,19 @@ function formatDamage(value: number): string {
 }
 
 .damage-dealt {
-    color: var(--color-accent-blue);
+    color: var(--player-combo);
+    font-family: var(--font-family-mono);
 }
 
 .damage-received {
-    color: var(--color-error);
+    color: var(--opponent-combo);
+    font-family: var(--font-family-mono);
 }
 
 .no-strategy {
     text-align: center;
     padding: 24px;
-    color: var(--text-disabled);
+    color: var(--text-tertiary);
 }
 
 .no-strategy p {
@@ -366,6 +389,7 @@ function formatDamage(value: number): string {
 
 .no-strategy .hint {
     font-size: 12px;
+    opacity: 0.8;
 }
 
 .actions-section {
@@ -374,15 +398,17 @@ function formatDamage(value: number): string {
 
 .actions-section details {
     border: 1px solid var(--border-secondary);
-    border-radius: 4px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
 }
 
 .actions-section summary {
     padding: 10px 12px;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     cursor: pointer;
     background-color: var(--bg-secondary);
+    font-weight: 500;
 }
 
 .actions-section summary:hover {
@@ -391,6 +417,7 @@ function formatDamage(value: number): string {
 
 .available-actions {
     padding: 12px;
+    background-color: var(--bg-primary);
 }
 
 .action-group {
@@ -403,13 +430,15 @@ function formatDamage(value: number): string {
 
 .action-group h5 {
     margin: 0 0 8px 0;
-    font-size: 12px;
-    color: var(--text-secondary);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .action-group ul {
     margin: 0;
-    padding-left: 20px;
+    padding-left: 16px;
 }
 
 .action-group li {
@@ -426,7 +455,7 @@ function formatDamage(value: number): string {
 
     .node-strategy-panel h3 {
         padding: 12px;
-        font-size: 14px;
+        font-size: 13px;
     }
 
     .node-details {
@@ -434,7 +463,7 @@ function formatDamage(value: number): string {
     }
 
     .node-info {
-        padding: 10px;
+        padding: 12px;
         margin-bottom: 12px;
     }
 
@@ -443,15 +472,19 @@ function formatDamage(value: number): string {
     }
 
     .info-row .label {
-        min-width: 60px;
+        min-width: 45px;
     }
 
     .no-selection-icon {
-        font-size: 36px;
+        font-size: 32px;
     }
 
     .no-selection p {
-        font-size: 13px;
+        font-size: 12px;
+    }
+
+    .expected-value-number {
+        font-size: 16px;
     }
 }
 </style>

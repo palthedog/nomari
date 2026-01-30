@@ -352,8 +352,7 @@ function getActionNameForType(actionId: number, type: 'player' | 'opponent'): st
 }
 
 .calc-row:hover {
-    color: var(--color-accent-blue) !important;
-    background-color: var(--bg-hover);
+    background-color: var(--tooltip-row-hover);
 }
 
 .calc-action-name {

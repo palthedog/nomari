@@ -1,48 +1,83 @@
 <template>
   <div class="app">
-    <header class="app-header">
-      <h1>Nomari 起き攻め 計算機</h1>
-      <div class="header-content">
-        <div class="header-actions">
+    <!-- Decorative background texture -->
+    <div class="app-texture" />
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ARENA HEADER - Roman Banner Style
+         ═══════════════════════════════════════════════════════════ -->
+    <header class="arena-header">
+      <!-- Gold accent line -->
+      <div class="header-gold-line" />
+
+      <div class="header-inner">
+        <!-- Logo with Roman styling -->
+        <div class="header-brand">
+          <v-icon
+            class="brand-icon-svg"
+            icon="mdi-scale-balance"
+          />
+          <div class="brand-text">
+            <h1 class="brand-title">
+              NOMARI
+            </h1>
+            <span class="brand-subtitle">起き攻め計算機 — GTO Solver</span>
+          </div>
+        </div>
+
+        <!-- Header actions -->
+        <nav class="header-nav">
           <button
             type="button"
+            class="nav-btn"
             @click="importFile"
           >
-            インポート
+            <v-icon
+              class="btn-icon"
+              icon="mdi-file-upload-outline"
+            />
+            <span class="btn-label">インポート</span>
           </button>
-          <!--
-          <button type="button" @click="exportJSON">
-            JSONでエクスポート
-          </button>
-          -->
+
           <button
             type="button"
+            class="nav-btn"
             @click="exportProto"
           >
-            エクスポート
+            <v-icon
+              class="btn-icon"
+              icon="mdi-file-download-outline"
+            />
+            <span class="btn-label">エクスポート</span>
           </button>
-        </div>
+        </nav>
       </div>
+
+      <!-- Bottom gold accent -->
+      <div class="header-gold-line header-gold-line--bottom" />
     </header>
 
-    <div class="app-content">
+    <!-- ═══════════════════════════════════════════════════════════
+         MAIN CONTENT AREA
+         ═══════════════════════════════════════════════════════════ -->
+    <main class="arena-content">
       <!-- Edit Mode: GameDefinitionEditor | GameTreeBuildPanel -->
       <template v-if="viewMode === 'edit'">
         <!-- Desktop: Show both panels side by side -->
         <template v-if="!isMobile">
-          <div class="editor-section">
+          <section class="panel panel--editor">
             <GameDefinitionEditor v-model="gameDefinition" />
-          </div>
-          <div class="build-panel-section">
+          </section>
+          <section class="panel panel--build">
             <GameTreeBuildPanel v-model="gameDefinition" />
-          </div>
+          </section>
         </template>
 
         <!-- Mobile: Show one panel at a time -->
         <template v-else>
-          <div
+          <section
             v-show="mobileNavIndex === 0 || mobileNavIndex === 1"
-            class="editor-section mobile-full"
+            class="panel panel--editor panel--mobile-full"
           >
             <GameDefinitionEditor
               v-model="gameDefinition"
@@ -50,23 +85,29 @@
               :mobile-sub-view="mobileNavIndex === 0 ? 'list' : 'detail'"
               @update:mobile-sub-view="mobileNavIndex = $event === 'list' ? 0 : 1"
             />
-          </div>
-          <div
+          </section>
+          <section
             v-show="mobileNavIndex === 2"
-            class="build-panel-section mobile-full"
+            class="panel panel--build panel--mobile-full"
           >
             <GameTreeBuildPanel v-model="gameDefinition" />
-          </div>
+          </section>
         </template>
 
         <!-- Desktop only: View Strategy button -->
         <button
           v-if="!isMobile"
           type="button"
-          class="floating-btn floating-btn-right"
+          class="arena-fab arena-fab--right"
           @click="switchToStrategyWithValidation()"
         >
-          戦略を確認
+          <span class="fab-text">戦略を確認</span>
+          <svg
+            viewBox="0 0 24 24"
+            class="fab-icon"
+          >
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
+          </svg>
         </button>
       </template>
 
@@ -74,14 +115,17 @@
       <template v-else-if="viewMode === 'strategy'">
         <!-- Desktop: Show both panels side by side -->
         <template v-if="!isMobile">
-          <GameTreePanel :game-tree="gameTree" />
-          <div class="strategy-section">
+          <GameTreePanel
+            :game-tree="gameTree"
+            class="panel panel--tree"
+          />
+          <section class="panel panel--strategy">
             <NodeStrategyPanel
               :selected-node="selectedNode"
               :strategy-data="selectedNodeStrategy"
               :expected-values="expectedValues"
             />
-          </div>
+          </section>
         </template>
 
         <!-- Mobile: Show one panel at a time -->
@@ -89,31 +133,37 @@
           <GameTreePanel
             v-show="mobileNavIndex === 3"
             :game-tree="gameTree"
-            class="mobile-full"
+            class="panel--mobile-full"
           />
-          <div
+          <section
             v-show="mobileNavIndex === 4"
-            class="strategy-section mobile-full"
+            class="panel panel--strategy panel--mobile-full"
           >
             <NodeStrategyPanel
               :selected-node="selectedNode"
               :strategy-data="selectedNodeStrategy"
               :expected-values="expectedValues"
             />
-          </div>
+          </section>
         </template>
 
         <!-- Desktop only: Back to Edit button -->
         <button
           v-if="!isMobile"
           type="button"
-          class="floating-btn floating-btn-left"
+          class="arena-fab arena-fab--left"
           @click="viewStore.switchToEdit()"
         >
-          編集に戻る
+          <svg
+            viewBox="0 0 24 24"
+            class="fab-icon fab-icon--left"
+          >
+            <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" />
+          </svg>
+          <span class="fab-text">編集に戻る</span>
         </button>
       </template>
-    </div>
+    </main>
 
     <!-- Mobile: Unified navigation bar for all 5 pages -->
     <MobileSubNav
@@ -140,7 +190,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
-import { exportAsJSON, exportAsProto, importGameDefinition } from '@/utils/export';
+import { exportAsProto, importGameDefinition } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
@@ -263,11 +313,6 @@ const expectedValues = computed<ExpectedValuesMap | null>(() => {
     }
 });
 
-function _exportJSON() {
-    exportAsJSON(definitionStore.gameDefinition,
-        `gamedefinition_${definitionStore.gameDefinition.name}.json`);
-}
-
 function exportProto() {
     exportAsProto(definitionStore.gameDefinition,
         `gamedefinition_${definitionStore.gameDefinition.name}.pb`);
@@ -321,7 +366,7 @@ watch(
         definitionStore.incrementVersion();
     },
     {
-        deep: true 
+        deep: true
     }
 );
 
@@ -350,158 +395,274 @@ watch(viewMode, (newMode) => {
 </script>
 
 <style>
-* {
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL RESET & BASE STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+body {
+  font-family: var(--font-family-ui);
+  font-weight: 400;
+  line-height: 1.5;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   APP CONTAINER
+   ═══════════════════════════════════════════════════════════════════ */
 .app {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background-color: var(--bg-primary);
+  position: relative;
 }
 
-.app-header {
+/* Subtle texture overlay for depth */
+.app-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--noise-texture);
+  background-repeat: repeat;
+  opacity: 1;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ARENA HEADER - Roman Banner Style
+   ═══════════════════════════════════════════════════════════════════ */
+.arena-header {
+  position: relative;
+  z-index: 10;
+  background: var(--header-gradient);
+  color: var(--color-header-text);
+  box-shadow: var(--shadow-lg), 0 4px 0 var(--gold-dark), 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Gold accent lines */
+.header-gold-line {
+  height: 3px;
+  background: var(--gold-primary);
+}
+
+.header-gold-line--bottom {
+  height: 2px;
+}
+
+.header-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
-  background-color: var(--color-accent-coral);
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 12px 28px;
+  max-width: 1800px;
+  margin: 0 auto;
 }
 
-.app-header h1 {
-  font-size: 24px;
-  font-weight: 500;
-}
-
-.header-content {
+/* Brand styling */
+.header-brand {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 
-.header-actions {
+.brand-icon-svg {
+  font-size: 36px !important;
+  color: var(--gold-light) !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.brand-text {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 1px;
 }
 
-.header-actions button {
-  padding: 8px 16px;
-  background-color: white;
-  color: var(--color-accent-blue);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.brand-title {
+  font-family: var(--font-family-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--gold-light);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-family: var(--font-family-ui);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Header navigation */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-family: var(--font-family-ui);
+  font-size: 0.8125rem;
   font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(4px);
 }
 
-.header-actions button:hover {
-  background-color: var(--bg-hover);
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
-.app-content {
+.nav-btn:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 16px !important;
+  flex-shrink: 0;
+}
+
+.btn-label {
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN CONTENT AREA
+   ═══════════════════════════════════════════════════════════════════ */
+.arena-content {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
+  background: var(--bg-primary);
 }
 
-/* Common section styles */
-.build-panel-section {
-  flex: 0 0 350px;
-  min-width: 0;
-  overflow: hidden;
+/* Panel styles */
+.panel {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+  position: relative;
+}
+
+.panel--editor {
+  flex: 1;
+  min-width: 0;
   border-right: 1px solid var(--border-primary);
 }
 
-.editor-section {
-  flex: 1;
+.panel--build {
+  flex: 0 0 360px;
   min-width: 0;
-  border-right: 1px solid var(--border-primary);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  border-left: 1px solid var(--border-primary);
+  background: var(--bg-tertiary);
 }
 
-.visualization-section {
+.panel--tree {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
-.strategy-section {
-  flex: 0 0 400px;
+.panel--strategy {
+  flex: 0 0 420px;
   min-width: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
   border-left: 1px solid var(--border-primary);
 }
 
-.build-error {
-  padding: 15px;
-  background-color: var(--bg-error);
-  color: var(--color-error-dark);
-  border-bottom: 1px solid var(--color-error-border);
+.panel--mobile-full {
+  flex: 1 !important;
+  width: 100%;
+  height: 100%;
+  border: none !important;
 }
 
-.no-tree-message {
+/* ═══════════════════════════════════════════════════════════════════
+   FLOATING ACTION BUTTONS - Arena Style
+   ═══════════════════════════════════════════════════════════════════ */
+.arena-fab {
+  position: fixed;
+  bottom: 28px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-/* Floating action buttons */
-.floating-btn {
-  position: fixed;
-  bottom: 24px;
-  padding: 14px 28px;
-  background-color: var(--color-accent-coral);
-  color: white !important;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  gap: 10px;
+  padding: 14px 24px;
+  background: var(--header-gradient);
+  color: white;
+  border: 2px solid var(--gold-primary);
+  border-radius: var(--border-radius-lg);
+  font-family: var(--font-family-ui);
+  font-size: 0.875rem;
   font-weight: 600;
-  font-size: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-fast);
   z-index: 100;
 }
 
-.floating-btn:hover {
+.arena-fab:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
-  background-color: var(--color-accent-coral-hover);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--gold-light);
 }
 
-.floating-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+.arena-fab:active {
+  transform: translateY(-1px);
 }
 
-.floating-btn-right {
-  right: 24px;
+.arena-fab--right {
+  right: 28px;
 }
 
-.floating-btn-left {
-  left: 24px;
+.arena-fab--left {
+  left: 28px;
 }
 
-/* Mobile navigation bar */
+.fab-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.fab-icon--left {
+  order: -1;
+}
+
+.fab-text {
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE NAVIGATION
+   ═══════════════════════════════════════════════════════════════════ */
 .mobile-nav-bar {
   position: fixed;
   bottom: 0;
@@ -510,84 +671,81 @@ body {
   z-index: 99;
 }
 
-/* Mobile responsive styles */
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE STYLES
+   ═══════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .app-header {
+  .header-inner {
     flex-direction: column;
+    gap: 12px;
+    padding: 10px 16px;
+  }
+
+  .header-brand {
     gap: 10px;
-    padding: 10px 15px;
   }
 
-  .app-header h1 {
-    font-size: 18px;
+  .brand-icon-svg {
+    font-size: 28px !important;
   }
 
-  .header-content {
+  .brand-title {
+    font-size: 1.25rem;
+  }
+
+  .brand-subtitle {
+    font-size: 0.6875rem;
+  }
+
+  .header-nav {
     width: 100%;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: center;
+    gap: 6px;
   }
 
-  .header-actions button {
+  .nav-btn {
     padding: 6px 12px;
-    font-size: 13px;
+    font-size: 0.75rem;
   }
 
-  .app-content {
+  .btn-label {
+    display: none;
+  }
+
+  .nav-btn .btn-icon {
+    font-size: 18px !important;
+  }
+
+  .arena-content {
     flex-direction: column;
-    padding-bottom: 60px; /* Space for mobile nav bar */
+    padding-bottom: 60px;
   }
 
-  /* Mobile full-screen panel */
-  .mobile-full {
-    flex: 1 !important;
-    width: 100%;
-    height: 100%;
-    border: none !important;
+  .arena-fab {
+    padding: 12px 18px;
+    font-size: 0.8125rem;
+    bottom: 76px;
   }
 
-  /* Edit mode on mobile */
-  .editor-section.mobile-full {
-    border-bottom: none;
-  }
-
-  .build-panel-section.mobile-full {
-    max-height: none;
-  }
-
-  /* Strategy mode on mobile */
-  .strategy-section.mobile-full {
-    border-top: none;
-  }
-
-  .visualization-section {
-    flex: 1;
-  }
-
-  /* Floating buttons - position above nav bar */
-  .floating-btn {
-    padding: 12px 20px;
-    font-size: 14px;
-    bottom: 76px; /* Above the 60px nav bar + 16px margin */
-  }
-
-  .floating-btn-right {
+  .arena-fab--right {
     right: 16px;
   }
 
-  .floating-btn-left {
+  .arena-fab--left {
     left: 16px;
   }
 }
 
-/* Tablet responsive styles */
+/* ═══════════════════════════════════════════════════════════════════
+   TABLET RESPONSIVE STYLES
+   ═══════════════════════════════════════════════════════════════════ */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .build-panel-section {
-    flex: 0 0 280px;
+  .panel--build {
+    flex: 0 0 300px;
   }
 
-  .strategy-section {
-    flex: 0 0 320px;
+  .panel--strategy {
+    flex: 0 0 340px;
   }
 }
 </style>

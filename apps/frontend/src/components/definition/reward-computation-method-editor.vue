@@ -239,13 +239,16 @@ function updateSaGaugeBonus(value: number) {
 .reward-computation-method-editor {
     padding: 15px;
     border: 1px solid var(--border-primary);
-    border-radius: 4px;
-    background-color: white;
+    border-radius: var(--radius-md);
+    background-color: var(--bg-elevated);
 }
 
 .reward-computation-method-editor h4 {
     margin-top: 0;
     margin-bottom: 15px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .method-selection {
@@ -261,12 +264,13 @@ function updateSaGaugeBonus(value: number) {
     gap: 8px;
     cursor: pointer;
     padding: 8px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+    color: var(--text-primary);
 }
 
 .radio-option:hover {
-    background-color: var(--bg-quaternary);
+    background-color: var(--bg-hover);
 }
 
 .radio-option input[type="radio"] {
@@ -294,14 +298,22 @@ function updateSaGaugeBonus(value: number) {
 
 .form-group label {
     font-weight: 500;
+    color: var(--text-primary);
 }
 
 .form-group input[type="number"] {
     padding: 8px;
     border: 1px solid var(--border-input);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     width: 100%;
     max-width: 200px;
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: var(--border-focus);
 }
 
 .help-text {
