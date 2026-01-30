@@ -5,22 +5,22 @@
     </div>
     <div class="panel-content">
       <InitialDynamicStateEditor
-        v-if="gameDefinition.initialDynamicState"
-        v-model="gameDefinition.initialDynamicState"
+        v-if="scenario.initialDynamicState"
+        v-model="scenario.initialDynamicState"
       />
 
-      <RewardComputationMethodEditor v-model="gameDefinition.rewardComputationMethod" />
+      <RewardComputationMethodEditor v-model="scenario.rewardComputationMethod" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { GameDefinition } from '@nomari/ts-proto';
+import type { Scenario } from '@nomari/ts-proto';
 import InitialDynamicStateEditor from '../definition/initial-dynamic-state-editor.vue';
 import RewardComputationMethodEditor from '../definition/reward-computation-method-editor.vue';
 
-const gameDefinition = defineModel<GameDefinition>({
-    required: true 
+const scenario = defineModel<Scenario>({
+    required: true
 });
 </script>
 

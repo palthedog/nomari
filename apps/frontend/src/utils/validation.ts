@@ -1,4 +1,4 @@
-import type { GameDefinition, Situation } from '@nomari/ts-proto';
+import type { Scenario, Situation } from '@nomari/ts-proto';
 
 export interface ValidationError {
     field: string;
@@ -6,20 +6,20 @@ export interface ValidationError {
 }
 
 /**
- * Collect all valid situation IDs from the game definition
+ * Collect all valid situation IDs from the scenario
  */
-function collectAllSituationIds(gameDefinition: GameDefinition): Set<number> {
+function collectAllSituationIds(scenario: Scenario): Set<number> {
     const ids = new Set<number>();
-    for (const s of gameDefinition.situations) {
+    for (const s of scenario.situations) {
         ids.add(s.situationId);
     }
-    for (const t of gameDefinition.terminalSituations) {
+    for (const t of scenario.terminalSituations) {
         ids.add(t.situationId);
     }
-    for (const c of gameDefinition.playerComboStarters) {
+    for (const c of scenario.playerComboStarters) {
         ids.add(c.situationId);
     }
-    for (const c of gameDefinition.opponentComboStarters) {
+    for (const c of scenario.opponentComboStarters) {
         ids.add(c.situationId);
     }
     return ids;
@@ -29,19 +29,19 @@ function collectAllSituationIds(gameDefinition: GameDefinition): Set<number> {
  * Validate root situation
  */
 function validateRootSituation(
-    gameDefinition: GameDefinition,
+    scenario: Scenario,
     allSituationIds: Set<number>
 ): ValidationError[] {
-    if (!gameDefinition.rootSituationId) {
+    if (!scenario.rootSituationId) {
         return [{
             field: '初期状況',
-            message: '初期状況を設定してください' 
+            message: '初期状況を設定してください'
         }];
     }
-    if (!allSituationIds.has(gameDefinition.rootSituationId)) {
+    if (!allSituationIds.has(scenario.rootSituationId)) {
         return [{
             field: '初期状況',
-            message: '初期状況に設定されている状況が存在しません' 
+            message: '初期状況に設定されている状況が存在しません'
         }];
     }
     return [];
@@ -132,33 +132,33 @@ function validateSituation(
 }
 
 /**
- * Validate a GameDefinition
+ * Validate a Scenario
  */
-export function validateGameDefinition(gameDefinition: GameDefinition): ValidationError[] {
+export function validateScenario(scenario: Scenario): ValidationError[] {
     const errors: ValidationError[] = [];
-    const allSituationIds = collectAllSituationIds(gameDefinition);
+    const allSituationIds = collectAllSituationIds(scenario);
 
-    errors.push(...validateRootSituation(gameDefinition, allSituationIds));
+    errors.push(...validateRootSituation(scenario, allSituationIds));
 
-    for (const situation of gameDefinition.situations) {
+    for (const situation of scenario.situations) {
         errors.push(...validateSituation(situation, allSituationIds));
     }
 
-    if (!gameDefinition.initialDynamicState?.resources?.length) {
+    if (!scenario.initialDynamicState?.resources?.length) {
         errors.push({
             field: '初期動的状態',
             message: 'リソースを1つ以上設定してください',
         });
     }
 
-    if (gameDefinition.situations.length === 0) {
+    if (scenario.situations.length === 0) {
         errors.push({
             field: '状況',
             message: '状況を1つ以上作成してください',
         });
     }
 
-    if (gameDefinition.terminalSituations.length === 0) {
+    if (scenario.terminalSituations.length === 0) {
         errors.push({
             field: '終了条件',
             message: '終了条件を1つ以上作成してください',

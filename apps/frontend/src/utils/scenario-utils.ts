@@ -1,11 +1,11 @@
 import {
-    GameDefinition,
+    Scenario,
     Situation,
     TerminalSituation,
     ComboStarter,
 } from '@nomari/ts-proto';
-import './initial-game-definition';
-import { createEmptyGameDefinition } from './initial-game-definition';
+import './initial-scenario';
+import { createEmptyScenario } from './initial-scenario';
 
 // Counter for generating unique IDs
 let idCounter = 1;
@@ -35,14 +35,14 @@ export function ensureIdCounterAbove(maxExistingId: number): void {
 }
 
 /**
- * Extract the maximum ID from a GameDefinition
+ * Extract the maximum ID from a Scenario
  * Scans gameId, situationIds, and actionIds
  */
-export function findMaxIdInGameDefinition(gameDefinition: GameDefinition): number {
-    let maxId = gameDefinition.gameId;
-    maxId = Math.max(maxId, gameDefinition.rootSituationId);
+export function findMaxIdInScenario(scenario: Scenario): number {
+    let maxId = scenario.gameId;
+    maxId = Math.max(maxId, scenario.rootSituationId);
 
-    for (const situation of gameDefinition.situations) {
+    for (const situation of scenario.situations) {
         maxId = Math.max(maxId, situation.situationId);
         for (const action of situation.playerActions?.actions ?? []) {
             maxId = Math.max(maxId, action.actionId);
@@ -52,15 +52,15 @@ export function findMaxIdInGameDefinition(gameDefinition: GameDefinition): numbe
         }
     }
 
-    for (const terminal of gameDefinition.terminalSituations) {
+    for (const terminal of scenario.terminalSituations) {
         maxId = Math.max(maxId, terminal.situationId);
     }
 
-    for (const comboStarter of gameDefinition.playerComboStarters) {
+    for (const comboStarter of scenario.playerComboStarters) {
         maxId = Math.max(maxId, comboStarter.situationId);
     }
 
-    for (const comboStarter of gameDefinition.opponentComboStarters) {
+    for (const comboStarter of scenario.opponentComboStarters) {
         maxId = Math.max(maxId, comboStarter.situationId);
     }
 
@@ -68,19 +68,19 @@ export function findMaxIdInGameDefinition(gameDefinition: GameDefinition): numbe
 }
 
 /**
- * Sync the ID counter based on the GameDefinition
- * Call this after loading or importing a GameDefinition
+ * Sync the ID counter based on the Scenario
+ * Call this after loading or importing a Scenario
  */
-export function syncIdCounterWithGameDefinition(gameDefinition: GameDefinition): void {
-    const maxId = findMaxIdInGameDefinition(gameDefinition);
+export function syncIdCounterWithScenario(scenario: Scenario): void {
+    const maxId = findMaxIdInScenario(scenario);
     ensureIdCounterAbove(maxId);
 }
 
 /**
- * Create an initial GameDefinition
+ * Create an initial Scenario
  */
-export function createInitialGameDefinition(): GameDefinition {
-    return createEmptyGameDefinition();
+export function createInitialScenario(): Scenario {
+    return createEmptyScenario();
 }
 
 /**

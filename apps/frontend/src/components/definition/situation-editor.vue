@@ -205,7 +205,7 @@ import type {
     TerminalSituation,
 } from '@nomari/ts-proto';
 import { ResourceType } from '@nomari/ts-proto';
-import { generateId } from '@/utils/game-definition-utils';
+import { generateId } from '@/utils/scenario-utils';
 
 const model = defineModel<Situation>({
     required: true

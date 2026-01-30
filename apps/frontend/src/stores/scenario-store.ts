@@ -1,50 +1,50 @@
 import {
-    createInitialGameDefinition,
-    syncIdCounterWithGameDefinition,
+    createInitialScenario,
+    syncIdCounterWithScenario,
     createEmptyComboStarter,
-} from "@/utils/game-definition-utils";
-import { validateGameDefinition, type ValidationError } from "@/utils/validation";
-import type { GameDefinition } from "@nomari/ts-proto";
+} from "@/utils/scenario-utils";
+import { validateScenario, type ValidationError } from "@/utils/validation";
+import type { Scenario } from "@nomari/ts-proto";
 import { defineStore } from "pinia";
 
-export const useDefinitionStore = defineStore('definition', {
+export const useScenarioStore = defineStore('scenario', {
     state: () => ({
-        gameDefinition: createInitialGameDefinition(),
+        scenario: createInitialScenario(),
         validationErrors: [] as ValidationError[],
         showValidationErrors: false,
         /**
-         * Version number that increments when gameDefinition changes.
+         * Version number that increments when scenario changes.
          * Used to detect if game tree needs to be rebuilt.
          */
-        definitionVersion: 0,
+        scenarioVersion: 0,
     }),
     getters: {
         hasValidationErrors: (state) => state.validationErrors.length > 0
     },
     actions: {
         /**
-         * Increment the definition version.
-         * Call this when gameDefinition is modified.
+         * Increment the scenario version.
+         * Call this when scenario is modified.
          */
         incrementVersion() {
-            this.definitionVersion++;
+            this.scenarioVersion++;
         },
         /**
-         * Load a GameDefinition (e.g., from JSON import)
+         * Load a Scenario (e.g., from JSON import)
          * This also syncs the ID counter to prevent ID collisions
          */
-        loadGameDefinition(gameDefinition: GameDefinition) {
-            this.gameDefinition = gameDefinition;
-            syncIdCounterWithGameDefinition(gameDefinition);
+        loadScenario(scenario: Scenario) {
+            this.scenario = scenario;
+            syncIdCounterWithScenario(scenario);
             this.validationErrors = [];
             this.showValidationErrors = false;
         },
         /**
-         * Validate the game definition and show errors if any.
+         * Validate the scenario and show errors if any.
          * Returns true if validation passed (no errors).
          */
         validateAndShowErrors(): boolean {
-            this.validationErrors = validateGameDefinition(this.gameDefinition);
+            this.validationErrors = validateScenario(this.scenario);
             this.showValidationErrors = this.validationErrors.length > 0;
             return this.validationErrors.length === 0;
         },
@@ -59,18 +59,18 @@ export const useDefinitionStore = defineStore('definition', {
          */
         addPlayerComboStarter() {
             const comboStarter = createEmptyComboStarter();
-            this.gameDefinition.playerComboStarters.push(comboStarter);
+            this.scenario.playerComboStarters.push(comboStarter);
             return comboStarter;
         },
         /**
          * Remove a player combo starter by situation ID
          */
         removePlayerComboStarter(situationId: number) {
-            const index = this.gameDefinition.playerComboStarters.findIndex(
+            const index = this.scenario.playerComboStarters.findIndex(
                 cs => cs.situationId === situationId
             );
             if (index !== -1) {
-                this.gameDefinition.playerComboStarters.splice(index, 1);
+                this.scenario.playerComboStarters.splice(index, 1);
             }
         },
         /**
@@ -78,18 +78,18 @@ export const useDefinitionStore = defineStore('definition', {
          */
         addOpponentComboStarter() {
             const comboStarter = createEmptyComboStarter();
-            this.gameDefinition.opponentComboStarters.push(comboStarter);
+            this.scenario.opponentComboStarters.push(comboStarter);
             return comboStarter;
         },
         /**
          * Remove an opponent combo starter by situation ID
          */
         removeOpponentComboStarter(situationId: number) {
-            const index = this.gameDefinition.opponentComboStarters.findIndex(
+            const index = this.scenario.opponentComboStarters.findIndex(
                 cs => cs.situationId === situationId
             );
             if (index !== -1) {
-                this.gameDefinition.opponentComboStarters.splice(index, 1);
+                this.scenario.opponentComboStarters.splice(index, 1);
             }
         },
     },

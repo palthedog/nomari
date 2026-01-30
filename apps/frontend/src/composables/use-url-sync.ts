@@ -3,7 +3,7 @@ import { useRouter, useRoute } from 'vue-router';
 import log from 'loglevel';
 import { useViewStore, type ViewMode } from '@/stores/view-store';
 import { useGameTreeStore } from '@/stores/game-tree-store';
-import { useDefinitionStore } from '@/stores/definition-store';
+import { useScenarioStore } from '@/stores/scenario-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { useSolverStore } from '@/stores/solver-store';
 import { parseAsProto } from '@/utils/export';
@@ -20,7 +20,7 @@ export function useUrlSync() {
     const route = useRoute();
     const viewStore = useViewStore();
     const gameTreeStore = useGameTreeStore();
-    const definitionStore = useDefinitionStore();
+    const scenarioStore = useScenarioStore();
     const notificationStore = useNotificationStore();
     const solverStore = useSolverStore();
 
@@ -71,8 +71,8 @@ export function useUrlSync() {
                 return false;
             }
             const buffer = await response.arrayBuffer();
-            const gameDefinition = parseAsProto(buffer);
-            definitionStore.loadGameDefinition(gameDefinition);
+            const scenario = parseAsProto(buffer);
+            scenarioStore.loadScenario(scenario);
             loadedExample.value = exampleName;
             return true;
         } catch (error) {
@@ -114,7 +114,7 @@ export function useUrlSync() {
         if (viewStore.viewMode !== targetMode) {
             // Validate before switching to strategy mode
             if (targetMode === 'strategy') {
-                if (!definitionStore.validateAndShowErrors()) {
+                if (!scenarioStore.validateAndShowErrors()) {
                     // Validation failed, redirect to edit
                     const source = getSourceType();
                     const editRouteName = buildRouteName(source, 'edit', false);

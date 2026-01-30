@@ -48,13 +48,14 @@ npm run lint
 
 ### Data Flow
 
-1. User defines game situations in UI (stored as `GameDefinition` protobuf)
-2. `game-tree-builder` expands definition into a game tree, handling dynamic state (health, gauges)
+1. User defines game situations in UI (stored as `Scenario` protobuf)
+2. `game-tree-builder` expands scenario into a game tree, handling dynamic state (health, gauges)
 3. `solver` runs LP algorithm on tree (in Web Worker) to compute optimal strategies
 4. Results displayed in frontend
 
 ### Key Concepts
 
+- **Scenario**: The top-level game definition containing situations, terminal conditions, combos, and initial state (日本語: シナリオ)
 - **Situation**: A game state with player/opponent action choices and transitions
 - **TerminalSituation**: End state with rewards
 - **ComboStarter**: Branching node with multiple routes based on gauge requirements

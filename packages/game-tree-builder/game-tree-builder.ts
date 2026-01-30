@@ -1,5 +1,5 @@
 import {
-    GameDefinition,
+    Scenario,
     DynamicState,
     ResourceConsumption,
     ResourceRequirement,
@@ -394,30 +394,30 @@ function getOrCreateTerminalNode(
 }
 
 /**
- * Initialize build context from game definition
+ * Initialize build context from scenario
  */
-function initializeBuildContext(gameDefinition: GameDefinition): BuildContext {
-    const initialDynamicState = gameDefinition.initialDynamicState || {
+function initializeBuildContext(scenario: Scenario): BuildContext {
+    const initialDynamicState = scenario.initialDynamicState || {
         resources: [] 
     };
 
     const situationMap = new Map<number, Situation>();
-    for (const situation of gameDefinition.situations) {
+    for (const situation of scenario.situations) {
         situationMap.set(situation.situationId, situation);
     }
 
     const terminalSituationMap = new Map<number, TerminalSituation>();
-    for (const terminalSituation of gameDefinition.terminalSituations) {
+    for (const terminalSituation of scenario.terminalSituations) {
         terminalSituationMap.set(terminalSituation.situationId, terminalSituation);
     }
 
     const playerComboStarterMap = new Map<number, ComboStarter>();
-    for (const comboStarter of gameDefinition.playerComboStarters) {
+    for (const comboStarter of scenario.playerComboStarters) {
         playerComboStarterMap.set(comboStarter.situationId, comboStarter);
     }
 
     const opponentComboStarterMap = new Map<number, ComboStarter>();
-    for (const comboStarter of gameDefinition.opponentComboStarters) {
+    for (const comboStarter of scenario.opponentComboStarters) {
         opponentComboStarterMap.set(comboStarter.situationId, comboStarter);
     }
 
@@ -429,7 +429,7 @@ function initializeBuildContext(gameDefinition: GameDefinition): BuildContext {
         terminalSituationMap,
         playerComboStarterMap,
         opponentComboStarterMap,
-        rewardComputationMethod: gameDefinition.rewardComputationMethod,
+        rewardComputationMethod: scenario.rewardComputationMethod,
         initialPlayerHealth: getResourceValue(initialDynamicState, ResourceType.PLAYER_HEALTH),
         initialOpponentHealth: getResourceValue(initialDynamicState, ResourceType.OPPONENT_HEALTH),
     };
@@ -735,14 +735,14 @@ function collectAllNodes(rootNode: Node, nodeMap: Map<string, Node>): Record<str
 }
 
 /**
- * Build a GameTree from a GameDefinition
+ * Build a GameTree from a Scenario
  * Returns a result object with either the game tree or an error
  */
-export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResult {
-    log.debug('Building game tree:', gameDefinition.name || gameDefinition.gameId);
+export function buildGameTree(scenario: Scenario): GameTreeBuildResult {
+    log.debug('Building game tree:', scenario.name || scenario.gameId);
 
-    const ctx = initializeBuildContext(gameDefinition);
-    const initialDynamicState = gameDefinition.initialDynamicState || {
+    const ctx = initializeBuildContext(scenario);
+    const initialDynamicState = scenario.initialDynamicState || {
         resources: [] 
     };
 
@@ -811,7 +811,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     }
 
     // Build tree from root
-    const rootNodeResult = getOrCreateNode(gameDefinition.rootSituationId, initialDynamicState);
+    const rootNodeResult = getOrCreateNode(scenario.rootSituationId, initialDynamicState);
 
     if (isGameTreeBuildError(rootNodeResult)) {
         log.error('Game tree build failed:', rootNodeResult.message);
@@ -828,7 +828,7 @@ export function buildGameTree(gameDefinition: GameDefinition): GameTreeBuildResu
     return {
         success: true,
         gameTree: {
-            id: gameDefinition.gameId,
+            id: scenario.gameId,
             root: rootNodeResult.nodeId,
             nodes: allNodes,
         },

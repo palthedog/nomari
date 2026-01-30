@@ -1,5 +1,5 @@
 <template>
-  <div class="game-definition-editor">
+  <div class="scenario-editor">
     <div
       v-show="!isMobile || mobileSubView === 'list'"
       class="header"
@@ -11,7 +11,7 @@
           class="form-group"
         >
           <v-text-field
-            v-model="gameDefinition.gameId"
+            v-model="scenario.gameId"
             label="Game ID"
             density="compact"
             variant="outlined"
@@ -22,7 +22,7 @@
         <!-- Name-->
         <div class="form-group">
           <v-text-field
-            v-model="gameDefinition.name"
+            v-model="scenario.name"
             label="名前"
             placeholder="例:"
             density="compact"
@@ -34,7 +34,7 @@
         <!-- Root Situation-->
         <div class="form-group">
           <v-select
-            v-model="gameDefinition.rootSituationId"
+            v-model="scenario.rootSituationId"
             :items="situationItems"
             item-title="title"
             item-value="value"
@@ -48,7 +48,7 @@
         <!-- Description-->
         <div class="form-group form-description">
           <v-text-field
-            v-model="gameDefinition.description"
+            v-model="scenario.description"
             label="説明"
             density="compact"
             variant="outlined"
@@ -72,17 +72,17 @@
             </div>
             <ul class="section-list">
               <li
-                v-for="situation in gameDefinition.situations"
+                v-for="situation in scenario.situations"
                 :key="situation.situationId"
                 class="section-item situation-item"
                 :class="{
                   active: selectedSituationId === situation.situationId,
-                  'is-root': gameDefinition.rootSituationId === situation.situationId
+                  'is-root': scenario.rootSituationId === situation.situationId
                 }"
                 @click="selectSituation(situation.situationId)"
               >
                 <span
-                  v-if="gameDefinition.rootSituationId === situation.situationId"
+                  v-if="scenario.rootSituationId === situation.situationId"
                   class="root-badge"
                   title="初期状況"
                 >★</span>
@@ -112,7 +112,7 @@
             </div>
             <ul class="section-list">
               <li
-                v-for="terminal in gameDefinition.terminalSituations"
+                v-for="terminal in scenario.terminalSituations"
                 :key="terminal.situationId"
                 class="section-item terminal-situation-item"
                 :class="{ active: selectedTerminalSituationId === terminal.situationId }"
@@ -144,7 +144,7 @@
             </div>
             <ul class="section-list">
               <li
-                v-for="combo in gameDefinition.playerComboStarters"
+                v-for="combo in scenario.playerComboStarters"
                 :key="combo.situationId"
                 class="section-item player-combo-item"
                 :class="{ active: selectedPlayerComboId === combo.situationId }"
@@ -176,7 +176,7 @@
             </div>
             <ul class="section-list">
               <li
-                v-for="combo in gameDefinition.opponentComboStarters"
+                v-for="combo in scenario.opponentComboStarters"
                 :key="combo.situationId"
                 class="section-item opponent-combo-item"
                 :class="{ active: selectedOpponentComboId === combo.situationId }"
@@ -213,7 +213,7 @@
             v-if="selectedSituation"
             :model-value="selectedSituation"
             :available-situations="availableSituationsForTransition"
-            :available-terminal-situations="gameDefinition.terminalSituations"
+            :available-terminal-situations="scenario.terminalSituations"
             @update:model-value="updateSituation"
           />
           <TerminalSituationEditor
@@ -224,16 +224,16 @@
           <ComboStarterEditor
             v-else-if="selectedPlayerCombo"
             :model-value="selectedPlayerCombo"
-            :available-situations="gameDefinition.situations"
-            :available-terminal-situations="gameDefinition.terminalSituations"
+            :available-situations="scenario.situations"
+            :available-terminal-situations="scenario.terminalSituations"
             :is-player-combo="true"
             @update:model-value="updatePlayerCombo"
           />
           <ComboStarterEditor
             v-else-if="selectedOpponentCombo"
             :model-value="selectedOpponentCombo"
-            :available-situations="gameDefinition.situations"
-            :available-terminal-situations="gameDefinition.terminalSituations"
+            :available-situations="scenario.situations"
+            :available-terminal-situations="scenario.terminalSituations"
             :is-player-combo="false"
             @update:model-value="updateOpponentCombo"
           />
@@ -336,11 +336,11 @@ import {
     createEmptySituation,
     createEmptyTerminalSituation,
     createEmptyComboStarter,
-} from '@/utils/game-definition-utils';
+} from '@/utils/scenario-utils';
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
 import ComboStarterEditor from './combo-starter-editor.vue';
-import { useDefinitionStore } from '@/stores/definition-store';
+import { useScenarioStore } from '@/stores/scenario-store';
 
 // Props for mobile support
 const props = defineProps<{
@@ -352,9 +352,9 @@ const emit = defineEmits<{
     (e: 'update:mobileSubView', value: 'list' | 'detail'): void;
 }>();
 
-const definitionStore = useDefinitionStore();
-const { gameDefinition, validationErrors, showValidationErrors } = storeToRefs(definitionStore);
-const { closeValidationErrors } = definitionStore;
+const scenarioStore = useScenarioStore();
+const { scenario, validationErrors, showValidationErrors } = storeToRefs(scenarioStore);
+const { closeValidationErrors } = scenarioStore;
 
 const viewStore = useViewStore();
 
@@ -381,19 +381,19 @@ onMounted(() => {
 });
 
 function selectSituationById(situationId: number) {
-    if (gameDefinition.value.situations.find((s) => s.situationId === situationId)) {
+    if (scenario.value.situations.find((s) => s.situationId === situationId)) {
         selectSituation(situationId);
         return;
     }
-    if (gameDefinition.value.terminalSituations.find((t) => t.situationId === situationId)) {
+    if (scenario.value.terminalSituations.find((t) => t.situationId === situationId)) {
         selectTerminalSituation(situationId);
         return;
     }
-    if (gameDefinition.value.playerComboStarters.find((c) => c.situationId === situationId)) {
+    if (scenario.value.playerComboStarters.find((c) => c.situationId === situationId)) {
         selectPlayerCombo(situationId);
         return;
     }
-    if (gameDefinition.value.opponentComboStarters.find((c) => c.situationId === situationId)) {
+    if (scenario.value.opponentComboStarters.find((c) => c.situationId === situationId)) {
         selectOpponentCombo(situationId);
         return;
     }
@@ -405,7 +405,7 @@ const situationItems = computed(() => {
             title: '選択してください',
             value: 0 
         },
-        ...gameDefinition.value.situations.map((s) => ({
+        ...scenario.value.situations.map((s) => ({
             title: s.name || '(説明なし)',
             value: s.situationId,
         })),
@@ -417,7 +417,7 @@ const selectedSituation = computed(() => {
         return null;
     }
     return (
-        gameDefinition.value.situations.find(
+        scenario.value.situations.find(
             (s) => s.situationId === selectedSituationId.value
         ) || null
     );
@@ -428,7 +428,7 @@ const selectedTerminalSituation = computed(() => {
         return null;
     }
     return (
-        gameDefinition.value.terminalSituations.find(
+        scenario.value.terminalSituations.find(
             (t) => t.situationId === selectedTerminalSituationId.value
         ) || null
     );
@@ -439,7 +439,7 @@ const selectedPlayerCombo = computed(() => {
         return null;
     }
     return (
-        gameDefinition.value.playerComboStarters.find(
+        scenario.value.playerComboStarters.find(
             (c) => c.situationId === selectedPlayerComboId.value
         ) || null
     );
@@ -450,7 +450,7 @@ const selectedOpponentCombo = computed(() => {
         return null;
     }
     return (
-        gameDefinition.value.opponentComboStarters.find(
+        scenario.value.opponentComboStarters.find(
             (c) => c.situationId === selectedOpponentComboId.value
         ) || null
     );
@@ -458,9 +458,9 @@ const selectedOpponentCombo = computed(() => {
 
 // Available situations for transition includes situations and combo starters
 const availableSituationsForTransition = computed(() => {
-    const situations = [...gameDefinition.value.situations];
+    const situations = [...scenario.value.situations];
     // Add combo starters as virtual situations (they share the same ID space)
-    for (const combo of gameDefinition.value.playerComboStarters) {
+    for (const combo of scenario.value.playerComboStarters) {
         situations.push({
             situationId: combo.situationId,
             name: `[コンボ] ${combo.name || '(名前なし)'}`,
@@ -473,7 +473,7 @@ const availableSituationsForTransition = computed(() => {
             transitions: [],
         });
     }
-    for (const combo of gameDefinition.value.opponentComboStarters) {
+    for (const combo of scenario.value.opponentComboStarters) {
         situations.push({
             situationId: combo.situationId,
             name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
@@ -532,16 +532,16 @@ function selectOpponentCombo(comboId: number) {
 
 function addSituation() {
     const newSituation = createEmptySituation();
-    gameDefinition.value.situations.push(newSituation);
+    scenario.value.situations.push(newSituation);
     selectSituation(newSituation.situationId);
 }
 
 function updateSituation(updatedSituation: Situation) {
-    const index = gameDefinition.value.situations.findIndex(
+    const index = scenario.value.situations.findIndex(
         (s) => s.situationId === updatedSituation.situationId
     );
     if (index !== -1) {
-        gameDefinition.value.situations.splice(index, 1, updatedSituation);
+        scenario.value.situations.splice(index, 1, updatedSituation);
     }
 }
 
@@ -551,34 +551,34 @@ function deleteSituation() {
     }
 
     const situationId = selectedSituationId.value;
-    const index = gameDefinition.value.situations.findIndex((s) => s.situationId === situationId);
+    const index = scenario.value.situations.findIndex((s) => s.situationId === situationId);
     if (index !== -1) {
-        gameDefinition.value.situations.splice(index, 1);
+        scenario.value.situations.splice(index, 1);
 
         // Remove references from transitions
-        for (const situation of gameDefinition.value.situations) {
+        for (const situation of scenario.value.situations) {
             situation.transitions = situation.transitions.filter(
                 (t) => t.nextSituationId !== situationId
             );
         }
 
         // Update rootSituationId if it was deleted
-        if (gameDefinition.value.rootSituationId === situationId) {
-            if (gameDefinition.value.situations.length > 0) {
-                gameDefinition.value.rootSituationId = gameDefinition.value.situations[0].situationId;
-            } else if (gameDefinition.value.terminalSituations.length > 0) {
-                gameDefinition.value.rootSituationId =
-                    gameDefinition.value.terminalSituations[0].situationId;
+        if (scenario.value.rootSituationId === situationId) {
+            if (scenario.value.situations.length > 0) {
+                scenario.value.rootSituationId = scenario.value.situations[0].situationId;
+            } else if (scenario.value.terminalSituations.length > 0) {
+                scenario.value.rootSituationId =
+                    scenario.value.terminalSituations[0].situationId;
             } else {
-                gameDefinition.value.rootSituationId = 0;
+                scenario.value.rootSituationId = 0;
             }
         }
 
         // Select next situation
-        if (gameDefinition.value.situations.length > 0) {
-            selectSituation(gameDefinition.value.situations[0].situationId);
-        } else if (gameDefinition.value.terminalSituations.length > 0) {
-            selectTerminalSituation(gameDefinition.value.terminalSituations[0].situationId);
+        if (scenario.value.situations.length > 0) {
+            selectSituation(scenario.value.situations[0].situationId);
+        } else if (scenario.value.terminalSituations.length > 0) {
+            selectTerminalSituation(scenario.value.terminalSituations[0].situationId);
         } else {
             selectedItemType.value = null;
             selectedSituationId.value = null;
@@ -589,16 +589,16 @@ function deleteSituation() {
 
 function addTerminalSituation() {
     const newTerminalSituation = createEmptyTerminalSituation();
-    gameDefinition.value.terminalSituations.push(newTerminalSituation);
+    scenario.value.terminalSituations.push(newTerminalSituation);
     selectTerminalSituation(newTerminalSituation.situationId);
 }
 
 function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
-    const index = gameDefinition.value.terminalSituations.findIndex(
+    const index = scenario.value.terminalSituations.findIndex(
         (t) => t.situationId === updatedTerminalSituation.situationId
     );
     if (index !== -1) {
-        gameDefinition.value.terminalSituations.splice(index, 1, updatedTerminalSituation);
+        scenario.value.terminalSituations.splice(index, 1, updatedTerminalSituation);
     }
 }
 
@@ -608,36 +608,36 @@ function deleteTerminalSituation() {
     }
 
     const terminalSituationId = selectedTerminalSituationId.value;
-    const index = gameDefinition.value.terminalSituations.findIndex(
+    const index = scenario.value.terminalSituations.findIndex(
         (t) => t.situationId === terminalSituationId
     );
     if (index !== -1) {
-        gameDefinition.value.terminalSituations.splice(index, 1);
+        scenario.value.terminalSituations.splice(index, 1);
 
         // Remove references from transitions
-        for (const situation of gameDefinition.value.situations) {
+        for (const situation of scenario.value.situations) {
             situation.transitions = situation.transitions.filter(
                 (t) => t.nextSituationId !== terminalSituationId
             );
         }
 
         // Update rootSituationId if it was deleted
-        if (gameDefinition.value.rootSituationId === terminalSituationId) {
-            if (gameDefinition.value.situations.length > 0) {
-                gameDefinition.value.rootSituationId = gameDefinition.value.situations[0].situationId;
-            } else if (gameDefinition.value.terminalSituations.length > 0) {
-                gameDefinition.value.rootSituationId =
-                    gameDefinition.value.terminalSituations[0].situationId;
+        if (scenario.value.rootSituationId === terminalSituationId) {
+            if (scenario.value.situations.length > 0) {
+                scenario.value.rootSituationId = scenario.value.situations[0].situationId;
+            } else if (scenario.value.terminalSituations.length > 0) {
+                scenario.value.rootSituationId =
+                    scenario.value.terminalSituations[0].situationId;
             } else {
-                gameDefinition.value.rootSituationId = 0;
+                scenario.value.rootSituationId = 0;
             }
         }
 
         // Select next terminal situation
-        if (gameDefinition.value.terminalSituations.length > 0) {
-            selectTerminalSituation(gameDefinition.value.terminalSituations[0].situationId);
-        } else if (gameDefinition.value.situations.length > 0) {
-            selectSituation(gameDefinition.value.situations[0].situationId);
+        if (scenario.value.terminalSituations.length > 0) {
+            selectTerminalSituation(scenario.value.terminalSituations[0].situationId);
+        } else if (scenario.value.situations.length > 0) {
+            selectSituation(scenario.value.situations[0].situationId);
         } else {
             clearSelection();
             selectedItemType.value = null;
@@ -648,16 +648,16 @@ function deleteTerminalSituation() {
 // Player Combo functions
 function addPlayerCombo() {
     const newCombo = createEmptyComboStarter();
-    gameDefinition.value.playerComboStarters.push(newCombo);
+    scenario.value.playerComboStarters.push(newCombo);
     selectPlayerCombo(newCombo.situationId);
 }
 
 function updatePlayerCombo(updatedCombo: ComboStarter) {
-    const index = gameDefinition.value.playerComboStarters.findIndex(
+    const index = scenario.value.playerComboStarters.findIndex(
         (c) => c.situationId === updatedCombo.situationId
     );
     if (index !== -1) {
-        gameDefinition.value.playerComboStarters.splice(index, 1, updatedCombo);
+        scenario.value.playerComboStarters.splice(index, 1, updatedCombo);
     }
 }
 
@@ -667,24 +667,24 @@ function deletePlayerCombo() {
     }
 
     const comboId = selectedPlayerComboId.value;
-    const index = gameDefinition.value.playerComboStarters.findIndex(
+    const index = scenario.value.playerComboStarters.findIndex(
         (c) => c.situationId === comboId
     );
     if (index !== -1) {
-        gameDefinition.value.playerComboStarters.splice(index, 1);
+        scenario.value.playerComboStarters.splice(index, 1);
 
         // Remove references from transitions
-        for (const situation of gameDefinition.value.situations) {
+        for (const situation of scenario.value.situations) {
             situation.transitions = situation.transitions.filter(
                 (t) => t.nextSituationId !== comboId
             );
         }
 
         // Select next item
-        if (gameDefinition.value.playerComboStarters.length > 0) {
-            selectPlayerCombo(gameDefinition.value.playerComboStarters[0].situationId);
-        } else if (gameDefinition.value.situations.length > 0) {
-            selectSituation(gameDefinition.value.situations[0].situationId);
+        if (scenario.value.playerComboStarters.length > 0) {
+            selectPlayerCombo(scenario.value.playerComboStarters[0].situationId);
+        } else if (scenario.value.situations.length > 0) {
+            selectSituation(scenario.value.situations[0].situationId);
         } else {
             clearSelection();
             selectedItemType.value = null;
@@ -695,16 +695,16 @@ function deletePlayerCombo() {
 // Opponent Combo functions
 function addOpponentCombo() {
     const newCombo = createEmptyComboStarter();
-    gameDefinition.value.opponentComboStarters.push(newCombo);
+    scenario.value.opponentComboStarters.push(newCombo);
     selectOpponentCombo(newCombo.situationId);
 }
 
 function updateOpponentCombo(updatedCombo: ComboStarter) {
-    const index = gameDefinition.value.opponentComboStarters.findIndex(
+    const index = scenario.value.opponentComboStarters.findIndex(
         (c) => c.situationId === updatedCombo.situationId
     );
     if (index !== -1) {
-        gameDefinition.value.opponentComboStarters.splice(index, 1, updatedCombo);
+        scenario.value.opponentComboStarters.splice(index, 1, updatedCombo);
     }
 }
 
@@ -714,24 +714,24 @@ function deleteOpponentCombo() {
     }
 
     const comboId = selectedOpponentComboId.value;
-    const index = gameDefinition.value.opponentComboStarters.findIndex(
+    const index = scenario.value.opponentComboStarters.findIndex(
         (c) => c.situationId === comboId
     );
     if (index !== -1) {
-        gameDefinition.value.opponentComboStarters.splice(index, 1);
+        scenario.value.opponentComboStarters.splice(index, 1);
 
         // Remove references from transitions
-        for (const situation of gameDefinition.value.situations) {
+        for (const situation of scenario.value.situations) {
             situation.transitions = situation.transitions.filter(
                 (t) => t.nextSituationId !== comboId
             );
         }
 
         // Select next item
-        if (gameDefinition.value.opponentComboStarters.length > 0) {
-            selectOpponentCombo(gameDefinition.value.opponentComboStarters[0].situationId);
-        } else if (gameDefinition.value.situations.length > 0) {
-            selectSituation(gameDefinition.value.situations[0].situationId);
+        if (scenario.value.opponentComboStarters.length > 0) {
+            selectOpponentCombo(scenario.value.opponentComboStarters[0].situationId);
+        } else if (scenario.value.situations.length > 0) {
+            selectSituation(scenario.value.situations[0].situationId);
         } else {
             clearSelection();
             selectedItemType.value = null;
@@ -800,7 +800,7 @@ function executeDelete() {
    GAME DEFINITION EDITOR - Roman Arena Style
    ═══════════════════════════════════════════════════════════════════ */
 
-.game-definition-editor {
+.scenario-editor {
   display: flex;
   flex-direction: column;
   height: 100%;

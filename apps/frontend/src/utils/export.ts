@@ -1,4 +1,4 @@
-import { GameDefinition } from '@nomari/ts-proto';
+import { Scenario } from '@nomari/ts-proto';
 
 function exportAsFile(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
@@ -12,21 +12,21 @@ function exportAsFile(blob: Blob, filename: string): void {
 }
 
 /**
- * Export GameDefinition as JSON
+ * Export Scenario as JSON
  */
-export function exportAsJSON(gameDefinition: GameDefinition, filename: string): void {
-    const json = GameDefinition.toJsonString(gameDefinition);
+export function exportAsJSON(scenario: Scenario, filename: string): void {
+    const json = Scenario.toJsonString(scenario);
     const blob = new Blob([json], {
-        type: 'application/json' 
+        type: 'application/json'
     });
     exportAsFile(blob, filename);
 }
 
 /**
- * Export GameDefinition as Proto
+ * Export Scenario as Proto
  */
-export function exportAsProto(gameDefinition: GameDefinition, filename: string): void {
-    const encodedProto: Uint8Array = GameDefinition.toBinary(gameDefinition);
+export function exportAsProto(scenario: Scenario, filename: string): void {
+    const encodedProto: Uint8Array = Scenario.toBinary(scenario);
     const blob = new Blob([encodedProto as Uint8Array<ArrayBuffer>]);
 
     exportAsFile(blob, filename);
@@ -55,25 +55,25 @@ function selectFile(accept: string): Promise<File | null> {
 }
 
 /**
- * Import GameDefinition from JSON file content
+ * Import Scenario from JSON file content
  */
-function parseAsJSON(text: string): GameDefinition {
-    return GameDefinition.fromJsonString(text);
+function parseAsJSON(text: string): Scenario {
+    return Scenario.fromJsonString(text);
 }
 
 /**
- * Import GameDefinition from Proto binary content
+ * Import Scenario from Proto binary content
  */
-export function parseAsProto(buffer: ArrayBuffer): GameDefinition {
-    return GameDefinition.fromBinary(new Uint8Array(buffer));
+export function parseAsProto(buffer: ArrayBuffer): Scenario {
+    return Scenario.fromBinary(new Uint8Array(buffer));
 }
 
 /**
- * Import GameDefinition from a file (.json or .pb)
+ * Import Scenario from a file (.json or .pb)
  * Returns null if the user cancels the file selection dialog
  * Throws an error if the file format is not supported or parsing fails
  */
-export async function importGameDefinition(): Promise<GameDefinition | null> {
+export async function importScenario(): Promise<Scenario | null> {
     const file = await selectFile('.json,.pb');
     if (!file) {
         return null;

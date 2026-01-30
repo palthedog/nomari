@@ -71,7 +71,7 @@
         <!-- Consumptions (fixed 4 items: damage, OD damage, OD cost, SA cost) -->
         <div class="route-subsection">
           <div class="consumption-row">
-            <v-text-field
+            <v-number-input
               type="number"
               label="ダメージ"
               :model-value="getConsumptionValue(routeIndex, damageResourceType)"
@@ -79,9 +79,10 @@
               density="compact"
               variant="outlined"
               hide-details
+              :step="100"
               @update:model-value="setConsumptionValue(routeIndex, damageResourceType, parseFloat($event) || 0)"
             />
-            <v-text-field
+            <v-number-input
               type="number"
               label="Dゲージ削り"
               :model-value="getConsumptionValue(routeIndex, odDamageResourceType)"
@@ -89,9 +90,10 @@
               density="compact"
               variant="outlined"
               hide-details
+              :step="0.1"
               @update:model-value="setConsumptionValue(routeIndex, odDamageResourceType, parseFloat($event) || 0)"
             />
-            <v-text-field
+            <v-number-input
               type="number"
               label="OD消費"
               :model-value="getConsumptionValue(routeIndex, odResourceType)"
@@ -99,9 +101,10 @@
               density="compact"
               variant="outlined"
               hide-details
+              :step="1"
               @update:model-value="setConsumptionValue(routeIndex, odResourceType, parseFloat($event) || 0)"
             />
-            <v-text-field
+            <v-number-input
               type="number"
               label="SA消費"
               :model-value="getConsumptionValue(routeIndex, saResourceType)"
@@ -109,6 +112,7 @@
               density="compact"
               variant="outlined"
               hide-details
+              :step="1"
               @update:model-value="setConsumptionValue(routeIndex, saResourceType, parseFloat($event) || 0)"
             />
           </div>
@@ -132,7 +136,7 @@
               />
             </div>
             <div class="requirement-field">
-              <v-text-field
+              <v-number-input
                 type="number"
                 label="必要OD"
                 :model-value="getEffectiveRequirementValue(routeIndex, odResourceType)"
@@ -140,18 +144,20 @@
                 density="compact"
                 variant="outlined"
                 hide-details
+                :step="0.1"
                 :disabled="!getOverrideFlag(routeIndex, odResourceType)"
                 @update:model-value="setRequirementValue(routeIndex, odResourceType, parseFloat($event) || 0)"
               />
             </div>
             <div class="requirement-field">
-              <v-text-field
+              <v-number-input
                 type="number"
                 label="必要SA"
                 :model-value="getEffectiveRequirementValue(routeIndex, saResourceType)"
                 placeholder="0"
                 density="compact"
                 variant="outlined"
+                :step="1"
                 hide-details
                 :disabled="!getOverrideFlag(routeIndex, saResourceType)"
                 @update:model-value="setRequirementValue(routeIndex, saResourceType, parseFloat($event) || 0)"

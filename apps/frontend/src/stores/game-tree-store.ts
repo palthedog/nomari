@@ -3,7 +3,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
 import { buildGameTree } from '@nomari/game-tree-builder';
-import { useDefinitionStore } from './definition-store';
+import { useScenarioStore } from './scenario-store';
 import { useNotificationStore } from './notification-store';
 import log from 'loglevel';
 
@@ -20,12 +20,12 @@ export const useGameTreeStore = defineStore('gameTree', () => {
     const gameTreeVersion = ref(0);
 
     /**
-     * The definitionVersion that was used to build the current gameTree.
+     * The scenarioVersion that was used to build the current gameTree.
      * Used to detect if gameTree needs to be rebuilt.
      */
-    const builtFromDefinitionVersion = ref(-1);
+    const builtFromScenarioVersion = ref(-1);
 
-    const definitionStore = useDefinitionStore();
+    const scenarioStore = useScenarioStore();
 
     function selectNode(nodeId: string) {
         selectedNodeId.value = nodeId;
@@ -41,12 +41,12 @@ export const useGameTreeStore = defineStore('gameTree', () => {
     }
 
     /**
-     * Build the game tree from the current definition.
+     * Build the game tree from the current scenario.
      */
     function updateGameTree() {
         buildError.value = null;
         clearSelection();
-        const result = buildGameTree(definitionStore.gameDefinition);
+        const result = buildGameTree(scenarioStore.scenario);
         if (result.success) {
             gameTree.value = result.gameTree;
             gameTreeVersion.value++;
@@ -57,20 +57,20 @@ export const useGameTreeStore = defineStore('gameTree', () => {
             const notificationStore = useNotificationStore();
             notificationStore.showError(`ゲーム木の構築に失敗しました: ${result.error.message}`);
         }
-        builtFromDefinitionVersion.value = definitionStore.definitionVersion;
+        builtFromScenarioVersion.value = scenarioStore.scenarioVersion;
     }
 
     /**
-     * Ensure the game tree is up-to-date with the current definition.
-     * Rebuilds only if the definition has changed since the last build.
+     * Ensure the game tree is up-to-date with the current scenario.
+     * Rebuilds only if the scenario has changed since the last build.
      * @returns true if game tree is valid, false if validation failed or build error
      */
     function ensureGameTreeUpdated(): boolean {
-        if (builtFromDefinitionVersion.value === definitionStore.definitionVersion) {
+        if (builtFromScenarioVersion.value === scenarioStore.scenarioVersion) {
             return gameTree.value !== null;
         }
 
-        if (!definitionStore.validateAndShowErrors()) {
+        if (!scenarioStore.validateAndShowErrors()) {
             return false;
         }
 

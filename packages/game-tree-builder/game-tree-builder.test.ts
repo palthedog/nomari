@@ -1,6 +1,6 @@
 import { buildGameTree, GameTreeBuildErrorCode } from './game-tree-builder';
 import {
-    GameDefinition,
+    Scenario,
     Situation,
     Transition,
     ResourceType,
@@ -9,7 +9,7 @@ import {
 } from '@nomari/ts-proto';
 
 // =============================================================================
-// Test Helpers: Build GameDefinition with sensible defaults
+// Test Helpers: Build Scenario with sensible defaults
 // =============================================================================
 
 /**
@@ -126,10 +126,10 @@ const DAMAGE_RACE_METHOD: RewardComputationMethod = {
 };
 
 /**
- * Base GameDefinition with sensible defaults.
+ * Base Scenario with sensible defaults.
  * Override specific fields as needed for each test.
  */
-function baseGameDef(overrides: Partial<GameDefinition> = {}): GameDefinition {
+function baseScenario(overrides: Partial<Scenario> = {}): Scenario {
     return {
         gameId: 1,
         name: 'Test Game',
@@ -155,7 +155,7 @@ describe('gameTreeBuilder', () => {
 
     describe('basic game tree generation', () => {
         it('creates simple tree: situation -> terminal', () => {
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [simpleSituation(101, 200)],
                 terminalSituations: [{
                     situationId: 200,
@@ -190,7 +190,7 @@ describe('gameTreeBuilder', () => {
     describe('cycle detection', () => {
         it('fails when cycle has no state change', () => {
             // 101 -> 102 -> 101 (no damage = infinite loop)
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [
                     simpleSituation(101, 102),
                     simpleSituation(102, 101),
@@ -208,7 +208,7 @@ describe('gameTreeBuilder', () => {
 
         it('allows cycle when state changes each iteration', () => {
             // 101 -> 102 -> 101 with damage each step (eventually someone dies)
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [
                     simpleSituation(101, 102, {
                         opponent: 100 
@@ -236,7 +236,7 @@ describe('gameTreeBuilder', () => {
     describe('auto-terminal creation', () => {
         it('creates WIN terminal when opponent HP reaches 0', () => {
             // Deal 5000 damage to 4000 HP opponent -> kills
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [simpleSituation(101, 102, {
                     opponent: 5000 
                 })],
@@ -258,7 +258,7 @@ describe('gameTreeBuilder', () => {
 
         it('creates LOSE terminal when player HP reaches 0', () => {
             // Deal 6000 damage to 5000 HP player -> player dies
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [simpleSituation(101, 102, {
                     player: 6000 
                 })],
@@ -279,7 +279,7 @@ describe('gameTreeBuilder', () => {
         });
 
         it('creates DRAW terminal when both HP reach 0', () => {
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [simpleSituation(101, 102, {
                     player: 6000,
                     opponent: 5000 
@@ -307,7 +307,7 @@ describe('gameTreeBuilder', () => {
     describe('neutral terminal situations', () => {
         it('calculates reward based on remaining HP', () => {
             // Equal HP -> 50% win prob -> reward = 0
-            const game = baseGameDef({
+            const game = baseScenario({
                 initialDynamicState: initialState(4000, 4000),
                 situations: [simpleSituation(101, 200)],
                 terminalSituations: [{
@@ -339,7 +339,7 @@ describe('gameTreeBuilder', () => {
     describe('damage race rewards', () => {
         it('calculates based on damage dealt - damage received', () => {
             // Deal 1000 to opponent, receive 500 -> net +500
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [simpleSituation(101, 200, {
                     player: 500,
                     opponent: 1000 
@@ -368,7 +368,7 @@ describe('gameTreeBuilder', () => {
 
         it('returns 0 for draw (equal damage)', () => {
             // Both deal 5000 damage (kills both) -> draw
-            const game = baseGameDef({
+            const game = baseScenario({
                 initialDynamicState: initialState(5000, 5000),
                 situations: [simpleSituation(101, 102, {
                     player: 5000,
@@ -390,7 +390,7 @@ describe('gameTreeBuilder', () => {
         });
 
         it('win: player kills opponent', () => {
-            const game = baseGameDef({
+            const game = baseScenario({
                 initialDynamicState: initialState(2000, 2000),
                 situations: [simpleSituation(101, 102, {
                     opponent: 2000 
@@ -411,7 +411,7 @@ describe('gameTreeBuilder', () => {
         });
 
         it('lose: opponent kills player', () => {
-            const game = baseGameDef({
+            const game = baseScenario({
                 initialDynamicState: initialState(2000, 2000),
                 situations: [simpleSituation(101, 102, {
                     player: 2000 
@@ -443,7 +443,7 @@ describe('gameTreeBuilder', () => {
             opponentHp: number,
             cornerBonus: number
         ) => {
-            const game = baseGameDef({
+            const game = baseScenario({
                 initialDynamicState: initialState(playerHp, opponentHp),
                 situations: [simpleSituation(101, 200)],
                 terminalSituations: [{
@@ -522,7 +522,7 @@ describe('gameTreeBuilder', () => {
             // Situation 101 -> 102 with opponent damage
             const pAction = act('Attack', 2001);
             const oAction = act('Guard', 2002);
-            const game = baseGameDef({
+            const game = baseScenario({
                 situations: [
                     {
                         situationId: 101,

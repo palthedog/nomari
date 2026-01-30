@@ -61,15 +61,15 @@
          MAIN CONTENT AREA
          ═══════════════════════════════════════════════════════════ -->
     <main class="arena-content">
-      <!-- Edit Mode: GameDefinitionEditor | GameTreeBuildPanel -->
+      <!-- Edit Mode: ScenarioEditor | GameTreeBuildPanel -->
       <template v-if="viewMode === 'edit'">
         <!-- Desktop: Show both panels side by side -->
         <template v-if="!isMobile">
           <section class="panel panel--editor">
-            <GameDefinitionEditor v-model="gameDefinition" />
+            <ScenarioEditor v-model="scenario" />
           </section>
           <section class="panel panel--build">
-            <GameTreeBuildPanel v-model="gameDefinition" />
+            <GameTreeBuildPanel v-model="scenario" />
           </section>
         </template>
 
@@ -79,8 +79,8 @@
             v-show="mobileNavIndex === 0 || mobileNavIndex === 1"
             class="panel panel--editor panel--mobile-full"
           >
-            <GameDefinitionEditor
-              v-model="gameDefinition"
+            <ScenarioEditor
+              v-model="scenario"
               :is-mobile="isMobile"
               :mobile-sub-view="mobileNavIndex === 0 ? 'list' : 'detail'"
               @update:mobile-sub-view="mobileNavIndex = $event === 'list' ? 0 : 1"
@@ -90,7 +90,7 @@
             v-show="mobileNavIndex === 2"
             class="panel panel--build panel--mobile-full"
           >
-            <GameTreeBuildPanel v-model="gameDefinition" />
+            <GameTreeBuildPanel v-model="scenario" />
           </section>
         </template>
 
@@ -190,16 +190,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
-import { exportAsProto, importGameDefinition } from '@/utils/export';
+import { exportAsProto, importScenario } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
 import { useViewStore } from '@/stores/view-store';
-import GameDefinitionEditor from '@/components/definition/game-definition-editor.vue';
+import ScenarioEditor from '@/components/definition/scenario-editor.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
 import MobileSubNav from '@/components/common/mobile-sub-nav.vue';
-import { useDefinitionStore } from './stores/definition-store';
+import { useScenarioStore } from './stores/scenario-store';
 import { useNotificationStore } from './stores/notification-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
 import { useUrlSync } from '@/composables/use-url-sync';
@@ -239,7 +239,7 @@ const mobileNavRightLabel = computed(() => {
 function handleMobileNavigation(index: number) {
     // Validate before switching to strategy pages (index 3 or 4)
     if (index >= 3 && mobileNavIndex.value < 3) {
-        if (!definitionStore.validateAndShowErrors()) {
+        if (!scenarioStore.validateAndShowErrors()) {
             return;
         }
     }
@@ -258,9 +258,9 @@ function handleMobileNavigation(index: number) {
 const viewStore = useViewStore();
 const viewMode = computed(() => viewStore.viewMode);
 
-// Game definition and tree state
-const definitionStore = useDefinitionStore();
-const gameDefinition = computed(() => definitionStore.gameDefinition);
+// Scenario and tree state
+const scenarioStore = useScenarioStore();
+const scenario = computed(() => scenarioStore.scenario);
 
 // Notification store
 const notificationStore = useNotificationStore();
@@ -314,15 +314,15 @@ const expectedValues = computed<ExpectedValuesMap | null>(() => {
 });
 
 function exportProto() {
-    exportAsProto(definitionStore.gameDefinition,
-        `gamedefinition_${definitionStore.gameDefinition.name}.pb`);
+    exportAsProto(scenarioStore.scenario,
+        `scenario_${scenarioStore.scenario.name}.pb`);
 }
 
 async function importFile() {
     try {
-        const gameDefinition = await importGameDefinition();
-        if (gameDefinition) {
-            definitionStore.loadGameDefinition(gameDefinition);
+        const scenario = await importScenario();
+        if (scenario) {
+            scenarioStore.loadScenario(scenario);
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
@@ -345,7 +345,7 @@ onUnmounted(() => {
  * Validates the game definition first and only switches if valid.
  */
 function switchToStrategyWithValidation() {
-    if (!definitionStore.validateAndShowErrors()) {
+    if (!scenarioStore.validateAndShowErrors()) {
         return;
     }
     viewStore.switchToStrategy();
@@ -358,12 +358,12 @@ watch(viewMode, (newMode) => {
     }
 });
 
-// Watch gameDefinition for changes and increment version
-// This catches direct mutations to gameDefinition (e.g., gameDefinition.situations.push())
+// Watch scenario for changes and increment version
+// This catches direct mutations to scenario (e.g., scenario.situations.push())
 watch(
-    () => definitionStore.gameDefinition,
+    () => scenarioStore.scenario,
     () => {
-        definitionStore.incrementVersion();
+        scenarioStore.incrementVersion();
     },
     {
         deep: true

@@ -1,5 +1,5 @@
 import type {
-    GameDefinition,
+    Scenario,
     Situation,
     TerminalSituation,
 } from '@nomari/ts-proto';
@@ -7,7 +7,7 @@ import {
     CornerState,
     ResourceType,
 } from '@nomari/ts-proto';
-import { generateId } from './game-definition-utils';
+import { generateId } from './scenario-utils';
 
 function createInitialSituation(): Situation {
     return {
@@ -32,7 +32,7 @@ function createInitialTerminalSituation(): TerminalSituation {
     };
 }
 
-export function createEmptyGameDefinition(): GameDefinition {
+export function createEmptyScenario(): Scenario {
     const initialSituation = createInitialSituation();
     return {
         gameId: 0,
@@ -85,9 +85,9 @@ export function createEmptyGameDefinition(): GameDefinition {
 }
 
 /**
- * Create a Judo GameDefinition
+ * Create a Judo Scenario
  */
-export function createJudoGameDefinition(): GameDefinition {
+export function createJudoScenario(): Scenario {
     return {
         gameId: 11,
         name: "画面端柔道",
@@ -362,10 +362,10 @@ export function createJudoGameDefinition(): GameDefinition {
 }
 
 /**
- * Create a heavy Dimachaerus combo GameDefinition
+ * Create a heavy Dimachaerus combo Scenario
  * Uses numeric IDs for all situation and action references
  */
-export function createHeavyDimachaerusComboGameDefinition(): GameDefinition {
+export function createHeavyDimachaerusComboScenario(): Scenario {
     // Situation IDs (using generateId for consistency)
     const gameId = generateId();
     const rootSituationId = generateId();
