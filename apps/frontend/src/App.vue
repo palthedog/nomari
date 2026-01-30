@@ -131,7 +131,7 @@
           <GameTreePanel
             v-show="mobileNavIndex === 3"
             :game-tree="gameTree"
-            class="panel--mobile-full"
+            class="panel panel--mobile-full"
           />
           <section
             v-show="mobileNavIndex === 4"
