@@ -2,6 +2,22 @@
 # Windows notification script for Claude Code hooks
 # Sends a toast notification when Claude needs user input
 
+# Here is an example .claude/settings.local.json
+#
+#   "hooks": {
+#     "Notification": [
+#       {
+#         "matcher": "",
+#         "hooks": [
+#           {
+#             "type": "command",
+#             "command": "\"$CLAUDE_PROJECT_DIR/scripts/windows-notify.sh\""
+#           }
+#         ]
+#       }
+#     ]
+#   }
+
 # Read stdin (hook provides JSON input)
 INPUT=$(cat)
 
