@@ -123,7 +123,11 @@
           <thead>
             <tr>
               <th class="corner-cell">
-                P＼O
+                <div class="axis-indicator">
+                  <span class="axis-player">P</span>
+                  <span class="axis-divider">/</span>
+                  <span class="axis-opponent">O</span>
+                </div>
               </th>
               <th
                 v-for="oppAction in model.opponentActions?.actions || []"
@@ -535,28 +539,63 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .corner-cell {
-  background-color: var(--bg-tertiary);
-  font-weight: bold;
-  min-width: 50px;
-  font-size: 11px;
+  background-color: var(--bg-secondary);
+  padding: 8px;
+  min-width: 60px;
+  vertical-align: middle;
+}
+
+.transition-matrix .axis-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.transition-matrix .axis-player {
+  color: var(--player-color);
+}
+
+.transition-matrix .axis-divider {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.transition-matrix .axis-opponent {
+  color: var(--opponent-color);
 }
 
 .transition-matrix .player-header {
-  background-color: var(--player-bg);
-  font-weight: bold;
+  background-color: transparent;
+  border-left: 4px solid var(--player-color);
+  color: var(--text-primary);
+  font-weight: 600;
   text-align: right;
-  padding-right: 8px;
-  min-width: 70px;
-  color: var(--player-color-dark);
-  font-size: 12px;
+  padding: 10px 12px 10px 8px;
+  min-width: 80px;
+  font-size: 13px;
+  letter-spacing: 0.02em;
 }
 
 .transition-matrix .opponent-header {
-  background-color: var(--opponent-bg);
-  font-weight: bold;
-  min-width: 100px;
-  color: var(--opponent-color-dark);
-  font-size: 12px;
+  background-color: transparent;
+  border-top: 3px solid var(--opponent-color);
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: center;
+  padding: 10px 12px;
+  min-width: 120px;
+  font-size: 13px;
+}
+
+.transition-matrix tbody tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
+.transition-matrix tbody tr:hover {
+  background-color: var(--bg-tertiary);
 }
 
 .transition-matrix .transition-cell {
