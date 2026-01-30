@@ -63,13 +63,10 @@
     <main class="arena-content">
       <!-- Edit Mode: ScenarioEditor | GameTreeBuildPanel -->
       <template v-if="viewMode === 'edit'">
-        <!-- Desktop: Show both panels side by side -->
+        <!-- Desktop: Show editor panel -->
         <template v-if="!isMobile">
-          <section class="panel panel--editor">
+          <section class="panel panel--editor panel--editor-full">
             <ScenarioEditor v-model="scenario" />
-          </section>
-          <section class="panel panel--build">
-            <GameTreeBuildPanel v-model="scenario" />
           </section>
         </template>
 
@@ -85,12 +82,6 @@
               :mobile-sub-view="mobileNavIndex === 0 ? 'list' : 'detail'"
               @update:mobile-sub-view="mobileNavIndex = $event === 'list' ? 0 : 1"
             />
-          </section>
-          <section
-            v-show="mobileNavIndex === 2"
-            class="panel panel--build panel--mobile-full"
-          >
-            <GameTreeBuildPanel v-model="scenario" />
           </section>
         </template>
 
@@ -129,12 +120,12 @@
         <!-- Mobile: Show one panel at a time -->
         <template v-else>
           <GameTreePanel
-            v-show="mobileNavIndex === 3"
+            v-show="mobileNavIndex === 2"
             :game-tree="gameTree"
             class="panel panel--mobile-full"
           />
           <section
-            v-show="mobileNavIndex === 4"
+            v-show="mobileNavIndex === 3"
             class="panel panel--strategy panel--mobile-full"
           >
             <NodeStrategyPanel
@@ -161,11 +152,11 @@
       </template>
     </main>
 
-    <!-- Mobile: Unified navigation bar for all 5 pages -->
+    <!-- Mobile: Unified navigation bar for all 4 pages -->
     <MobileSubNav
       v-if="isMobile"
       :current-index="mobileNavIndex"
-      :total-views="5"
+      :total-views="4"
       :left-label="mobileNavLeftLabel"
       :right-label="mobileNavRightLabel"
       class="mobile-nav-bar"
@@ -193,7 +184,6 @@ import { useSolverStore } from '@/stores/solver-store';
 import { useViewStore } from '@/stores/view-store';
 import ScenarioEditor from '@/components/definition/scenario-editor.vue';
 import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
-import GameTreeBuildPanel from '@/components/game-tree/game-tree-build-panel.vue';
 import MobileSubNav from '@/components/common/mobile-sub-nav.vue';
 import { useScenarioStore } from './stores/scenario-store';
 import { useNotificationStore } from './stores/notification-store';
@@ -207,16 +197,16 @@ const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024
 const isMobile = computed(() => windowWidth.value <= MOBILE_BREAKPOINT);
 
 
-// Mobile unified navigation: 5 pages across edit and strategy modes
-// 0: list, 1: detail, 2: settings, 3: tree, 4: strategy
+// Mobile unified navigation: 4 pages across edit and strategy modes
+// 0: list, 1: detail, 2: tree, 3: strategy
 const mobileNavIndex = ref(0);
 
 function handleResize() {
     windowWidth.value = window.innerWidth;
 }
 
-// Labels for mobile unified navigation (5 pages)
-const mobileNavLabels = ['一覧', '編集', '初期状態', 'ゲーム木', '最適戦略'];
+// Labels for mobile unified navigation (4 pages)
+const mobileNavLabels = ['一覧', '編集', 'ゲーム木', '最適戦略'];
 
 const mobileNavLeftLabel = computed(() => {
     if (mobileNavIndex.value === 0) {
@@ -226,15 +216,15 @@ const mobileNavLeftLabel = computed(() => {
 });
 
 const mobileNavRightLabel = computed(() => {
-    if (mobileNavIndex.value === 4) {
+    if (mobileNavIndex.value === 3) {
         return '';
     }
     return mobileNavLabels[mobileNavIndex.value + 1];
 });
 
 function handleMobileNavigation(index: number) {
-    // Validate before switching to strategy pages (index 3 or 4)
-    if (index >= 3 && mobileNavIndex.value < 3) {
+    // Validate before switching to strategy pages (index 2 or 3)
+    if (index >= 2 && mobileNavIndex.value < 2) {
         if (!scenarioStore.validateAndShowErrors()) {
             return;
         }
@@ -243,7 +233,7 @@ function handleMobileNavigation(index: number) {
     mobileNavIndex.value = index;
 
     // Update viewMode based on index
-    if (index <= 2) {
+    if (index <= 1) {
         viewStore.setViewMode('edit');
     } else {
         viewStore.setViewMode('strategy');
@@ -371,7 +361,7 @@ watch(
     () => gameTreeStore.selectedNodeId,
     (newNodeId) => {
         if (isMobile.value && newNodeId && viewMode.value === 'strategy') {
-            mobileNavIndex.value = 4; // Switch to strategy panel
+            mobileNavIndex.value = 3; // Switch to strategy panel
         }
     }
 );
@@ -381,9 +371,9 @@ watch(viewMode, (newMode) => {
     if (!isMobile.value) {
         return;
     }
-    if (newMode === 'strategy' && mobileNavIndex.value < 3) {
-        mobileNavIndex.value = 3; // Switch to tree view
-    } else if (newMode === 'edit' && mobileNavIndex.value >= 3) {
+    if (newMode === 'strategy' && mobileNavIndex.value < 2) {
+        mobileNavIndex.value = 2; // Switch to tree view
+    } else if (newMode === 'edit' && mobileNavIndex.value >= 2) {
         mobileNavIndex.value = 0; // Switch to list view
     }
 });
@@ -576,11 +566,8 @@ body {
   border-right: 1px solid var(--border-primary);
 }
 
-.panel--build {
-  flex: 0 0 360px;
-  min-width: 0;
-  border-left: 1px solid var(--border-primary);
-  background: var(--bg-tertiary);
+.panel--editor-full {
+  border-right: none;
 }
 
 .panel--tree {
@@ -734,10 +721,6 @@ body {
    TABLET RESPONSIVE STYLES
    ═══════════════════════════════════════════════════════════════════ */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .panel--build {
-    flex: 0 0 300px;
-  }
-
   .panel--strategy {
     flex: 0 0 340px;
   }

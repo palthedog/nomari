@@ -1,63 +1,5 @@
 <template>
   <div class="scenario-editor">
-    <div
-      v-show="!isMobile || mobileSubView === 'list'"
-      class="header"
-    >
-      <div class="header-controls">
-        <!-- Game ID-->
-        <div
-          v-show="false"
-          class="form-group"
-        >
-          <v-text-field
-            v-model="scenario.gameId"
-            label="Game ID"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </div>
-
-        <!-- Name-->
-        <div class="form-group">
-          <v-text-field
-            v-model="scenario.name"
-            label="シナリオ名"
-            placeholder="例：弱ディマカイルス後"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </div>
-
-        <!-- Root Situation-->
-        <div class="form-group">
-          <v-select
-            v-model="scenario.rootSituationId"
-            :items="situationItems"
-            item-title="title"
-            item-value="value"
-            label="開始状況"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </div>
-
-        <!-- Description-->
-        <div class="form-group form-description">
-          <v-text-field
-            v-model="scenario.description"
-            label="説明"
-            density="compact"
-            variant="outlined"
-            hide-details
-          />
-        </div>
-      </div>
-    </div>
-
     <div class="content">
       <div
         v-show="!isMobile || mobileSubView === 'list'"
@@ -65,6 +7,18 @@
         :class="{ 'mobile-full-height': isMobile }"
       >
         <div class="panel-content">
+          <!-- Scenario Settings Button -->
+          <button
+            class="scenario-settings-button"
+            :class="{ active: isScenarioSettingsSelected }"
+            @click="selectScenarioSettings"
+          >
+            <v-icon size="18">
+              mdi-cog
+            </v-icon>
+            <span>シナリオ設定</span>
+          </button>
+
           <!-- Situations -->
           <div class="section-group">
             <div class="section-header">
@@ -197,8 +151,12 @@
         :class="{ 'mobile-full-height': isMobile }"
       >
         <div class="panel-content">
+          <ScenarioSettingsEditor
+            v-if="isScenarioSettingsSelected"
+            v-model="scenario"
+          />
           <SituationEditor
-            v-if="selectedSituation"
+            v-else-if="selectedSituation"
             :model-value="selectedSituation"
             :available-situations="availableSituationsForTransition"
             :available-terminal-situations="scenario.terminalSituations"
@@ -328,6 +286,7 @@ import {
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
 import ComboStarterEditor from './combo-starter-editor.vue';
+import ScenarioSettingsEditor from './scenario-settings-editor.vue';
 import CircleDeleteButton from '@/components/common/circle-delete-button.vue';
 import { useScenarioStore } from '@/stores/scenario-store';
 
@@ -347,8 +306,9 @@ const { closeValidationErrors } = scenarioStore;
 
 const viewStore = useViewStore();
 
-type SelectionType = 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
+type SelectionType = 'scenario-settings' | 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
 const selectedItemType = ref<SelectionType>(null);
+const isScenarioSettingsSelected = computed(() => selectedItemType.value === 'scenario-settings');
 const selectedSituationId = ref<number | null>(null);
 const selectedTerminalSituationId = ref<number | null>(null);
 const selectedPlayerComboId = ref<number | null>(null);
@@ -387,19 +347,6 @@ function selectSituationById(situationId: number) {
         return;
     }
 }
-
-const situationItems = computed(() => {
-    return [
-        {
-            title: '選択してください',
-            value: 0 
-        },
-        ...scenario.value.situations.map((s) => ({
-            title: s.name || '(説明なし)',
-            value: s.situationId,
-        })),
-    ];
-});
 
 const selectedSituation = computed(() => {
     if (!selectedSituationId.value) {
@@ -489,6 +436,12 @@ function switchToDetailIfMobile() {
     if (props.isMobile) {
         emit('update:mobileSubView', 'detail');
     }
+}
+
+function selectScenarioSettings() {
+    clearSelection();
+    selectedItemType.value = 'scenario-settings';
+    switchToDetailIfMobile();
 }
 
 function selectSituation(situationId: number) {
@@ -798,78 +751,6 @@ function executeDelete() {
 }
 
 /* ───────────────────────────────────────────────────────────────────
-   HEADER - Control Panel
-   ─────────────────────────────────────────────────────────────────── */
-
-.header {
-  padding: 16px 20px;
-  background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-  border-bottom: 2px solid var(--border-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.header h2 {
-  margin: 0 0 15px 0;
-  font-family: var(--font-family-display);
-}
-
-.header-controls {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.header-controls .form-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 200px;
-}
-
-.header-controls .form-group.form-description {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: auto;
-}
-
-.header-controls .form-group .v-text-field,
-.header-controls .form-group .v-select {
-  flex: 1;
-  min-width: 200px;
-}
-
-.form-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.form-group label {
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--text-secondary);
-}
-
-.form-group input,
-.form-group select {
-  padding: 8px;
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-md);
-  min-width: 150px;
-  background-color: var(--bg-elevated);
-  color: var(--text-primary);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-  outline: none;
-}
-
-/* ───────────────────────────────────────────────────────────────────
    CONTENT LAYOUT
    ─────────────────────────────────────────────────────────────────── */
 
@@ -940,6 +821,36 @@ function executeDelete() {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   SCENARIO SETTINGS BUTTON
+   ─────────────────────────────────────────────────────────────────── */
+
+.scenario-settings-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.scenario-settings-button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--color-primary);
+}
+
+.scenario-settings-button.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
 }
 
 /* ───────────────────────────────────────────────────────────────────
@@ -1274,15 +1185,6 @@ function executeDelete() {
 }
 
 @media (max-width: 768px) {
-  .header-controls {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-group {
-    width: 100%;
-  }
-
   .content {
     flex-direction: column;
   }
