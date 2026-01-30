@@ -18,7 +18,7 @@
       <div class="form-group">
         <v-text-field
           v-model="model.name"
-          label="名前"
+          label="最終状況名"
           density="compact"
           variant="outlined"
           hide-details

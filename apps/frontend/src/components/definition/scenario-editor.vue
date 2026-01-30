@@ -23,8 +23,8 @@
         <div class="form-group">
           <v-text-field
             v-model="scenario.name"
-            label="名前"
-            placeholder="例:"
+            label="シナリオ名"
+            placeholder="例：弱ディマカイルス後"
             density="compact"
             variant="outlined"
             hide-details
@@ -38,7 +38,7 @@
             :items="situationItems"
             item-title="title"
             item-value="value"
-            label="初期状況"
+            label="開始状況"
             density="compact"
             variant="outlined"
             hide-details
@@ -105,7 +105,7 @@
           <!-- Terminal Situations -->
           <div class="section-group">
             <div class="section-header">
-              <h4>終了条件</h4>
+              <h4>最終状況</h4>
             </div>
             <ul class="section-list">
               <li

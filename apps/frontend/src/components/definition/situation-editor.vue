@@ -18,7 +18,7 @@
       <div class="form-group">
         <v-text-field
           v-model="model.name"
-          label="名前"
+          label="状況名"
           density="compact"
           placeholder="例: 密着+4F"
           variant="outlined"
@@ -269,7 +269,7 @@ const nextSituationItems = computed(() => {
     if (props.availableTerminalSituations.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── 終了条件 ──' 
+            title: '── 最終状況 ──'
         });
         items.push(...props.availableTerminalSituations.map((t) => ({
             title: t.name || '(名前なし)',

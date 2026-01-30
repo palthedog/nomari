@@ -160,8 +160,8 @@ export function validateScenario(scenario: Scenario): ValidationError[] {
 
     if (scenario.terminalSituations.length === 0) {
         errors.push({
-            field: '終了条件',
-            message: '終了条件を1つ以上作成してください',
+            field: '最終状況',
+            message: '最終状況を1つ以上作成してください',
         });
     }
 
