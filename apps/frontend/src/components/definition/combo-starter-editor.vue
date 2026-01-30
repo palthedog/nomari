@@ -80,7 +80,7 @@
               variant="outlined"
               hide-details
               :step="100"
-              @update:model-value="setConsumptionValue(routeIndex, damageResourceType, parseFloat($event) || 0)"
+              @update:model-value="setConsumptionValue(routeIndex, damageResourceType, $event)"
             />
             <v-number-input
               type="number"
@@ -91,7 +91,7 @@
               variant="outlined"
               hide-details
               :step="0.1"
-              @update:model-value="setConsumptionValue(routeIndex, odDamageResourceType, parseFloat($event) || 0)"
+              @update:model-value="setConsumptionValue(routeIndex, odDamageResourceType, $event)"
             />
             <v-number-input
               type="number"
@@ -102,7 +102,7 @@
               variant="outlined"
               hide-details
               :step="1"
-              @update:model-value="setConsumptionValue(routeIndex, odResourceType, parseFloat($event) || 0)"
+              @update:model-value="setConsumptionValue(routeIndex, odResourceType, $event)"
             />
             <v-number-input
               type="number"
@@ -113,7 +113,7 @@
               variant="outlined"
               hide-details
               :step="1"
-              @update:model-value="setConsumptionValue(routeIndex, saResourceType, parseFloat($event) || 0)"
+              @update:model-value="setConsumptionValue(routeIndex, saResourceType, $event)"
             />
           </div>
         </div>
@@ -146,7 +146,7 @@
                 hide-details
                 :step="0.1"
                 :disabled="!getOverrideFlag(routeIndex, odResourceType)"
-                @update:model-value="setRequirementValue(routeIndex, odResourceType, parseFloat($event) || 0)"
+                @update:model-value="setRequirementValue(routeIndex, odResourceType, $event)"
               />
             </div>
             <div class="requirement-field">
@@ -160,7 +160,7 @@
                 :step="1"
                 hide-details
                 :disabled="!getOverrideFlag(routeIndex, saResourceType)"
-                @update:model-value="setRequirementValue(routeIndex, saResourceType, parseFloat($event) || 0)"
+                @update:model-value="setRequirementValue(routeIndex, saResourceType, $event)"
               />
             </div>
           </div>
