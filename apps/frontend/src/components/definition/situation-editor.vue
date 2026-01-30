@@ -173,6 +173,7 @@
                       type="number"
                       class="damage-input"
                       :value="getOpponentDamage(playerAction.actionId, oppAction.actionId) || ''"
+                      step="100"
                       @input="setOpponentDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
                     >
                   </div>
@@ -182,6 +183,7 @@
                       type="number"
                       class="damage-input"
                       :value="getPlayerDamage(playerAction.actionId, oppAction.actionId) || ''"
+                      step="100"
                       @input="setPlayerDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
                     >
                   </div>
@@ -601,14 +603,13 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 
 .transition-matrix .damage-inputs {
   display: flex;
-  gap: 2px;
+  gap: 8px;
   margin-top: 2px;
 }
 
 .transition-matrix .damage-field {
   display: flex;
   align-items: center;
-  gap: 1px;
 }
 
 .transition-matrix .damage-label {
@@ -626,7 +627,7 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 }
 
 .transition-matrix .damage-input {
-  width: 45px;
+  width: 60px;
   padding: 2px 3px;
   border: 1px solid var(--border-input);
   border-radius: 3px;
