@@ -55,14 +55,10 @@
           variant="outlined"
           hide-details
         />
-        <button
-          type="button"
-          class="delete-action-btn"
+        <CircleDeleteButton
           title="行動を削除"
           @click="removePlayerAction(index)"
-        >
-          ×
-        </button>
+        />
       </div>
       <button
         type="button"
@@ -101,14 +97,10 @@
           variant="outlined"
           hide-details
         />
-        <button
-          type="button"
-          class="delete-action-btn"
+        <CircleDeleteButton
           title="行動を削除"
           @click="removeOpponentAction(index)"
-        >
-          ×
-        </button>
+        />
       </div>
       <button
         type="button"
@@ -206,6 +198,7 @@ import type {
 } from '@nomari/ts-proto';
 import { ResourceType } from '@nomari/ts-proto';
 import { generateId } from '@/utils/scenario-utils';
+import CircleDeleteButton from '@/components/common/circle-delete-button.vue';
 
 const model = defineModel<Situation>({
     required: true
@@ -470,26 +463,6 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
   margin-bottom: 15px;
 }
 
-.delete-action-btn {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background-color: transparent;
-  color: var(--text-tertiary);
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
-  flex-shrink: 0;
-}
-
-.delete-action-btn:hover {
-  background-color: var(--color-delete);
-  color: white;
-}
-
 .add-action-btn {
   display: inline-flex;
   align-items: center;
@@ -696,8 +669,6 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .form-row .v-text-field.form-description {
   flex: 3;
 }
-
-/* delete-action-btn styles are defined separately */
 
 button {
   padding: 8px 15px;

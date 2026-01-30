@@ -102,12 +102,10 @@
           @click="switchToStrategyWithValidation()"
         >
           <span class="fab-text">戦略を確認</span>
-          <svg
-            viewBox="0 0 24 24"
+          <v-icon
+            icon="mdi-chevron-right"
             class="fab-icon"
-          >
-            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
-          </svg>
+          />
         </button>
       </template>
 
@@ -154,12 +152,10 @@
           class="arena-fab arena-fab--left"
           @click="viewStore.switchToEdit()"
         >
-          <svg
-            viewBox="0 0 24 24"
+          <v-icon
+            icon="mdi-chevron-left"
             class="fab-icon fab-icon--left"
-          >
-            <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" />
-          </svg>
+          />
           <span class="fab-text">編集に戻る</span>
         </button>
       </template>
@@ -647,9 +643,7 @@ body {
 }
 
 .fab-icon {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
+  font-size: 18px !important;
 }
 
 .fab-icon--left {

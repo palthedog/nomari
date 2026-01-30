@@ -87,13 +87,10 @@
                   title="初期状況"
                 >★</span>
                 <span class="item-name">{{ situation.name || '(説明なし)' }}</span>
-                <button
-                  type="button"
+                <CircleDeleteButton
                   class="delete-item-btn"
-                  @click.stop="confirmDeleteSituation(situation)"
-                >
-                  ×
-                </button>
+                  @click="confirmDeleteSituation(situation)"
+                />
               </li>
               <li
                 class="section-item add-button"
@@ -119,13 +116,10 @@
                 @click="selectTerminalSituation(terminal.situationId)"
               >
                 <span class="item-name">{{ terminal.name || '(名前なし)' }}</span>
-                <button
-                  type="button"
+                <CircleDeleteButton
                   class="delete-item-btn"
-                  @click.stop="confirmDeleteTerminalSituation(terminal)"
-                >
-                  ×
-                </button>
+                  @click="confirmDeleteTerminalSituation(terminal)"
+                />
               </li>
               <li
                 class="section-item add-button"
@@ -151,13 +145,10 @@
                 @click="selectPlayerCombo(combo.situationId)"
               >
                 <span class="item-name">{{ combo.name || '(名前なし)' }}</span>
-                <button
-                  type="button"
+                <CircleDeleteButton
                   class="delete-item-btn"
-                  @click.stop="confirmDeletePlayerCombo(combo)"
-                >
-                  ×
-                </button>
+                  @click="confirmDeletePlayerCombo(combo)"
+                />
               </li>
               <li
                 class="section-item add-button"
@@ -183,13 +174,10 @@
                 @click="selectOpponentCombo(combo.situationId)"
               >
                 <span class="item-name">{{ combo.name || '(名前なし)' }}</span>
-                <button
-                  type="button"
+                <CircleDeleteButton
                   class="delete-item-btn"
-                  @click.stop="confirmDeleteOpponentCombo(combo)"
-                >
-                  ×
-                </button>
+                  @click="confirmDeleteOpponentCombo(combo)"
+                />
               </li>
               <li
                 class="section-item add-button"
@@ -340,6 +328,7 @@ import {
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
 import ComboStarterEditor from './combo-starter-editor.vue';
+import CircleDeleteButton from '@/components/common/circle-delete-button.vue';
 import { useScenarioStore } from '@/stores/scenario-store';
 
 // Props for mobile support
@@ -1035,43 +1024,30 @@ function executeDelete() {
   font-weight: 500;
 }
 
-/* Delete button - Arena style */
+/* Delete button visibility */
 .delete-item-btn {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background-color: transparent;
-  color: var(--text-tertiary);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
   opacity: 0;
-  transition: all var(--transition-fast);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition: opacity var(--transition-fast);
 }
 
 .section-item:hover .delete-item-btn {
   opacity: 1;
 }
 
-.delete-item-btn:hover {
-  background-color: var(--color-delete);
-  color: white;
-}
-
 .section-item.active .delete-item-btn {
-  color: rgba(255, 255, 255, 0.7);
   opacity: 1;
 }
 
+.section-item.active .delete-item-btn {
+  --btn-color: rgba(255, 255, 255, 0.7);
+}
+
 .section-item.active .delete-item-btn:hover {
+  --btn-color: white;
+}
+
+.section-item.active .delete-item-btn:hover :deep(.circle-delete-btn) {
   background-color: rgba(255, 255, 255, 0.2);
-  color: white;
 }
 
 .section-icon {

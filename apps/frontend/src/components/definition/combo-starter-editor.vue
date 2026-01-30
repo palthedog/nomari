@@ -58,14 +58,10 @@
             hide-details
             class="route-name-input"
           />
-          <button
-            type="button"
-            class="delete-route-btn"
+          <CircleDeleteButton
             title="ルートを削除"
             @click="removeRoute(routeIndex)"
-          >
-            ×
-          </button>
+          />
         </div>
 
         <!-- Consumptions (fixed 4 items: damage, OD damage, OD cost, SA cost) -->
@@ -202,6 +198,7 @@ import type {
     TerminalSituation,
 } from '@nomari/ts-proto';
 import { ResourceType } from '@nomari/ts-proto';
+import CircleDeleteButton from '@/components/common/circle-delete-button.vue';
 
 const model = defineModel<ComboStarter>({
     required: true 
@@ -556,26 +553,6 @@ watch(() => model.value.routes.length, () => {
 
 .route-name-input {
   flex: 1;
-}
-
-.delete-route-btn {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background-color: transparent;
-  color: var(--text-tertiary);
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
-  flex-shrink: 0;
-}
-
-.delete-route-btn:hover {
-  background-color: var(--color-delete);
-  color: white;
 }
 
 .route-subsection {
