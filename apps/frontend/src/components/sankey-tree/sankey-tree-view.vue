@@ -70,7 +70,7 @@
               :y="row.y"
               :width="playerBoxWidth"
               :height="row.height"
-              :fill="getPlayerColor(rowIdx)"
+              :fill="getPlayerActionColor(rowIdx)"
               rx="2"
               class="player-box"
             />
@@ -183,13 +183,13 @@
         <!-- Flow tooltip -->
         <template v-if="activeTooltip.type === 'flow'">
           <div class="tooltip-action">
-            {{ (activeTooltip.data as FlowTooltipData).playerAction }} → {{ (activeTooltip.data as FlowTooltipData).opponentAction }}
+            {{ (activeTooltip.data as FlowTooltipData).playerAction }} v.s. {{ (activeTooltip.data as FlowTooltipData).opponentAction }}
           </div>
           <div class="tooltip-target">
             → {{ (activeTooltip.data as FlowTooltipData).targetName }}
           </div>
           <div class="tooltip-prob">
-            {{ formatProb((activeTooltip.data as FlowTooltipData).probability) }}
+            {{ formatProb((activeTooltip.data as FlowTooltipData).playerProb) }} * {{ formatProb((activeTooltip.data as FlowTooltipData).opponentProb) }} = {{ formatProb((activeTooltip.data as FlowTooltipData).reachProbability) }}
           </div>
         </template>
 
@@ -252,6 +252,8 @@ interface FlowData {
     targetNodeId: string;
     playerActionName: string;
     opponentActionName: string;
+    playerProb: number;
+    opponentProb: number;
     targetName: string;
     probability: number;
     midX: number;
@@ -262,7 +264,9 @@ interface FlowTooltipData {
     playerAction: string;
     opponentAction: string;
     targetName: string;
-    probability: number;
+    playerProb: number;
+    opponentProb: number;
+    reachProbability: number;
 }
 
 interface ChainNodeTooltipData {
@@ -352,7 +356,7 @@ const targetBoxWidth = 20;
 const rowGap = 0;
 const tooltipMargin = 10;
 
-const playerColors = [
+const playerActionColors = [
     '#E8C060', // Gold
     '#9B7EDE', // Purple
     '#20B2AA', // Teal
@@ -360,8 +364,8 @@ const playerColors = [
     '#DA70D6', // Orchid
 ];
 
-function getPlayerColor(index: number): string {
-    return playerColors[index % playerColors.length];
+function getPlayerActionColor(index: number): string {
+    return playerActionColors[index % playerActionColors.length];
 }
 
 function getSignificantTargets(node: Node, strategy: StrategyData): Set<string> {
@@ -523,6 +527,7 @@ interface RawTransition {
     playerProb: number;
     opponentActionId: number;
     opponentActionName: string;
+    opponentProb: number;
     combinedProb: number;
     chain: NodeChain;
     targetNodeId: string;
@@ -599,6 +604,7 @@ function collectTransitions(ctx: LayoutContext): RawTransition[] {
             playerProb,
             opponentActionId: t.opponentActionId,
             opponentActionName: opponentAction?.name ?? `Action ${t.opponentActionId}`,
+            opponentProb,
             combinedProb,
             chain,
             targetNodeId: chain.finalNodeId,
@@ -948,6 +954,8 @@ function generateFlowsAndChains(
                 targetNodeId: t.targetNodeId,
                 playerActionName: t.playerActionName,
                 opponentActionName: t.opponentActionName,
+                playerProb: t.playerProb,
+                opponentProb: t.opponentProb,
                 targetName: t.targetNode.name ?? t.targetNodeId,
                 probability: t.combinedProb,
                 midX: (playerBoxX + playerBoxWidth + dynamicTargetBoxX) / 2,
@@ -1163,7 +1171,9 @@ function showFlowTooltip(flowIdx: number) {
             playerAction: flow.playerActionName,
             opponentAction: flow.opponentActionName,
             targetName: flow.targetName,
-            probability: flow.probability
+            playerProb: flow.playerProb,
+            opponentProb: flow.opponentProb,
+            reachProbability: flow.probability
         }
     };
 }
@@ -1249,7 +1259,7 @@ function truncate(str: string, maxLength: number): string {
 }
 
 function formatHealth(health: number): string {
-    return (health / 1000).toFixed(1) + 'k';
+    return health.toLocaleString();
 }
 
 function formatProb(prob: number): string {
