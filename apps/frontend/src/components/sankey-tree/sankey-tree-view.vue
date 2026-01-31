@@ -9,6 +9,18 @@
         :height="svgHeight"
         :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
       >
+        <!-- Source node bounding box -->
+        <rect
+          v-if="sourceBoundingBox"
+          :x="sourceBoundingBox.x"
+          :y="sourceBoundingBox.y"
+          :width="sourceBoundingBox.width"
+          :height="sourceBoundingBox.height"
+          :rx="6"
+          :fill="sourceBoxColor"
+          class="source-bounding-box"
+        />
+
         <!-- Title -->
         <g class="title-group">
           <text
@@ -37,7 +49,7 @@
             <path
               :d="flow.path"
               :fill="flow.color"
-              :opacity="hoveredFlow === flowIdx ? 0.85 : 0.45"
+              :fill-opacity="hoveredFlow === flowIdx ? 1 : 0.6"
               class="flow-path"
               @click="$emit('select-node', flow.targetNodeId)"
               @mouseenter="showFlowTooltip(flowIdx)"
@@ -59,22 +71,22 @@
               :width="playerBoxWidth"
               :height="row.height"
               :fill="getPlayerColor(rowIdx)"
-              rx="4"
+              rx="2"
               class="player-box"
             />
             <text
-              :x="playerBoxX + playerBoxWidth / 2"
+              :x="playerBoxX - 8"
               :y="row.y + row.height / 2 - 6"
-              text-anchor="middle"
+              text-anchor="end"
               dominant-baseline="middle"
               class="player-label"
             >
               {{ row.actionName }}
             </text>
             <text
-              :x="playerBoxX + playerBoxWidth / 2"
-              :y="row.y + row.height / 2 + 10"
-              text-anchor="middle"
+              :x="playerBoxX - 8"
+              :y="row.y + row.height / 2 + 12"
+              text-anchor="end"
               dominant-baseline="middle"
               class="player-prob"
             >
@@ -138,7 +150,6 @@
               :width="targetBoxWidth"
               :height="target.height"
               :fill="target.color"
-              rx="4"
               class="target-box"
             />
             <text
@@ -332,21 +343,21 @@ onUnmounted(() => {
 // Layout constants
 const svgWidth = computed(() => Math.max(800, containerWidth.value));
 const topPadding = 70;
-const playerBoxX = 30;
-const playerBoxWidth = 100;
+const playerBoxX = 110;
+const playerBoxWidth = 8;
 const baseFlowWidth = 300;
 const chainNodeSize = 20;
 const chainGap = 30;
 const targetBoxWidth = 20;
-const rowGap = 15;
+const rowGap = 0;
 const tooltipMargin = 10;
 
 const playerColors = [
-    '#5AAF8A',
-    '#4A6FA5',
-    '#E07078',
-    '#E8C060',
-    '#9B7EDE',
+    '#E8C060', // Gold
+    '#9B7EDE', // Purple
+    '#20B2AA', // Teal
+    '#F4A460', // Sandy brown
+    '#DA70D6', // Orchid
 ];
 
 function getPlayerColor(index: number): string {
@@ -874,9 +885,9 @@ function generateFlowsAndChains(
         const playerPos = playerRowPositions.get(playerId)!;
 
         // Calculate flow heights proportional to each player's box
-        const boxPadding = 8;
+        const boxPadding = 2;
         const usableHeight = playerPos.height - boxPadding * 2;
-        const flowGap = 3;
+        const flowGap = 1;
         // Calculate total probability for this player's transitions (for proportional sizing)
         const playerTotalProb = playerTransitions.reduce((sum, t) => sum + t.combinedProb, 0);
         // Calculate needed height with minimum flow sizes
@@ -1094,6 +1105,28 @@ const chainConnections = computed(() => calculatedData.value.chainConnections);
 const targetBoxX = computed(() => calculatedData.value.targetBoxX);
 const svgHeight = computed(() => calculatedData.value.totalHeight);
 
+const sourceBoundingBox = computed(() => {
+    const rows = playerRows.value;
+    if (rows.length === 0) {
+        return null;
+    }
+
+    const firstRow = rows[0];
+    const lastRow = rows[rows.length - 1];
+    const leftX = 20;
+
+    return {
+        x: leftX,
+        y: firstRow.y,
+        width: playerBoxX + playerBoxWidth - leftX,
+        height: lastRow.y + lastRow.height - firstRow.y
+    };
+});
+
+const sourceBoxColor = computed(() => {
+    return getTargetColor(props.selectedNode);
+});
+
 const tooltipStyle = computed(() => {
     if (!activeTooltip.value) {
         return {};
@@ -1263,7 +1296,7 @@ function formatProb(prob: number): string {
 
 .player-prob {
     font-family: var(--font-family-mono);
-    font-size: 11px;
+    font-size: 14px;
     fill: rgba(255, 255, 255, 0.9);
 }
 
@@ -1289,11 +1322,16 @@ function formatProb(prob: number): string {
     stroke-width: 2;
 }
 
+.source-bounding-box {
+    fill-opacity:0.8;
+}
+
 .target-box {
     cursor: pointer;
-    stroke: rgba(255, 255, 255, 0.2);
+    stroke: rgba(100, 100, 100, 1);
     stroke-width: 1;
     transition: stroke 0.15s ease;
+    rx:4;
 }
 
 .target-node:hover .target-box {
@@ -1349,4 +1387,5 @@ function formatProb(prob: number): string {
     font-size: 11px;
     color: var(--gold-primary);
 }
+
 </style>
