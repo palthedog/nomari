@@ -19,11 +19,21 @@ export const VIEW_MODES: ViewModeConfig[] = [
     },
 ];
 
+export type EditSelection =
+    | { type: 'scenario' }
+    | { type: 'situation';
+        situationId: number };
+
 export const useViewStore = defineStore('view', () => {
     const viewMode = ref<ViewMode>('edit');
 
     // Currently selected situation ID (updated when nodes are selected in strategy mode)
     const selectedSituationId = ref<number | null>(null);
+
+    // Edit mode selection state
+    const editSelection = ref<EditSelection>({
+        type: 'scenario' 
+    });
 
     function setViewMode(mode: ViewMode) {
         viewMode.value = mode;
@@ -41,12 +51,33 @@ export const useViewStore = defineStore('view', () => {
         selectedSituationId.value = id;
     }
 
+    function selectScenarioSettings() {
+        editSelection.value = {
+            type: 'scenario' 
+        };
+    }
+
+    function selectEditSituation(situationId: number) {
+        editSelection.value = {
+            type: 'situation',
+            situationId 
+        };
+    }
+
+    function setEditSelection(selection: EditSelection) {
+        editSelection.value = selection;
+    }
+
     return {
         viewMode,
         selectedSituationId,
+        editSelection,
         setViewMode,
         switchToEdit,
         switchToStrategy,
         setSelectedSituationId,
+        selectScenarioSettings,
+        selectEditSituation,
+        setEditSelection,
     };
 });

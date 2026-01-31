@@ -270,7 +270,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useViewStore } from '@/stores/view-store';
 import type {
@@ -306,14 +306,46 @@ const { scenario, validationErrors, showValidationErrors } = storeToRefs(scenari
 const { closeValidationErrors } = scenarioStore;
 
 const viewStore = useViewStore();
+const { editSelection } = storeToRefs(viewStore);
 
-type SelectionType = 'scenario-settings' | 'situation' | 'terminal-situation' | 'player-combo' | 'opponent-combo' | null;
-const selectedItemType = ref<SelectionType>(null);
-const isScenarioSettingsSelected = computed(() => selectedItemType.value === 'scenario-settings');
-const selectedSituationId = ref<number | null>(null);
-const selectedTerminalSituationId = ref<number | null>(null);
-const selectedPlayerComboId = ref<number | null>(null);
-const selectedOpponentComboId = ref<number | null>(null);
+// Computed selection state derived from store
+const isScenarioSettingsSelected = computed(() => editSelection.value.type === 'scenario');
+
+const selectedSituationId = computed(() => {
+    if (editSelection.value.type !== 'situation') {
+        return null;
+    }
+    const id = editSelection.value.situationId;
+    const type = getSituationType(scenario.value, id);
+    return type === 'situation' ? id : null;
+});
+
+const selectedTerminalSituationId = computed(() => {
+    if (editSelection.value.type !== 'situation') {
+        return null;
+    }
+    const id = editSelection.value.situationId;
+    const type = getSituationType(scenario.value, id);
+    return type === 'terminal' ? id : null;
+});
+
+const selectedPlayerComboId = computed(() => {
+    if (editSelection.value.type !== 'situation') {
+        return null;
+    }
+    const id = editSelection.value.situationId;
+    const type = getSituationType(scenario.value, id);
+    return type === 'playerCombo' ? id : null;
+});
+
+const selectedOpponentComboId = computed(() => {
+    if (editSelection.value.type !== 'situation') {
+        return null;
+    }
+    const id = editSelection.value.situationId;
+    const type = getSituationType(scenario.value, id);
+    return type === 'opponentCombo' ? id : null;
+});
 
 // Delete confirmation dialog state
 const showDeleteDialog = ref(false);
@@ -321,32 +353,6 @@ const deleteTarget = ref<{
     name: string;
     onConfirm: () => void;
 } | null>(null);
-
-// On mount, select the situation that was selected in strategy mode
-onMounted(() => {
-    const situationId = viewStore.selectedSituationId;
-    if (situationId != null) {
-        selectSituationById(situationId);
-    }
-});
-
-function selectSituationById(situationId: number) {
-    const type = getSituationType(scenario.value, situationId);
-    switch (type) {
-        case 'situation':
-            selectSituation(situationId);
-            break;
-        case 'terminal':
-            selectTerminalSituation(situationId);
-            break;
-        case 'playerCombo':
-            selectPlayerCombo(situationId);
-            break;
-        case 'opponentCombo':
-            selectOpponentCombo(situationId);
-            break;
-    }
-}
 
 const selectedSituation = computed(() => {
     if (!selectedSituationId.value) {
@@ -425,13 +431,6 @@ const availableSituationsForTransition = computed(() => {
     return situations;
 });
 
-function clearSelection() {
-    selectedSituationId.value = null;
-    selectedTerminalSituationId.value = null;
-    selectedPlayerComboId.value = null;
-    selectedOpponentComboId.value = null;
-}
-
 function switchToDetailIfMobile() {
     if (props.isMobile) {
         emit('update:mobileSubView', 'detail');
@@ -439,36 +438,27 @@ function switchToDetailIfMobile() {
 }
 
 function selectScenarioSettings() {
-    clearSelection();
-    selectedItemType.value = 'scenario-settings';
+    viewStore.selectScenarioSettings();
     switchToDetailIfMobile();
 }
 
 function selectSituation(situationId: number) {
-    clearSelection();
-    selectedItemType.value = 'situation';
-    selectedSituationId.value = situationId;
+    viewStore.selectEditSituation(situationId);
     switchToDetailIfMobile();
 }
 
 function selectTerminalSituation(terminalSituationId: number) {
-    clearSelection();
-    selectedItemType.value = 'terminal-situation';
-    selectedTerminalSituationId.value = terminalSituationId;
+    viewStore.selectEditSituation(terminalSituationId);
     switchToDetailIfMobile();
 }
 
 function selectPlayerCombo(comboId: number) {
-    clearSelection();
-    selectedItemType.value = 'player-combo';
-    selectedPlayerComboId.value = comboId;
+    viewStore.selectEditSituation(comboId);
     switchToDetailIfMobile();
 }
 
 function selectOpponentCombo(comboId: number) {
-    clearSelection();
-    selectedItemType.value = 'opponent-combo';
-    selectedOpponentComboId.value = comboId;
+    viewStore.selectEditSituation(comboId);
     switchToDetailIfMobile();
 }
 
@@ -522,9 +512,7 @@ function deleteSituation() {
         } else if (scenario.value.terminalSituations.length > 0) {
             selectTerminalSituation(scenario.value.terminalSituations[0].situationId);
         } else {
-            selectedItemType.value = null;
-            selectedSituationId.value = null;
-            selectedTerminalSituationId.value = null;
+            selectScenarioSettings();
         }
     }
 }
@@ -581,8 +569,7 @@ function deleteTerminalSituation() {
         } else if (scenario.value.situations.length > 0) {
             selectSituation(scenario.value.situations[0].situationId);
         } else {
-            clearSelection();
-            selectedItemType.value = null;
+            selectScenarioSettings();
         }
     }
 }
@@ -628,8 +615,7 @@ function deletePlayerCombo() {
         } else if (scenario.value.situations.length > 0) {
             selectSituation(scenario.value.situations[0].situationId);
         } else {
-            clearSelection();
-            selectedItemType.value = null;
+            selectScenarioSettings();
         }
     }
 }
@@ -675,8 +661,7 @@ function deleteOpponentCombo() {
         } else if (scenario.value.situations.length > 0) {
             selectSituation(scenario.value.situations[0].situationId);
         } else {
-            clearSelection();
-            selectedItemType.value = null;
+            selectScenarioSettings();
         }
     }
 }
@@ -686,7 +671,7 @@ function confirmDeleteSituation(situation: Situation) {
     deleteTarget.value = {
         name: situation.name || '(説明なし)',
         onConfirm: () => {
-            selectedSituationId.value = situation.situationId;
+            selectSituation(situation.situationId);
             deleteSituation();
         },
     };
@@ -697,7 +682,7 @@ function confirmDeleteTerminalSituation(terminal: TerminalSituation) {
     deleteTarget.value = {
         name: terminal.name || '(名前なし)',
         onConfirm: () => {
-            selectedTerminalSituationId.value = terminal.situationId;
+            selectTerminalSituation(terminal.situationId);
             deleteTerminalSituation();
         },
     };
@@ -708,7 +693,7 @@ function confirmDeletePlayerCombo(combo: ComboStarter) {
     deleteTarget.value = {
         name: combo.name || '(名前なし)',
         onConfirm: () => {
-            selectedPlayerComboId.value = combo.situationId;
+            selectPlayerCombo(combo.situationId);
             deletePlayerCombo();
         },
     };
@@ -719,7 +704,7 @@ function confirmDeleteOpponentCombo(combo: ComboStarter) {
     deleteTarget.value = {
         name: combo.name || '(名前なし)',
         onConfirm: () => {
-            selectedOpponentComboId.value = combo.situationId;
+            selectOpponentCombo(combo.situationId);
             deleteOpponentCombo();
         },
     };

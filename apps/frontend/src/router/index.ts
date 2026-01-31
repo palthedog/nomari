@@ -9,13 +9,22 @@ const EmptyComponent = {
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/edit',
+        redirect: '/edit/scenario',
     },
 
     // Local editing (no source)
     {
         path: '/edit',
-        name: 'local-edit',
+        redirect: '/edit/scenario',
+    },
+    {
+        path: '/edit/scenario',
+        name: 'local-edit-scenario',
+        component: EmptyComponent,
+    },
+    {
+        path: '/edit/situation/:situationId',
+        name: 'local-edit-situation',
         component: EmptyComponent,
     },
     {
@@ -32,11 +41,20 @@ const routes: RouteRecordRaw[] = [
     // Example loading
     {
         path: '/example/:exampleName',
-        redirect: (to) => `/example/${to.params.exampleName}/edit`,
+        redirect: (to) => `/example/${to.params.exampleName}/edit/scenario`,
     },
     {
         path: '/example/:exampleName/edit',
-        name: 'example-edit',
+        redirect: (to) => `/example/${to.params.exampleName}/edit/scenario`,
+    },
+    {
+        path: '/example/:exampleName/edit/scenario',
+        name: 'example-edit-scenario',
+        component: EmptyComponent,
+    },
+    {
+        path: '/example/:exampleName/edit/situation/:situationId',
+        name: 'example-edit-situation',
         component: EmptyComponent,
     },
     {

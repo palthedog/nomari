@@ -1,7 +1,7 @@
 import { watch, nextTick, ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import log from 'loglevel';
-import { useViewStore, type ViewMode } from '@/stores/view-store';
+import { useViewStore, type ViewMode, type EditSelection } from '@/stores/view-store';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useScenarioStore } from '@/stores/scenario-store';
 import { useNotificationStore } from '@/stores/notification-store';
@@ -60,6 +60,34 @@ export function useUrlSync() {
         return hasNode ? `${base}-node` : base;
     }
 
+    // Build edit route name from components
+    function buildEditRouteName(source: SourceType, editType: 'scenario' | 'situation'): string {
+        return `${source}-edit-${editType}`;
+    }
+
+    // Get edit selection from route
+    function getEditSelectionFromRoute(): EditSelection | null {
+        const name = route.name?.toString() ?? '';
+        if (name.endsWith('-edit-scenario')) {
+            return {
+                type: 'scenario' 
+            };
+        }
+        if (name.endsWith('-edit-situation')) {
+            const situationId = route.params.situationId;
+            if (typeof situationId === 'string') {
+                const id = parseInt(situationId, 10);
+                if (!isNaN(id)) {
+                    return {
+                        type: 'situation',
+                        situationId: id 
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
     // Load example from URL parameter
     async function loadExample(exampleName: string): Promise<boolean> {
         if (!isValidExampleName(exampleName)) {
@@ -107,6 +135,29 @@ export function useUrlSync() {
         });
     }
 
+    // Navigate to edit route with current source preserved
+    function navigateToEdit(selection: EditSelection) {
+        const source = getSourceType();
+        const editType = selection.type === 'scenario' ? 'scenario' : 'situation';
+        const targetRouteName = buildEditRouteName(source, editType);
+
+        const params: Record<string, string> = {};
+        if (source === 'example') {
+            const exampleName = route.params.exampleName;
+            if (typeof exampleName === 'string') {
+                params.exampleName = exampleName;
+            }
+        }
+        if (selection.type === 'situation') {
+            params.situationId = selection.situationId.toString();
+        }
+
+        router.push({
+            name: targetRouteName,
+            params,
+        });
+    }
+
     // URL -> Store: Sync view mode from route
     function syncViewModeFromRoute() {
         const targetMode = getViewModeFromRoute();
@@ -120,7 +171,7 @@ export function useUrlSync() {
                 if (!scenarioStore.validateAndShowErrors()) {
                     // Validation failed, redirect to edit
                     const source = getSourceType();
-                    const editRouteName = buildRouteName(source, 'edit', false);
+                    const editRouteName = buildEditRouteName(source, 'scenario');
                     const params: Record<string, string> = {};
                     if (source === 'example') {
                         const exampleName = route.params.exampleName;
@@ -137,6 +188,26 @@ export function useUrlSync() {
             }
             viewStore.setViewMode(targetMode);
         }
+    }
+
+    // URL -> Store: Sync edit selection from route
+    function syncEditSelectionFromRoute() {
+        const selection = getEditSelectionFromRoute();
+        if (!selection) {
+            return;
+        }
+        const currentSelection = viewStore.editSelection;
+        if (selection.type === 'scenario' && currentSelection.type === 'scenario') {
+            return;
+        }
+        if (
+            selection.type === 'situation' &&
+            currentSelection.type === 'situation' &&
+            selection.situationId === currentSelection.situationId
+        ) {
+            return;
+        }
+        viewStore.setEditSelection(selection);
     }
 
     // URL -> Store: Sync selected node from route params
@@ -156,18 +227,31 @@ export function useUrlSync() {
         }
     }
 
-    // Watch route changes for view mode
+    // Watch route changes for view mode and edit selection
     watch(
         () => route.name,
         () => {
             isUpdatingFromUrl.value = true;
             syncViewModeFromRoute();
+            syncEditSelectionFromRoute();
             nextTick(() => {
                 isUpdatingFromUrl.value = false;
             });
         },
         {
             immediate: true
+        }
+    );
+
+    // Watch route params for edit situationId
+    watch(
+        () => route.params.situationId,
+        () => {
+            isUpdatingFromUrl.value = true;
+            syncEditSelectionFromRoute();
+            nextTick(() => {
+                isUpdatingFromUrl.value = false;
+            });
         }
     );
 
@@ -182,7 +266,7 @@ export function useUrlSync() {
                     if (!loaded) {
                         // Failed to load example, redirect to local edit
                         router.replace({
-                            name: 'local-edit' 
+                            name: 'local-edit-scenario'
                         });
                         return;
                     }
@@ -227,9 +311,47 @@ export function useUrlSync() {
 
             const currentMode = getViewModeFromRoute();
             if (currentMode !== mode) {
-                // When switching mode, clear node selection
-                navigateTo(mode, null);
+                if (mode === 'edit') {
+                    // When switching to edit mode, navigate with current edit selection
+                    navigateToEdit(viewStore.editSelection);
+                } else {
+                    // When switching to strategy mode, clear node selection
+                    navigateTo(mode, null);
+                }
             }
+        }
+    );
+
+    // Store -> URL: Watch editSelection changes
+    watch(
+        () => viewStore.editSelection,
+        (selection) => {
+            if (isUpdatingFromUrl.value) {
+                return;
+            }
+            // Only update URL if in edit mode
+            if (viewStore.viewMode !== 'edit') {
+                return;
+            }
+            const currentSelection = getEditSelectionFromRoute();
+            if (!currentSelection) {
+                navigateToEdit(selection);
+                return;
+            }
+            if (selection.type === 'scenario' && currentSelection.type === 'scenario') {
+                return;
+            }
+            if (
+                selection.type === 'situation' &&
+                currentSelection.type === 'situation' &&
+                selection.situationId === currentSelection.situationId
+            ) {
+                return;
+            }
+            navigateToEdit(selection);
+        },
+        {
+            deep: true 
         }
     );
 
