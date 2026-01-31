@@ -1339,6 +1339,7 @@ function formatProb(prob: number): string {
 <style scoped>
 .sankey-tree-view {
     display: flex;
+    flex: 1;
     width: 100%;
     overflow: auto;
     padding: 10px;
