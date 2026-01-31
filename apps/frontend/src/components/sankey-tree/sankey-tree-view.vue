@@ -215,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
 import {
@@ -342,6 +342,11 @@ onMounted(() => {
 });
 onUnmounted(() => {
     resizeObserver?.disconnect();
+});
+
+// Clear tooltip when selected node changes
+watch(() => props.selectedNode, () => {
+    hideTooltip();
 });
 
 // Layout constants
