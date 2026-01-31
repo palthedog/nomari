@@ -19,6 +19,8 @@
           :rx="6"
           :fill="sourceBoxColor"
           class="source-bounding-box"
+          @mouseenter="showNodeTooltip(selectedNode.nodeId, $event)"
+          @mouseleave="hideTooltip"
         />
 
         <!-- Title -->
@@ -121,7 +123,7 @@
             :key="`chain-${cnIdx}`"
             class="chain-node"
             @click="$emit('select-node', chainNode.nodeId)"
-            @mouseenter="showChainNodeTooltip(chainNode.nodeId)"
+            @mouseenter="showNodeTooltip(chainNode.nodeId, $event)"
             @mouseleave="hideTooltip"
           >
             <rect
@@ -143,6 +145,8 @@
             :key="`target-${tIdx}`"
             class="target-node"
             @click="$emit('select-node', target.nodeId)"
+            @mouseenter="showNodeTooltip(target.nodeId, $event)"
+            @mouseleave="hideTooltip"
           >
             <rect
               :x="targetBoxX"
@@ -193,20 +197,26 @@
           </div>
         </template>
 
-        <!-- Chain node tooltip -->
-        <template v-else-if="activeTooltip.type === 'chainNode'">
-          <div class="tooltip-action">
-            {{ (activeTooltip.data as ChainNodeTooltipData).name }}
-          </div>
-          <div class="tooltip-target">
-            HP {{ formatHealth((activeTooltip.data as ChainNodeTooltipData).playerHealth) }} / {{ formatHealth((activeTooltip.data as ChainNodeTooltipData).opponentHealth) }}
-          </div>
-        </template>
-
         <!-- Chain connection tooltip -->
         <template v-else-if="activeTooltip.type === 'chainConnection'">
           <div class="tooltip-action">
             {{ (activeTooltip.data as ChainConnectionTooltipData).label }}
+          </div>
+        </template>
+
+        <!-- Node tooltip (common for start, chain, and target nodes) -->
+        <template v-else-if="activeTooltip.type === 'node'">
+          <div class="tooltip-action">
+            {{ (activeTooltip.data as NodeTooltipData).name }}
+          </div>
+          <div class="tooltip-target">
+            報酬期待値: {{ formatExpectedValue((activeTooltip.data as NodeTooltipData).expectedReward) }}
+          </div>
+          <div class="tooltip-target">
+            与ダメ期待値: {{ formatExpectedValue((activeTooltip.data as NodeTooltipData).expectedDamageDealt) }}
+          </div>
+          <div class="tooltip-target">
+            被ダメ期待値: {{ formatExpectedValue((activeTooltip.data as NodeTooltipData).expectedDamageReceived) }}
           </div>
         </template>
       </div>
@@ -218,6 +228,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
+import type { ExpectedValuesMap } from '@/utils/expected-value-calculator';
 import {
     isTerminal,
     isComboStarter,
@@ -269,14 +280,15 @@ interface FlowTooltipData {
     reachProbability: number;
 }
 
-interface ChainNodeTooltipData {
-    name: string;
-    playerHealth: number;
-    opponentHealth: number;
-}
-
 interface ChainConnectionTooltipData {
     label: string;
+}
+
+interface NodeTooltipData {
+    name: string;
+    expectedReward: number | null;
+    expectedDamageDealt: number | null;
+    expectedDamageReceived: number | null;
 }
 
 type TooltipState =
@@ -284,14 +296,14 @@ type TooltipState =
         x: number;
         y: number;
         data: FlowTooltipData }
-    | { type: 'chainNode';
-        x: number;
-        y: number;
-        data: ChainNodeTooltipData }
     | { type: 'chainConnection';
         x: number;
         y: number;
-        data: ChainConnectionTooltipData };
+        data: ChainConnectionTooltipData }
+    | { type: 'node';
+        x: number;
+        y: number;
+        data: NodeTooltipData };
 
 interface PlayerRow {
     actionName: string;
@@ -316,6 +328,7 @@ const props = defineProps<{
     gameTree: GameTree;
     strategy: StrategyData;
     allStrategies: Record<string, StrategyData>;
+    expectedValues: ExpectedValuesMap | null;
 }>();
 
 defineEmits<{
@@ -1228,28 +1241,6 @@ function showFlowTooltip(flowIdx: number) {
     };
 }
 
-function showChainNodeTooltip(nodeId: string) {
-    hoveredChainNode.value = nodeId;
-    const chainNode = chainNodes.value.find(n => n.nodeId === nodeId);
-    if (!chainNode) {
-        return;
-    }
-
-    const x = chainNode.x + chainNodeSize + tooltipMargin;
-    const y = chainNode.y - tooltipMargin;
-
-    activeTooltip.value = {
-        type: 'chainNode',
-        x,
-        y,
-        data: {
-            name: chainNode.node.name ?? chainNode.nodeId,
-            playerHealth: chainNode.node.state.playerHealth,
-            opponentHealth: chainNode.node.state.opponentHealth
-        }
-    };
-}
-
 function showChainConnectionTooltip(connIdx: number) {
     hoveredChainConnection.value = connIdx;
     const conn = chainConnections.value[connIdx];
@@ -1280,6 +1271,34 @@ function hideTooltip() {
     hoveredChainNode.value = null;
     hoveredChainConnection.value = null;
     activeTooltip.value = null;
+}
+
+function showNodeTooltip(nodeId: string, event: MouseEvent) {
+    const node = props.gameTree.nodes[nodeId];
+    if (!node) {
+        return;
+    }
+
+    const expectedValue = props.expectedValues?.[nodeId];
+
+    activeTooltip.value = {
+        type: 'node',
+        x: event.offsetX + tooltipMargin,
+        y: event.offsetY - tooltipMargin,
+        data: {
+            name: node.name ?? nodeId,
+            expectedReward: expectedValue?.nodeExpectedValue ?? null,
+            expectedDamageDealt: expectedValue?.expectedDamageDealt ?? null,
+            expectedDamageReceived: expectedValue?.expectedDamageReceived ?? null,
+        }
+    };
+}
+
+function formatExpectedValue(value: number | null): string {
+    if (value === null) {
+        return '-';
+    }
+    return value.toFixed(1);
 }
 
 function generateSankeyPath(

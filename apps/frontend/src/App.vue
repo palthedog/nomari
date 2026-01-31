@@ -119,6 +119,7 @@
               :game-tree="gameTree"
               :strategy="selectedNodeStrategy"
               :all-strategies="solverStrategies"
+              :expected-values="expectedValues"
               @select-node="gameTreeStore.selectNode($event)"
             />
             <div
