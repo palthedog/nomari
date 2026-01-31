@@ -1,11 +1,5 @@
 <template>
-  <!-- Demo pages use router-view -->
-  <router-view v-if="isDemoRoute" />
-
-  <div
-    v-else
-    class="app"
-  >
+  <div class="app">
     <!-- Decorative background texture -->
     <div class="app-texture" />
 
@@ -106,14 +100,34 @@
         </button>
       </template>
 
-      <!-- Strategy Mode: GameTreeVisualization | NodeStrategyPanel -->
+      <!-- Strategy Mode: SituationList | SankeyTree | NodeStrategyPanel -->
       <template v-else-if="viewMode === 'strategy'">
-        <!-- Desktop: Show both panels side by side -->
+        <!-- Desktop: Show three panels side by side -->
         <template v-if="!isMobile">
-          <GameTreePanel
-            :game-tree="gameTree"
-            class="panel panel--tree"
-          />
+          <section class="panel panel--situation-list">
+            <SituationListPanel
+              v-if="gameTree"
+              :game-tree="gameTree"
+              :selected-node-id="gameTreeStore.selectedNodeId"
+              @select-node="gameTreeStore.selectNode($event)"
+            />
+          </section>
+          <section class="panel panel--sankey">
+            <SankeyTreeView
+              v-if="selectedNode && selectedNodeStrategy && gameTree"
+              :selected-node="selectedNode"
+              :game-tree="gameTree"
+              :strategy="selectedNodeStrategy"
+              :all-strategies="solverStrategies"
+              @select-node="gameTreeStore.selectNode($event)"
+            />
+            <div
+              v-else-if="!selectedNode"
+              class="no-selection-message"
+            >
+              左のリストからノードを選択してください
+            </div>
+          </section>
           <section class="panel panel--strategy">
             <NodeStrategyPanel
               :selected-node="selectedNode"
@@ -125,11 +139,17 @@
 
         <!-- Mobile: Show one panel at a time -->
         <template v-else>
-          <GameTreePanel
+          <section
             v-show="mobileNavIndex === 2"
-            :game-tree="gameTree"
-            class="panel panel--mobile-full"
-          />
+            class="panel panel--situation-list panel--mobile-full"
+          >
+            <SituationListPanel
+              v-if="gameTree"
+              :game-tree="gameTree"
+              :selected-node-id="gameTreeStore.selectedNodeId"
+              @select-node="handleMobileSituationSelect($event)"
+            />
+          </section>
           <section
             v-show="mobileNavIndex === 3"
             class="panel panel--strategy panel--mobile-full"
@@ -182,7 +202,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import type { Node } from '@nomari/game-tree/game-tree';
 import { exportAsProto, importScenario } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
@@ -194,13 +213,10 @@ import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import MobileSubNav from '@/components/common/mobile-sub-nav.vue';
 import { useScenarioStore } from './stores/scenario-store';
 import { useNotificationStore } from './stores/notification-store';
-import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
+import SituationListPanel from '@/components/sankey-tree/situation-list-panel.vue';
+import SankeyTreeView from '@/components/sankey-tree/sankey-tree-view.vue';
 import { useUrlSync } from '@/composables/use-url-sync';
 import log from 'loglevel';
-
-// Route detection for demo pages
-const route = useRoute();
-const isDemoRoute = computed(() => route.path.startsWith('/demo/'));
 
 // Mobile detection
 const MOBILE_BREAKPOINT = 768;
@@ -217,7 +233,7 @@ function handleResize() {
 }
 
 // Labels for mobile unified navigation (4 pages)
-const mobileNavLabels = ['一覧', '編集', 'ゲーム木', '最適戦略'];
+const mobileNavLabels = ['一覧', '編集', 'シチュエーション', '最適戦略'];
 
 const mobileNavLeftLabel = computed(() => {
     if (mobileNavIndex.value === 0) {
@@ -249,6 +265,11 @@ function handleMobileNavigation(index: number) {
     } else {
         viewStore.setViewMode('strategy');
     }
+}
+
+function handleMobileSituationSelect(nodeId: string) {
+    gameTreeStore.selectNode(nodeId);
+    mobileNavIndex.value = 3; // Navigate to strategy panel
 }
 
 // View store
@@ -581,15 +602,33 @@ body {
   border-right: none;
 }
 
-.panel--tree {
+.panel--situation-list {
+  flex: 0 0 260px;
+  min-width: 0;
+  border-right: 1px solid var(--border-primary);
+  overflow-y: auto;
+  background: var(--bg-secondary);
+}
+
+.panel--sankey {
   flex: 1;
   min-width: 0;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel--strategy {
-  flex: 0 0 420px;
+  flex: 0 0 380px;
   min-width: 0;
   border-left: 1px solid var(--border-primary);
+}
+
+.no-selection-message {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+  padding: 24px;
 }
 
 .panel--mobile-full {
@@ -732,8 +771,12 @@ body {
    TABLET RESPONSIVE STYLES
    ═══════════════════════════════════════════════════════════════════ */
 @media (min-width: 769px) and (max-width: 1024px) {
+  .panel--situation-list {
+    flex: 0 0 200px;
+  }
+
   .panel--strategy {
-    flex: 0 0 340px;
+    flex: 0 0 300px;
   }
 }
 </style>

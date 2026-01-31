@@ -49,13 +49,6 @@ const routes: RouteRecordRaw[] = [
         name: 'example-strategy-node',
         component: EmptyComponent,
     },
-
-    // Demo pages
-    {
-        path: '/demo/sankey-tree',
-        name: 'demo-sankey-tree',
-        component: () => import('@/pages/demo-sankey-tree-page.vue'),
-    },
 ];
 
 const router = createRouter({
