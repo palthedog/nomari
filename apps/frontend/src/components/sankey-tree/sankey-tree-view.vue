@@ -94,7 +94,7 @@
           :stroke="conn.color"
           :stroke-width="conn.strokeWidth"
           stroke-opacity="0.5"
-          stroke-linecap="round"
+          stroke-linecap="butt"
         />
       </g>
 
