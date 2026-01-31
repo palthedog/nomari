@@ -225,7 +225,7 @@
       <v-card class="validation-errors-sheet">
         <v-card-title class="validation-errors-header">
           <v-icon
-            color="error"
+            color="warning"
             class="mr-2"
           >
             mdi-alert-circle
@@ -249,7 +249,7 @@
             >
               <template #prepend>
                 <v-icon
-                  color="error"
+                  color="warning"
                   size="small"
                 >
                   mdi-alert
@@ -1124,11 +1124,11 @@ function executeDelete() {
 .validation-errors-header {
   display: flex;
   align-items: center;
-  background-color: var(--bg-error);
-  color: var(--color-error-dark);
+  background-color: var(--bg-warning);
+  color: var(--gold-primary);
   padding: 12px 16px;
   font-weight: 500;
-  border-bottom: 1px solid var(--color-error);
+  border-bottom: 1px solid var(--gold-dark);
 }
 
 .validation-errors-content {
@@ -1151,7 +1151,7 @@ function executeDelete() {
 
 .error-field {
   font-weight: 600;
-  color: var(--color-error-dark);
+  color: var(--gold-primary);
   font-family: var(--font-family-mono);
 }
 
