@@ -402,17 +402,54 @@ const calculatedData = computed(() => {
         }
     }
 
-    // Sort targets to minimize crossings
-    // Targets connected to earlier player actions should be higher
+    // Sort targets by node type and situation
+    function getNodeSortKey(node: Node): number {
+        if (node.playerReward === undefined) {
+            return 0; // Situation node
+        }
+        if (node.state.opponentHealth <= 0) {
+            return 2; // Win
+        }
+        if (node.state.playerHealth <= 0) {
+            return 3; // Lose
+        }
+        return 1; // Terminal (draw/other)
+    }
+
     const sortedTargetIds = Array.from(targetTotals.entries())
         .sort((a, b) => {
-            // Find earliest player action for each target
-            const aMinIdx = Math.min(...Array.from(a[1].playerActions).map(id => sortedPlayerIds.indexOf(id)));
-            const bMinIdx = Math.min(...Array.from(b[1].playerActions).map(id => sortedPlayerIds.indexOf(id)));
-            if (aMinIdx !== bMinIdx) {
-                return aMinIdx - bMinIdx;
+            const nodeA = a[1].node;
+            const nodeB = b[1].node;
+
+            // 1. Sort by node type
+            const typeA = getNodeSortKey(nodeA);
+            const typeB = getNodeSortKey(nodeB);
+            if (typeA !== typeB) {
+                return typeA - typeB;
             }
-            return b[1].totalProb - a[1].totalProb;
+
+            // 2. Sort by situation_id (group same situations together)
+            const sitA = nodeA.state.situation_id ?? 0;
+            const sitB = nodeB.state.situation_id ?? 0;
+            if (sitA !== sitB) {
+                return sitA - sitB;
+            }
+
+            // 3. Sort by HP, OD, SA (player first, then opponent)
+            if (nodeA.state.playerHealth !== nodeB.state.playerHealth) {
+                return nodeB.state.playerHealth - nodeA.state.playerHealth;
+            }
+            if (nodeA.state.opponentHealth !== nodeB.state.opponentHealth) {
+                return nodeB.state.opponentHealth - nodeA.state.opponentHealth;
+            }
+            if (nodeA.state.playerOd !== nodeB.state.playerOd) {
+                return nodeB.state.playerOd - nodeA.state.playerOd;
+            }
+            if (nodeA.state.playerSa !== nodeB.state.playerSa) {
+                return nodeB.state.playerSa - nodeA.state.playerSa;
+            }
+
+            return 0;
         })
         .map(([id]) => id);
 
