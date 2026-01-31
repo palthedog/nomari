@@ -327,8 +327,9 @@ export function useUrlSync() {
                     // When switching to edit mode, navigate with current edit selection
                     navigateToEdit(viewStore.editSelection);
                 } else {
-                    // When switching to strategy mode, clear node selection
-                    navigateTo(mode, null);
+                    // When switching to strategy mode, use pending node ID if set
+                    const pendingNodeId = viewStore.consumePendingStrategyNodeId();
+                    navigateTo(mode, pendingNodeId);
                 }
             }
         }

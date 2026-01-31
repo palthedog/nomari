@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
-import { isTerminal, isComboStarter } from '@/utils/node-helpers';
+import { isTerminal, isStrategyNode } from '@/utils/node-helpers';
 
 interface SituationGroup {
     situationId: number;
@@ -68,19 +68,6 @@ defineEmits<{
 }>();
 
 const expandedGroups = ref<Set<number>>(new Set());
-
-function isStrategyNode(node: Node): boolean {
-    // Exclude combo starters
-    if (isComboStarter(node)) {
-        return false;
-    }
-
-    // At least one player must have multiple actions
-    const playerActionsCount = node.playerActions?.actions.length ?? 0;
-    const opponentActionsCount = node.opponentActions?.actions.length ?? 0;
-
-    return playerActionsCount > 1 || opponentActionsCount > 1;
-}
 
 const situationGroups = computed<SituationGroup[]>(() => {
     const groups = new Map<number, SituationGroup>();

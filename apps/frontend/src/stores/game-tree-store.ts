@@ -45,7 +45,7 @@ export const useGameTreeStore = defineStore('gameTree', () => {
      */
     function updateGameTree() {
         buildError.value = null;
-        clearSelection();
+        // Note: Don't call clearSelection() here - URL sync will manage node selection
         const result = buildGameTree(scenarioStore.scenario);
         if (result.success) {
             gameTree.value = result.gameTree;

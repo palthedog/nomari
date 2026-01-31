@@ -206,6 +206,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Node } from '@nomari/game-tree/game-tree';
 import { exportAsProto, importScenario } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
+import { findFirstStrategyNodeForSituation } from '@/utils/node-helpers';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import { useSolverStore } from '@/stores/solver-store';
 import { useViewStore } from '@/stores/view-store';
@@ -360,6 +361,30 @@ onUnmounted(() => {
 });
 
 /**
+ * Determine the target node to select when switching to strategy mode.
+ * If editing a Situation, returns the first strategy node for that situation.
+ * Otherwise, returns the root node.
+ */
+function determineStrategyTargetNode(): string | null {
+    const tree = gameTreeStore.gameTree;
+    if (!tree) {
+        return null;
+    }
+
+    if (viewStore.editSelection.type === 'situation') {
+        const nodeId = findFirstStrategyNodeForSituation(
+            tree,
+            viewStore.editSelection.situationId
+        );
+        if (nodeId) {
+            return nodeId;
+        }
+    }
+
+    return tree.root ?? null;
+}
+
+/**
  * Switch to strategy mode with validation.
  * Validates the game definition first and only switches if valid.
  */
@@ -367,7 +392,17 @@ function switchToStrategyWithValidation() {
     if (!scenarioStore.validateAndShowErrors()) {
         return;
     }
-    viewStore.switchToStrategy();
+
+    // Build game tree first (needed to determine target node)
+    if (!gameTreeStore.ensureGameTreeUpdated()) {
+        return;
+    }
+
+    // Determine target node based on current edit selection
+    const targetNodeId = determineStrategyTargetNode();
+
+    // Switch to strategy with the target node
+    viewStore.switchToStrategyWithNode(targetNodeId);
 }
 
 // Watch viewMode and auto-solve when switching to strategy mode

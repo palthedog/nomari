@@ -32,8 +32,11 @@ export const useViewStore = defineStore('view', () => {
 
     // Edit mode selection state
     const editSelection = ref<EditSelection>({
-        type: 'scenario' 
+        type: 'scenario'
     });
+
+    // Pending strategy node ID to select when switching to strategy mode
+    const pendingStrategyNodeId = ref<string | null>(null);
 
     function setViewMode(mode: ViewMode) {
         viewMode.value = mode;
@@ -45,6 +48,17 @@ export const useViewStore = defineStore('view', () => {
 
     function switchToStrategy() {
         viewMode.value = 'strategy';
+    }
+
+    function switchToStrategyWithNode(nodeId: string | null) {
+        pendingStrategyNodeId.value = nodeId;
+        viewMode.value = 'strategy';
+    }
+
+    function consumePendingStrategyNodeId(): string | null {
+        const nodeId = pendingStrategyNodeId.value;
+        pendingStrategyNodeId.value = null;
+        return nodeId;
     }
 
     function setSelectedSituationId(id: number | null) {
@@ -75,6 +89,8 @@ export const useViewStore = defineStore('view', () => {
         setViewMode,
         switchToEdit,
         switchToStrategy,
+        switchToStrategyWithNode,
+        consumePendingStrategyNodeId,
         setSelectedSituationId,
         selectScenarioSettings,
         selectEditSituation,
