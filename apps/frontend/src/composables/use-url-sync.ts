@@ -223,7 +223,19 @@ export function useUrlSync() {
             // If node not found or no game tree yet, the game tree watcher will handle it
             // when the tree is built/updated. Don't clear prematurely here.
         } else {
-            gameTreeStore.clearSelection();
+            // No nodeId in URL - if in strategy mode, select root node
+            const viewMode = getViewModeFromRoute();
+            if (viewMode === 'strategy') {
+                const gameTree = gameTreeStore.gameTree;
+                if (gameTree && gameTree.root) {
+                    // Select root and redirect to URL with root node
+                    gameTreeStore.selectNode(gameTree.root);
+                    navigateTo('strategy', gameTree.root);
+                }
+                // If no game tree yet, the game tree watcher will handle it
+            } else {
+                gameTreeStore.clearSelection();
+            }
         }
     }
 
@@ -429,14 +441,14 @@ export function useUrlSync() {
     );
 
     // Watch game tree changes - sync node selection from URL
-    // This handles both:
+    // This handles:
     // 1. Node from URL now exists in new tree -> select it
-    // 2. Node from URL doesn't exist in tree -> clear it
+    // 2. Node from URL doesn't exist in tree -> redirect to root
+    // 3. No nodeId in URL but in strategy mode -> redirect to root
     watch(
         () => gameTreeStore.gameTree,
         (gameTree) => {
-            const nodeId = route.params.nodeId;
-            if (typeof nodeId !== 'string' || !gameTree) {
+            if (!gameTree) {
                 return;
             }
 
@@ -446,14 +458,30 @@ export function useUrlSync() {
                 return;
             }
 
-            if (gameTree.nodes[nodeId]) {
-                // Node exists in new tree, select it
-                gameTreeStore.selectNode(nodeId);
+            const viewMode = getViewModeFromRoute();
+            if (viewMode !== 'strategy') {
+                return;
+            }
+
+            const nodeId = route.params.nodeId;
+            if (typeof nodeId === 'string') {
+                if (gameTree.nodes[nodeId]) {
+                    // Node exists in new tree, select it
+                    gameTreeStore.selectNode(nodeId);
+                } else {
+                    // Node doesn't exist in tree, redirect to root
+                    log.warn(`Node ${nodeId} not found in game tree, redirecting to root`);
+                    if (gameTree.root) {
+                        gameTreeStore.selectNode(gameTree.root);
+                        navigateTo('strategy', gameTree.root);
+                    }
+                }
             } else {
-                // Node doesn't exist in tree, clear from URL
-                log.warn(`Node ${nodeId} not found in game tree, clearing`);
-                navigateTo('strategy', null);
-                gameTreeStore.clearSelection();
+                // No nodeId in URL, redirect to root
+                if (gameTree.root) {
+                    gameTreeStore.selectNode(gameTree.root);
+                    navigateTo('strategy', gameTree.root);
+                }
             }
         },
         {
