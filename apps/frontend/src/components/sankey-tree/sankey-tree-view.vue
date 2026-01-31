@@ -450,8 +450,8 @@ const calculatedData = computed(() => {
         currentY: number }>();
     let targetY = topPadding;
 
-    // Calculate minimum target height (smaller to preserve proportions)
-    const minTargetHeight = 12;
+    // Calculate minimum target height based on text height (2 lines of text need ~28px)
+    const minTargetHeight = 28;
 
     for (const targetId of sortedTargetIds) {
         const data = targetTotals.get(targetId)!;
