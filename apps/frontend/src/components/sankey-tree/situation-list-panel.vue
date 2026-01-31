@@ -178,6 +178,8 @@ function formatHealth(health: number): string {
 <style scoped>
 .situation-list-panel {
     padding: 12px;
+    /* padding for the floating bottom-left button. Without it the button would cover this conent*/
+    padding-bottom: 100px;
 }
 
 .panel-title {
