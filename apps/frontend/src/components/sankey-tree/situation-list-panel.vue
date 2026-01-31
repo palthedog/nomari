@@ -106,12 +106,34 @@ const situationGroups = computed<SituationGroup[]>(() => {
         });
     }
 
-    // Sort nodes within each group by HP
+    // Sort nodes within each group by HP, OD, SA (descending, player priority)
     for (const group of groups.values()) {
         group.nodes.sort((a, b) => {
-            const hpDiffA = a.node.state.playerHealth - a.node.state.opponentHealth;
-            const hpDiffB = b.node.state.playerHealth - b.node.state.opponentHealth;
-            return hpDiffB - hpDiffA;
+            const stateA = a.node.state;
+            const stateB = b.node.state;
+
+            // 1. Player HP (descending)
+            if (stateA.playerHealth !== stateB.playerHealth) {
+                return stateB.playerHealth - stateA.playerHealth;
+            }
+            // 2. Opponent HP (descending)
+            if (stateA.opponentHealth !== stateB.opponentHealth) {
+                return stateB.opponentHealth - stateA.opponentHealth;
+            }
+            // 3. Player OD (descending)
+            if (stateA.playerOd !== stateB.playerOd) {
+                return stateB.playerOd - stateA.playerOd;
+            }
+            // 4. Opponent OD (descending)
+            if (stateA.opponentOd !== stateB.opponentOd) {
+                return stateB.opponentOd - stateA.opponentOd;
+            }
+            // 5. Player SA (descending)
+            if (stateA.playerSa !== stateB.playerSa) {
+                return stateB.playerSa - stateA.playerSa;
+            }
+            // 6. Opponent SA (descending)
+            return stateB.opponentSa - stateA.opponentSa;
         });
     }
 

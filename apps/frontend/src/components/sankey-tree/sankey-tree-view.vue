@@ -339,6 +339,7 @@ const chainNodeSize = 20;
 const chainGap = 30;
 const targetBoxWidth = 20;
 const rowGap = 15;
+const tooltipMargin = 10;
 
 const playerColors = [
     '#5AAF8A',
@@ -1111,14 +1112,14 @@ function showFlowTooltip(flowIdx: number) {
     }
 
     let x = flow.midX;
-    let y = flow.midY - 10;
+    let y = flow.midY - tooltipMargin;
 
     // Keep tooltip in bounds
-    if (x < 10) {
-        x = 10;
+    if (x < tooltipMargin) {
+        x = tooltipMargin;
     }
-    if (y < 10) {
-        y = flow.midY + 10;
+    if (y < tooltipMargin) {
+        y = flow.midY + tooltipMargin;
     }
 
     activeTooltip.value = {
@@ -1141,8 +1142,8 @@ function showChainNodeTooltip(nodeId: string) {
         return;
     }
 
-    const x = chainNode.x + chainNodeSize + 10;
-    const y = chainNode.y - 10;
+    const x = chainNode.x + chainNodeSize + tooltipMargin;
+    const y = chainNode.y - tooltipMargin;
 
     activeTooltip.value = {
         type: 'chainNode',
