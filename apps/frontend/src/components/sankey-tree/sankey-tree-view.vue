@@ -412,14 +412,17 @@ function getSingleDestination(node: Node, strategy: StrategyData | null): string
 function getTargetColor(node: Node): string {
     if (isTerminal(node)) {
         if (node.state.playerHealth <= 0) {
-            return '#D07070'; // Player loses
+            return 'var(--opponent-combo)'; // Player loses
         }
         if (node.state.opponentHealth <= 0) {
-            return '#5AAF8A'; // Player wins
+            return 'var(--player-combo)'; // Player wins
         }
-        return '#B87333'; // Draw/timeout
+        return 'var(--terminal)'; // Draw/timeout
     }
-    return '#4A6FA5'; // Situation node
+    if (isComboStarter(node)) {
+        return 'var(--player-combo)'; // Combo node
+    }
+    return 'var(--situation)'; // Situation node
 }
 
 interface NodeChain {
