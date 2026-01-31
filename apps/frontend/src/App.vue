@@ -217,8 +217,11 @@ import { useScenarioStore } from './stores/scenario-store';
 import { useNotificationStore } from './stores/notification-store';
 import SituationListPanel from '@/components/sankey-tree/situation-list-panel.vue';
 import SankeyTreeView from '@/components/sankey-tree/sankey-tree-view.vue';
-import { useUrlSync } from '@/composables/use-url-sync';
+import { getSituationName } from '@/utils/scenario-utils';
+import type { ViewMode } from '@/stores/view-store';
 import log from 'loglevel';
+
+const BASE_TITLE = 'Nomari';
 
 // Mobile detection
 const MOBILE_BREAKPOINT = 768;
@@ -261,11 +264,11 @@ function handleMobileNavigation(index: number) {
 
     mobileNavIndex.value = index;
 
-    // Update viewMode based on index
+    // Navigate based on index (route guards handle validation/tree building)
     if (index <= 1) {
-        viewStore.setViewMode('edit');
+        viewStore.switchToEdit();
     } else {
-        viewStore.setViewMode('strategy');
+        viewStore.switchToStrategy();
     }
 }
 
@@ -284,9 +287,6 @@ const scenario = computed(() => scenarioStore.scenario);
 
 // Notification store
 const notificationStore = useNotificationStore();
-
-// URL sync - handles bidirectional sync between URL and stores
-useUrlSync();
 
 const gameTree = computed(() => gameTreeStore.gameTree);
 
@@ -405,11 +405,43 @@ function switchToStrategyWithValidation() {
     viewStore.switchToStrategyWithNode(targetNodeId);
 }
 
+// Update document title based on view mode and selected node
+function updateDocumentTitle(mode: ViewMode, nodeId: string | null) {
+    if (!nodeId) {
+        const modeLabel = mode === 'strategy' ? 'Strategy' : 'Edit';
+        document.title = `${BASE_TITLE} - ${modeLabel}`;
+        return;
+    }
+
+    const node = gameTree.value?.nodes[nodeId];
+    if (!node) {
+        document.title = BASE_TITLE;
+        return;
+    }
+
+    const situationId = node.state.situation_id;
+    let situationName = '';
+    if (situationId != null) {
+        situationName = getSituationName(scenarioStore.scenario, situationId) ?? '';
+    }
+
+    const playerHp = node.state.playerHealth;
+    const opponentHp = node.state.opponentHealth;
+    const hpInfo = `HP: ${playerHp}/${opponentHp}`;
+
+    if (situationName) {
+        document.title = `${BASE_TITLE} - ${situationName} (${hpInfo})`;
+    } else {
+        document.title = `${BASE_TITLE} - (${hpInfo})`;
+    }
+}
+
 // Watch viewMode and auto-solve when switching to strategy mode
 watch(viewMode, (newMode) => {
     if (newMode === 'strategy') {
         solverStore.ensureSolved();
     }
+    updateDocumentTitle(newMode, gameTreeStore.selectedNodeId);
 });
 
 // Watch scenario for changes and increment version
@@ -424,12 +456,25 @@ watch(
     }
 );
 
-// Auto-switch to strategy panel when node is selected on mobile
+// Update selectedSituationId, document title, and mobile nav when node selection changes
 watch(
     () => gameTreeStore.selectedNodeId,
     (newNodeId) => {
+        // Update selectedSituationId from node
+        if (newNodeId) {
+            const node = gameTree.value?.nodes[newNodeId];
+            const situationId = node?.state.situation_id;
+            if (situationId != null) {
+                viewStore.setSelectedSituationId(situationId);
+            }
+        }
+
+        // Update document title
+        updateDocumentTitle(viewMode.value, newNodeId);
+
+        // Auto-switch to strategy panel on mobile
         if (isMobile.value && newNodeId && viewMode.value === 'strategy') {
-            mobileNavIndex.value = 3; // Switch to strategy panel
+            mobileNavIndex.value = 3;
         }
     }
 );

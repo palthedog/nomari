@@ -1,16 +1,34 @@
 import { GameTree } from '@nomari/game-tree';
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 import { buildGameTree } from '@nomari/game-tree-builder';
 import { useScenarioStore } from './scenario-store';
 import { useNotificationStore } from './notification-store';
+import router from '@/router';
 import log from 'loglevel';
+
+// Helper to get source type from route
+function getSourceType(): 'local' | 'example' {
+    const name = router.currentRoute.value.name?.toString() ?? '';
+    return name.startsWith('example-') ? 'example' : 'local';
+}
+
+// Helper to get example name from route
+function getExampleName(): string | null {
+    const exampleName = router.currentRoute.value.params.exampleName;
+    return typeof exampleName === 'string' ? exampleName : null;
+}
+
+// Check if route is strategy mode
+function isStrategyRoute(): boolean {
+    const name = router.currentRoute.value.name?.toString() ?? '';
+    return name.includes('strategy');
+}
 
 export const useGameTreeStore = defineStore('gameTree', () => {
     const buildError = ref<string | null>(null);
     const gameTree = ref<GameTree | null>(null);
-    const selectedNodeId = ref<string | null>(null);
     const highlightedNodeId = ref<string | null>(null);
 
     /**
@@ -27,17 +45,72 @@ export const useGameTreeStore = defineStore('gameTree', () => {
 
     const scenarioStore = useScenarioStore();
 
+    // Derived from route - the selected node ID
+    const selectedNodeId = computed<string | null>(() => {
+        const nodeId = router.currentRoute.value.params.nodeId;
+
+        // If in strategy mode with a nodeId param
+        if (typeof nodeId === 'string') {
+            // Verify node exists in tree
+            if (gameTree.value?.nodes[nodeId]) {
+                return nodeId;
+            }
+            // Node doesn't exist - guards will redirect, return null for now
+            return null;
+        }
+
+        // In strategy mode without nodeId - use root
+        if (isStrategyRoute() && gameTree.value?.root) {
+            return gameTree.value.root;
+        }
+
+        return null;
+    });
+
+    // Navigation: Select a node (navigates via router)
     function selectNode(nodeId: string) {
-        selectedNodeId.value = nodeId;
         highlightNode(null);
+
+        const source = getSourceType();
+        const params: Record<string, string> = {
+            nodeId
+        };
+
+        if (source === 'example') {
+            const exampleName = getExampleName();
+            if (exampleName) {
+                params.exampleName = exampleName;
+            }
+        }
+
+        const routeName = source === 'example' ? 'example-strategy-node' : 'local-strategy-node';
+        router.push({
+            name: routeName,
+            params
+        });
     }
 
     function highlightNode(nodeId: string | null) {
         highlightedNodeId.value = nodeId;
     }
 
+    // Navigation: Clear selection (navigates to strategy without node)
     function clearSelection() {
-        selectedNodeId.value = null;
+        const source = getSourceType();
+        const params: Record<string, string> = {};
+
+        if (source === 'example') {
+            const exampleName = getExampleName();
+            if (exampleName) {
+                params.exampleName = exampleName;
+            }
+        }
+
+        const routeName = source === 'example' ? 'example-strategy' : 'local-strategy';
+        router.push({
+            name: routeName,
+            params
+        });
     }
 
     /**
@@ -45,7 +118,6 @@ export const useGameTreeStore = defineStore('gameTree', () => {
      */
     function updateGameTree() {
         buildError.value = null;
-        // Note: Don't call clearSelection() here - URL sync will manage node selection
         const result = buildGameTree(scenarioStore.scenario);
         if (result.success) {
             gameTree.value = result.gameTree;

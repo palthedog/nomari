@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
+import { setupRouteGuards } from './guards';
 
 // Dummy component - App.vue handles rendering, router is only for URL state
 const EmptyComponent = {
@@ -73,5 +74,8 @@ const router = createRouter({
     history: createWebHashHistory(),
     routes,
 });
+
+// Set up navigation guards for validation, example loading, and node verification
+setupRouteGuards(router);
 
 export default router;
