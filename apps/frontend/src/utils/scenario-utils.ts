@@ -122,3 +122,53 @@ export function createEmptyComboStarter(): ComboStarter {
         routes: [],
     };
 }
+
+/**
+ * Find situation name by situation ID.
+ * Searches situations, terminalSituations, playerComboStarters, opponentComboStarters.
+ */
+export function getSituationName(scenario: Scenario, situationId: number): string | null {
+    const situation = scenario.situations.find(s => s.situationId === situationId);
+    if (situation) {
+        return situation.name;
+    }
+
+    const terminal = scenario.terminalSituations.find(t => t.situationId === situationId);
+    if (terminal) {
+        return terminal.name;
+    }
+
+    const playerCombo = scenario.playerComboStarters.find(c => c.situationId === situationId);
+    if (playerCombo) {
+        return playerCombo.name;
+    }
+
+    const opponentCombo = scenario.opponentComboStarters.find(c => c.situationId === situationId);
+    if (opponentCombo) {
+        return opponentCombo.name;
+    }
+
+    return null;
+}
+
+/**
+ * Find the type of situation by ID.
+ * Returns the collection name where the situation was found.
+ */
+export type SituationType = 'situation' | 'terminal' | 'playerCombo' | 'opponentCombo' | null;
+
+export function getSituationType(scenario: Scenario, situationId: number): SituationType {
+    if (scenario.situations.find(s => s.situationId === situationId)) {
+        return 'situation';
+    }
+    if (scenario.terminalSituations.find(t => t.situationId === situationId)) {
+        return 'terminal';
+    }
+    if (scenario.playerComboStarters.find(c => c.situationId === situationId)) {
+        return 'playerCombo';
+    }
+    if (scenario.opponentComboStarters.find(c => c.situationId === situationId)) {
+        return 'opponentCombo';
+    }
+    return null;
+}

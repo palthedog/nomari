@@ -7,8 +7,11 @@ import { useScenarioStore } from '@/stores/scenario-store';
 import { useNotificationStore } from '@/stores/notification-store';
 import { useSolverStore } from '@/stores/solver-store';
 import { parseAsProto } from '@/utils/export';
+import { getSituationName } from '@/utils/scenario-utils';
 
 type SourceType = 'local' | 'example';
+
+const BASE_TITLE = 'Nomari';
 
 // Validate example name to prevent path traversal (alphanumeric and underscore only)
 function isValidExampleName(name: string): boolean {
@@ -98,7 +101,7 @@ export function useUrlSync() {
             params.nodeId = nodeId;
         }
 
-        router.replace({
+        router.push({
             name: targetRouteName,
             params,
         });
@@ -230,11 +233,12 @@ export function useUrlSync() {
         }
     );
 
-    // Update selectedSituationId when node selection changes
+    // Update selectedSituationId and document title when node selection changes
     watch(
         () => gameTreeStore.selectedNodeId,
         (nodeId) => {
             if (!nodeId) {
+                updateDocumentTitle(viewStore.viewMode, null);
                 return;
             }
             const node = gameTreeStore.gameTree?.nodes[nodeId];
@@ -242,8 +246,47 @@ export function useUrlSync() {
             if (situationId != null) {
                 viewStore.setSelectedSituationId(situationId);
             }
+            updateDocumentTitle(viewStore.viewMode, nodeId);
         }
     );
+
+    // Update document title when view mode changes
+    watch(
+        () => viewStore.viewMode,
+        (mode) => {
+            updateDocumentTitle(mode, gameTreeStore.selectedNodeId);
+        }
+    );
+
+    function updateDocumentTitle(mode: ViewMode, nodeId: string | null) {
+        if (!nodeId) {
+            const modeLabel = mode === 'strategy' ? 'Strategy' : 'Edit';
+            document.title = `${BASE_TITLE} - ${modeLabel}`;
+            return;
+        }
+
+        const node = gameTreeStore.gameTree?.nodes[nodeId];
+        if (!node) {
+            document.title = BASE_TITLE;
+            return;
+        }
+
+        const situationId = node.state.situation_id;
+        let situationName = '';
+        if (situationId != null) {
+            situationName = getSituationName(scenarioStore.scenario, situationId) ?? '';
+        }
+
+        const playerHp = node.state.playerHealth;
+        const opponentHp = node.state.opponentHealth;
+        const hpInfo = `HP: ${playerHp}/${opponentHp}`;
+
+        if (situationName) {
+            document.title = `${BASE_TITLE} - ${situationName} (${hpInfo})`;
+        } else {
+            document.title = `${BASE_TITLE} - (${hpInfo})`;
+        }
+    }
 
     // Store -> URL: Watch selectedNodeId changes
     watch(

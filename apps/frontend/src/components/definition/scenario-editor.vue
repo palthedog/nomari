@@ -282,6 +282,7 @@ import {
     createEmptySituation,
     createEmptyTerminalSituation,
     createEmptyComboStarter,
+    getSituationType,
 } from '@/utils/scenario-utils';
 import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
@@ -330,21 +331,20 @@ onMounted(() => {
 });
 
 function selectSituationById(situationId: number) {
-    if (scenario.value.situations.find((s) => s.situationId === situationId)) {
-        selectSituation(situationId);
-        return;
-    }
-    if (scenario.value.terminalSituations.find((t) => t.situationId === situationId)) {
-        selectTerminalSituation(situationId);
-        return;
-    }
-    if (scenario.value.playerComboStarters.find((c) => c.situationId === situationId)) {
-        selectPlayerCombo(situationId);
-        return;
-    }
-    if (scenario.value.opponentComboStarters.find((c) => c.situationId === situationId)) {
-        selectOpponentCombo(situationId);
-        return;
+    const type = getSituationType(scenario.value, situationId);
+    switch (type) {
+        case 'situation':
+            selectSituation(situationId);
+            break;
+        case 'terminal':
+            selectTerminalSituation(situationId);
+            break;
+        case 'playerCombo':
+            selectPlayerCombo(situationId);
+            break;
+        case 'opponentCombo':
+            selectOpponentCombo(situationId);
+            break;
     }
 }
 
