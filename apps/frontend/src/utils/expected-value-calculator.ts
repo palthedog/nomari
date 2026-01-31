@@ -1,6 +1,7 @@
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '../workers/solver-types';
 import log from 'loglevel';
+import { isTerminalNode } from './node-helpers';
 
 /**
  * Expected value for a single action
@@ -27,13 +28,6 @@ export interface NodeExpectedValues {
  * Map of expected values for all nodes
  */
 export type ExpectedValuesMap = Record<string, NodeExpectedValues>;
-
-/**
- * Check if a node is terminal (has rewards)
- */
-function isTerminalNode(node: Node): boolean {
-    return node.playerReward !== undefined || node.opponentReward !== undefined;
-}
 
 /**
  * Get strategy probability for an action

@@ -31,19 +31,12 @@
             :key="item.nodeId"
             type="button"
             class="node-item"
-            :class="{
-              'node-item--selected': selectedNodeId === item.nodeId,
-              'node-item--combo-starter': item.isComboStarter
-            }"
+            :class="{ 'node-item--selected': selectedNodeId === item.nodeId }"
             @click="$emit('select-node', item.nodeId)"
           >
             <span class="node-hp">
               HP {{ formatHealth(item.node.state.playerHealth) }}/{{ formatHealth(item.node.state.opponentHealth) }}
             </span>
-            <span
-              v-if="item.isComboStarter"
-              class="combo-badge"
-            >コンボ</span>
           </button>
         </div>
       </div>
@@ -52,8 +45,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
+import { isTerminal, isComboStarter } from '@/utils/node-helpers';
 
 interface SituationGroup {
     situationId: number;
@@ -61,7 +55,6 @@ interface SituationGroup {
     nodes: Array<{
         nodeId: string;
         node: Node;
-        isComboStarter: boolean;
     }>;
 }
 
@@ -76,22 +69,24 @@ defineEmits<{
 
 const expandedGroups = ref<Set<number>>(new Set());
 
-function isComboStarter(node: Node): boolean {
-    return (
-        node.opponentActions?.actions.length === 1 &&
-        node.opponentActions.actions[0].name === '被コンボ'
-    );
-}
+function isStrategyNode(node: Node): boolean {
+    // Exclude combo starters
+    if (isComboStarter(node)) {
+        return false;
+    }
 
-function isTerminal(node: Node): boolean {
-    return node.playerReward !== undefined;
+    // At least one player must have multiple actions
+    const playerActionsCount = node.playerActions?.actions.length ?? 0;
+    const opponentActionsCount = node.opponentActions?.actions.length ?? 0;
+
+    return playerActionsCount > 1 || opponentActionsCount > 1;
 }
 
 const situationGroups = computed<SituationGroup[]>(() => {
     const groups = new Map<number, SituationGroup>();
 
     for (const [nodeId, node] of Object.entries(props.gameTree.nodes)) {
-        if (isTerminal(node)) {
+        if (isTerminal(node) || !isStrategyNode(node)) {
             continue;
         }
 
@@ -107,8 +102,7 @@ const situationGroups = computed<SituationGroup[]>(() => {
 
         groups.get(situationId)!.nodes.push({
             nodeId,
-            node,
-            isComboStarter: isComboStarter(node)
+            node
         });
     }
 
@@ -121,17 +115,26 @@ const situationGroups = computed<SituationGroup[]>(() => {
         });
     }
 
-    // Auto-expand the group containing the selected node
-    if (props.selectedNodeId) {
-        const selectedNode = props.gameTree.nodes[props.selectedNodeId];
+    return Array.from(groups.values()).sort((a, b) => a.situationId - b.situationId);
+});
+
+// Auto-expand the group containing the selected node
+watch(
+    () => props.selectedNodeId,
+    (nodeId) => {
+        if (!nodeId) {
+            return;
+        }
+        const selectedNode = props.gameTree.nodes[nodeId];
         if (selectedNode && !isTerminal(selectedNode)) {
             const situationId = selectedNode.state.situation_id ?? 0;
             expandedGroups.value.add(situationId);
         }
+    },
+    {
+        immediate: true
     }
-
-    return Array.from(groups.values()).sort((a, b) => a.situationId - b.situationId);
-});
+);
 
 function toggleGroup(situationId: number) {
     if (expandedGroups.value.has(situationId)) {
@@ -146,7 +149,7 @@ function isExpanded(situationId: number): boolean {
 }
 
 function formatHealth(health: number): string {
-    return (health / 1000).toFixed(1) + 'k';
+    return health.toLocaleString();
 }
 </script>
 
@@ -249,24 +252,7 @@ function formatHealth(health: number): string {
     color: var(--text-primary);
 }
 
-.node-item--combo-starter {
-    color: var(--gold-primary);
-}
-
-.node-item--combo-starter.node-item--selected {
-    background: var(--bg-warning);
-    border-color: var(--gold-primary);
-}
-
 .node-hp {
     font-family: var(--font-family-mono);
-}
-
-.combo-badge {
-    font-size: 0.625rem;
-    padding: 1px 4px;
-    background: var(--gold-dark);
-    color: white;
-    border-radius: 2px;
 }
 </style>

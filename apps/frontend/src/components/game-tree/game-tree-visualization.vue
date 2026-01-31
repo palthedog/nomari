@@ -92,6 +92,7 @@ import type { Nodes, Edges, Layouts, UserConfigs, EventHandlers } from 'v-networ
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import { useGameTreeStore } from '@/stores/game-tree-store';
 import log from 'loglevel';
+import { isTerminalNode as isTerminalNodeCheck } from '@/utils/node-helpers';
 
 const props = defineProps<{
     gameTree: GameTree;
@@ -273,9 +274,9 @@ function getRewardColor(nodeId: string): string {
 function isTerminalNode(nodeId: string): boolean {
     const node = props.gameTree.nodes[nodeId];
     if (!node) {
-        return false; 
+        return false;
     }
-    return node.playerReward !== undefined || node.opponentReward !== undefined;
+    return isTerminalNodeCheck(node);
 }
 
 /**
@@ -296,8 +297,7 @@ function isOpponentHealthZero(node: Node): boolean {
      * Check if a node is an "other" terminal node (TerminalSituation, not health-based).
      */
 function isOtherTerminalNode(node: Node): boolean {
-    const isTerminal = node.playerReward !== undefined || node.opponentReward !== undefined;
-    return isTerminal && !isPlayerHealthZero(node) && !isOpponentHealthZero(node);
+    return isTerminalNodeCheck(node) && !isPlayerHealthZero(node) && !isOpponentHealthZero(node);
 }
 
 /**
