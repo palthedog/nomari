@@ -3,259 +3,203 @@
     ref="containerRef"
     class="sankey-tree-view"
   >
-    <svg
-      :width="svgWidth"
-      :height="svgHeight"
-      :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
-    >
-      <!-- Title -->
-      <g class="title-group">
-        <text
-          :x="20"
-          :y="28"
-          class="source-title"
-        >
-          {{ selectedNode.name ?? 'Node' }}
-        </text>
-        <text
-          :x="20"
-          :y="46"
-          class="source-subtitle"
-        >
-          HP {{ formatHealth(selectedNode.state.playerHealth) }} / {{ formatHealth(selectedNode.state.opponentHealth) }}
-        </text>
-      </g>
-
-      <!-- Flows (rendered first so boxes appear on top) -->
-      <g class="flows">
-        <g
-          v-for="(flow, flowIdx) in allFlows"
-          :key="`flow-${flowIdx}`"
-          class="flow-group"
-        >
-          <path
-            :d="flow.path"
-            :fill="flow.color"
-            :opacity="hoveredFlow === flowIdx ? 0.85 : 0.45"
-            class="flow-path"
-            @click="$emit('select-node', flow.targetNodeId)"
-            @mouseenter="hoveredFlow = flowIdx"
-            @mouseleave="hoveredFlow = null"
-          />
-        </g>
-      </g>
-
-      <!-- Player action boxes -->
-      <g class="player-boxes">
-        <g
-          v-for="(row, rowIdx) in playerRows"
-          :key="`player-${rowIdx}`"
-          class="player-row"
-        >
-          <rect
-            :x="playerBoxX"
-            :y="row.y"
-            :width="playerBoxWidth"
-            :height="row.height"
-            :fill="getPlayerColor(rowIdx)"
-            rx="4"
-            class="player-box"
-          />
-          <text
-            :x="playerBoxX + playerBoxWidth / 2"
-            :y="row.y + row.height / 2 - 6"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            class="player-label"
-          >
-            {{ row.actionName }}
-          </text>
-          <text
-            :x="playerBoxX + playerBoxWidth / 2"
-            :y="row.y + row.height / 2 + 10"
-            text-anchor="middle"
-            dominant-baseline="middle"
-            class="player-prob"
-          >
-            {{ formatProb(row.probability) }}
-          </text>
-        </g>
-      </g>
-
-      <!-- Chain connections (lines between chain nodes) -->
-      <g class="chain-connections">
-        <line
-          v-for="(conn, connIdx) in chainConnections"
-          :key="`conn-${connIdx}`"
-          :x1="conn.x1"
-          :y1="conn.y1"
-          :x2="conn.x2"
-          :y2="conn.y2"
-          :stroke="conn.color"
-          :stroke-width="conn.strokeWidth"
-          :stroke-opacity="hoveredChainConnection === connIdx ? 0.85 : 0.5"
-          stroke-linecap="butt"
-          class="chain-connection"
-          @mouseenter="hoveredChainConnection = connIdx"
-          @mouseleave="hoveredChainConnection = null"
-        />
-      </g>
-
-      <!-- Chain nodes (small rectangles for intermediate nodes) -->
-      <g class="chain-nodes">
-        <g
-          v-for="(chainNode, cnIdx) in chainNodes"
-          :key="`chain-${cnIdx}`"
-          class="chain-node"
-          @click="$emit('select-node', chainNode.nodeId)"
-          @mouseenter="hoveredChainNode = chainNode.nodeId"
-          @mouseleave="hoveredChainNode = null"
-        >
-          <rect
-            :x="chainNode.x"
-            :y="chainNode.y"
-            :width="chainNodeSize"
-            :height="chainNode.height"
-            :fill="getTargetColor(chainNode.node)"
-            rx="3"
-            class="chain-rect"
-          />
-        </g>
-      </g>
-
-      <!-- Target nodes -->
-      <g class="target-nodes">
-        <g
-          v-for="(target, tIdx) in targetNodes"
-          :key="`target-${tIdx}`"
-          class="target-node"
-          @click="$emit('select-node', target.nodeId)"
-        >
-          <rect
-            :x="targetBoxX"
-            :y="target.y"
-            :width="targetBoxWidth"
-            :height="target.height"
-            :fill="target.color"
-            rx="4"
-            class="target-box"
-          />
-          <text
-            :x="targetBoxX + targetBoxWidth + 10"
-            :y="target.y + target.height / 2 - 5"
-            dominant-baseline="middle"
-            class="target-label"
-          >
-            {{ truncate(target.name, 16) }}
-            <tspan class="target-hp">{{ target.state.playerHealth }}/{{ target.state.opponentHealth }}</tspan>
-          </text>
-          <text
-            :x="targetBoxX + targetBoxWidth + 10"
-            :y="target.y + target.height / 2 + 9"
-            dominant-baseline="middle"
-            class="target-prob"
-          >
-            {{ formatProb(target.totalProb) }}
-          </text>
-        </g>
-      </g>
-
-      <!-- Tooltip for hovered flow -->
-      <g
-        v-if="hoveredFlow !== null && tooltipData"
-        class="tooltip"
+    <div class="svg-container">
+      <svg
+        :width="svgWidth"
+        :height="svgHeight"
+        :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
       >
-        <rect
-          :x="tooltipData.x"
-          :y="tooltipData.y"
-          :width="tooltipData.width"
-          :height="tooltipData.height"
-          fill="rgba(30, 26, 20, 0.95)"
-          stroke="var(--gold-primary)"
-          stroke-width="1"
-          rx="4"
-        />
-        <text
-          :x="tooltipData.x + 8"
-          :y="tooltipData.y + 16"
-          class="tooltip-action"
-        >
-          {{ tooltipData.playerAction }} → {{ tooltipData.opponentAction }}
-        </text>
-        <text
-          :x="tooltipData.x + 8"
-          :y="tooltipData.y + 32"
-          class="tooltip-target"
-        >
-          → {{ tooltipData.targetName }}
-        </text>
-        <text
-          :x="tooltipData.x + 8"
-          :y="tooltipData.y + 48"
-          class="tooltip-prob"
-        >
-          {{ formatProb(tooltipData.probability) }}
-        </text>
-      </g>
+        <!-- Title -->
+        <g class="title-group">
+          <text
+            :x="20"
+            :y="28"
+            class="source-title"
+          >
+            {{ selectedNode.name ?? 'Node' }}
+          </text>
+          <text
+            :x="20"
+            :y="46"
+            class="source-subtitle"
+          >
+            HP {{ formatHealth(selectedNode.state.playerHealth) }} / {{ formatHealth(selectedNode.state.opponentHealth) }}
+          </text>
+        </g>
 
-      <!-- Tooltip for hovered chain node -->
-      <g
-        v-if="hoveredChainNode !== null && chainNodeTooltipData"
-        class="tooltip"
-      >
-        <rect
-          :x="chainNodeTooltipData.x"
-          :y="chainNodeTooltipData.y"
-          :width="chainNodeTooltipData.width"
-          :height="chainNodeTooltipData.height"
-          fill="rgba(30, 26, 20, 0.95)"
-          stroke="var(--gold-primary)"
-          stroke-width="1"
-          rx="4"
-        />
-        <text
-          :x="chainNodeTooltipData.x + 8"
-          :y="chainNodeTooltipData.y + 18"
-          class="tooltip-action"
-        >
-          {{ chainNodeTooltipData.name }}
-        </text>
-        <text
-          :x="chainNodeTooltipData.x + 8"
-          :y="chainNodeTooltipData.y + 36"
-          class="tooltip-target"
-        >
-          HP {{ formatHealth(chainNodeTooltipData.playerHealth) }} / {{ formatHealth(chainNodeTooltipData.opponentHealth) }}
-        </text>
-      </g>
+        <!-- Flows (rendered first so boxes appear on top) -->
+        <g class="flows">
+          <g
+            v-for="(flow, flowIdx) in allFlows"
+            :key="`flow-${flowIdx}`"
+            class="flow-group"
+          >
+            <path
+              :d="flow.path"
+              :fill="flow.color"
+              :opacity="hoveredFlow === flowIdx ? 0.85 : 0.45"
+              class="flow-path"
+              @click="$emit('select-node', flow.targetNodeId)"
+              @mouseenter="showFlowTooltip(flowIdx)"
+              @mouseleave="hideTooltip"
+            />
+          </g>
+        </g>
 
-      <!-- Tooltip for hovered chain connection -->
-      <g
-        v-if="hoveredChainConnection !== null && chainConnectionTooltipData"
+        <!-- Player action boxes -->
+        <g class="player-boxes">
+          <g
+            v-for="(row, rowIdx) in playerRows"
+            :key="`player-${rowIdx}`"
+            class="player-row"
+          >
+            <rect
+              :x="playerBoxX"
+              :y="row.y"
+              :width="playerBoxWidth"
+              :height="row.height"
+              :fill="getPlayerColor(rowIdx)"
+              rx="4"
+              class="player-box"
+            />
+            <text
+              :x="playerBoxX + playerBoxWidth / 2"
+              :y="row.y + row.height / 2 - 6"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              class="player-label"
+            >
+              {{ row.actionName }}
+            </text>
+            <text
+              :x="playerBoxX + playerBoxWidth / 2"
+              :y="row.y + row.height / 2 + 10"
+              text-anchor="middle"
+              dominant-baseline="middle"
+              class="player-prob"
+            >
+              {{ formatProb(row.probability) }}
+            </text>
+          </g>
+        </g>
+
+        <!-- Chain connections (lines between chain nodes) -->
+        <g class="chain-connections">
+          <line
+            v-for="(conn, connIdx) in chainConnections"
+            :key="`conn-${connIdx}`"
+            :x1="conn.x1"
+            :y1="conn.y1"
+            :x2="conn.x2"
+            :y2="conn.y2"
+            :stroke="conn.color"
+            :stroke-width="conn.strokeWidth"
+            :stroke-opacity="hoveredChainConnection === connIdx ? 0.85 : 0.5"
+            stroke-linecap="butt"
+            class="chain-connection"
+            @mouseenter="showChainConnectionTooltip(connIdx)"
+            @mouseleave="hideTooltip"
+          />
+        </g>
+
+        <!-- Chain nodes (small rectangles for intermediate nodes) -->
+        <g class="chain-nodes">
+          <g
+            v-for="(chainNode, cnIdx) in chainNodes"
+            :key="`chain-${cnIdx}`"
+            class="chain-node"
+            @click="$emit('select-node', chainNode.nodeId)"
+            @mouseenter="showChainNodeTooltip(chainNode.nodeId)"
+            @mouseleave="hideTooltip"
+          >
+            <rect
+              :x="chainNode.x"
+              :y="chainNode.y"
+              :width="chainNodeSize"
+              :height="chainNode.height"
+              :fill="getTargetColor(chainNode.node)"
+              rx="3"
+              class="chain-rect"
+            />
+          </g>
+        </g>
+
+        <!-- Target nodes -->
+        <g class="target-nodes">
+          <g
+            v-for="(target, tIdx) in targetNodes"
+            :key="`target-${tIdx}`"
+            class="target-node"
+            @click="$emit('select-node', target.nodeId)"
+          >
+            <rect
+              :x="targetBoxX"
+              :y="target.y"
+              :width="targetBoxWidth"
+              :height="target.height"
+              :fill="target.color"
+              rx="4"
+              class="target-box"
+            />
+            <text
+              :x="targetBoxX + targetBoxWidth + 10"
+              :y="target.y + target.height / 2 - 5"
+              dominant-baseline="middle"
+              class="target-label"
+            >
+              {{ truncate(target.name, 16) }}
+              <tspan class="target-hp">{{ target.state.playerHealth }}/{{ target.state.opponentHealth }}</tspan>
+            </text>
+            <text
+              :x="targetBoxX + targetBoxWidth + 10"
+              :y="target.y + target.height / 2 + 9"
+              dominant-baseline="middle"
+              class="target-prob"
+            >
+              {{ formatProb(target.totalProb) }}
+            </text>
+          </g>
+        </g>
+
+      </svg>
+
+      <!-- HTML Tooltip -->
+      <div
+        v-if="activeTooltip"
         class="tooltip"
+        :style="tooltipStyle"
       >
-        <rect
-          :x="chainConnectionTooltipData.x"
-          :y="chainConnectionTooltipData.y"
-          :width="chainConnectionTooltipData.width"
-          :height="chainConnectionTooltipData.height"
-          fill="rgba(30, 26, 20, 0.95)"
-          stroke="var(--gold-primary)"
-          stroke-width="1"
-          rx="4"
-        />
-        <text
-          ref="chainConnectionTooltipTextRef"
-          :x="chainConnectionTooltipData.x + 8"
-          :y="chainConnectionTooltipData.y + 18"
-          class="tooltip-action"
-          @vue:mounted="updateChainConnectionTooltipWidth"
-          @vue:updated="updateChainConnectionTooltipWidth"
-        >
-          {{ chainConnectionTooltipData.label }}
-        </text>
-      </g>
-    </svg>
+        <!-- Flow tooltip -->
+        <template v-if="activeTooltip.type === 'flow'">
+          <div class="tooltip-action">
+            {{ (activeTooltip.data as FlowTooltipData).playerAction }} → {{ (activeTooltip.data as FlowTooltipData).opponentAction }}
+          </div>
+          <div class="tooltip-target">
+            → {{ (activeTooltip.data as FlowTooltipData).targetName }}
+          </div>
+          <div class="tooltip-prob">
+            {{ formatProb((activeTooltip.data as FlowTooltipData).probability) }}
+          </div>
+        </template>
+
+        <!-- Chain node tooltip -->
+        <template v-else-if="activeTooltip.type === 'chainNode'">
+          <div class="tooltip-action">
+            {{ (activeTooltip.data as ChainNodeTooltipData).name }}
+          </div>
+          <div class="tooltip-target">
+            HP {{ formatHealth((activeTooltip.data as ChainNodeTooltipData).playerHealth) }} / {{ formatHealth((activeTooltip.data as ChainNodeTooltipData).opponentHealth) }}
+          </div>
+        </template>
+
+        <!-- Chain connection tooltip -->
+        <template v-else-if="activeTooltip.type === 'chainConnection'">
+          <div class="tooltip-action">
+            {{ (activeTooltip.data as ChainConnectionTooltipData).label }}
+          </div>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -296,6 +240,37 @@ interface FlowData {
     midY: number;
 }
 
+interface FlowTooltipData {
+    playerAction: string;
+    opponentAction: string;
+    targetName: string;
+    probability: number;
+}
+
+interface ChainNodeTooltipData {
+    name: string;
+    playerHealth: number;
+    opponentHealth: number;
+}
+
+interface ChainConnectionTooltipData {
+    label: string;
+}
+
+type TooltipState =
+    | { type: 'flow';
+        x: number;
+        y: number;
+        data: FlowTooltipData }
+    | { type: 'chainNode';
+        x: number;
+        y: number;
+        data: ChainNodeTooltipData }
+    | { type: 'chainConnection';
+        x: number;
+        y: number;
+        data: ChainConnectionTooltipData };
+
 interface PlayerRow {
     actionName: string;
     probability: number;
@@ -330,6 +305,7 @@ const hoveredChainNode = ref<string | null>(null);
 const hoveredChainConnection = ref<number | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const containerWidth = ref(900);
+const activeTooltip = ref<TooltipState | null>(null);
 
 // Watch container size
 let resizeObserver: ResizeObserver | null = null;
@@ -996,116 +972,99 @@ const chainConnections = computed(() => calculatedData.value.chainConnections);
 const targetBoxX = computed(() => calculatedData.value.targetBoxX);
 const svgHeight = computed(() => calculatedData.value.totalHeight);
 
-const tooltipData = computed(() => {
-    if (hoveredFlow.value === null) {
-        return null;
+const tooltipStyle = computed(() => {
+    if (!activeTooltip.value) {
+        return {};
     }
-    const flow = allFlows.value[hoveredFlow.value];
+    return {
+        left: `${activeTooltip.value.x}px`,
+        top: `${activeTooltip.value.y}px`
+    };
+});
+
+function showFlowTooltip(flowIdx: number) {
+    hoveredFlow.value = flowIdx;
+    const flow = allFlows.value[flowIdx];
     if (!flow) {
-        return null;
+        return;
     }
 
-    const width = 200;
-    const height = 56;
-    let x = flow.midX - width / 2;
-    let y = flow.midY - height - 10;
+    let x = flow.midX;
+    let y = flow.midY - 10;
 
     // Keep tooltip in bounds
     if (x < 10) {
         x = 10;
-    }
-    if (x + width > svgWidth.value - 10) {
-        x = svgWidth.value - width - 10;
     }
     if (y < 10) {
         y = flow.midY + 10;
     }
 
-    return {
+    activeTooltip.value = {
+        type: 'flow',
         x,
         y,
-        width,
-        height,
-        playerAction: flow.playerActionName,
-        opponentAction: flow.opponentActionName,
-        targetName: flow.targetName,
-        probability: flow.probability
+        data: {
+            playerAction: flow.playerActionName,
+            opponentAction: flow.opponentActionName,
+            targetName: flow.targetName,
+            probability: flow.probability
+        }
     };
-});
+}
 
-const chainNodeTooltipData = computed(() => {
-    if (hoveredChainNode.value === null) {
-        return null;
-    }
-
-    const chainNode = chainNodes.value.find(n => n.nodeId === hoveredChainNode.value);
+function showChainNodeTooltip(nodeId: string) {
+    hoveredChainNode.value = nodeId;
+    const chainNode = chainNodes.value.find(n => n.nodeId === nodeId);
     if (!chainNode) {
-        return null;
+        return;
     }
 
-    const width = 180;
-    const height = 48;
-    let x = chainNode.x + chainNodeSize + 10;
+    const x = chainNode.x + chainNodeSize + 10;
     const y = chainNode.y - 10;
 
-    // Keep tooltip in bounds
-    if (x + width > svgWidth.value - 10) {
-        x = chainNode.x - width - 10;
-    }
-
-    return {
+    activeTooltip.value = {
+        type: 'chainNode',
         x,
         y,
-        width,
-        height,
-        name: chainNode.node.name ?? chainNode.nodeId,
-        playerHealth: chainNode.node.state.playerHealth,
-        opponentHealth: chainNode.node.state.opponentHealth
+        data: {
+            name: chainNode.node.name ?? chainNode.nodeId,
+            playerHealth: chainNode.node.state.playerHealth,
+            opponentHealth: chainNode.node.state.opponentHealth
+        }
     };
-});
+}
 
-const chainConnectionTooltipTextRef = ref<SVGTextElement | null>(null);
-const chainConnectionTooltipWidth = ref(100);
-
-const chainConnectionTooltipData = computed(() => {
-    if (hoveredChainConnection.value === null) {
-        return null;
-    }
-
-    const conn = chainConnections.value[hoveredChainConnection.value];
+function showChainConnectionTooltip(connIdx: number) {
+    hoveredChainConnection.value = connIdx;
+    const conn = chainConnections.value[connIdx];
     if (!conn || !conn.label) {
-        return null;
+        return;
     }
 
-    const width = chainConnectionTooltipWidth.value;
-    const height = 28;
-    let x = (conn.x1 + conn.x2) / 2 - width / 2;
-    let y = conn.y1 - conn.strokeWidth / 2 - height - 8;
+    const x = (conn.x1 + conn.x2) / 2;
+    let y = conn.y1 - conn.strokeWidth / 2 - 10;
 
-    // Keep tooltip in bounds
-    if (x < 10) {
-        x = 10;
-    }
-    if (x + width > svgWidth.value - 10) {
-        x = svgWidth.value - width - 10;
-    }
+    // Position below if too close to top
     if (y < 10) {
-        y = conn.y1 + conn.strokeWidth / 2 + 8;
+        y = conn.y1 + conn.strokeWidth / 2 + 10;
     }
 
-    return {
+    activeTooltip.value = {
+        type: 'chainConnection',
         x,
         y,
-        width,
-        height,
-        label: conn.label
+        data: {
+            label: conn.label
+        }
     };
-});
+}
 
-function updateChainConnectionTooltipWidth() {
-    if (chainConnectionTooltipTextRef.value) {
-        chainConnectionTooltipWidth.value = chainConnectionTooltipTextRef.value.getComputedTextLength() + 16;
-    }
+function hideTooltip() {
+    hoveredFlow.value = null;
+    hoveredChainNode.value = null;
+    hoveredChainConnection.value = null;
+    activeTooltip.value = null;
 }
 
 function generateSankeyPath(
@@ -1149,6 +1108,10 @@ function formatProb(prob: number): string {
     width: 100%;
     overflow: auto;
     padding: 10px;
+}
+
+.svg-container {
+    position: relative;
 }
 
 .source-title {
@@ -1235,22 +1198,33 @@ function formatProb(prob: number): string {
     fill: var(--text-secondary);
 }
 
+.tooltip {
+    position: absolute;
+    background: rgba(30, 26, 20, 0.95);
+    border: 1px solid var(--gold-primary);
+    border-radius: 4px;
+    padding: 8px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+}
+
 .tooltip-action {
     font-family: var(--font-family-ui);
     font-size: 11px;
     font-weight: 500;
-    fill: var(--text-primary);
+    color: var(--text-primary);
 }
 
 .tooltip-target {
     font-family: var(--font-family-ui);
     font-size: 10px;
-    fill: var(--text-secondary);
+    color: var(--text-secondary);
 }
 
 .tooltip-prob {
     font-family: var(--font-family-mono);
     font-size: 11px;
-    fill: var(--gold-primary);
+    color: var(--gold-primary);
 }
 </style>
