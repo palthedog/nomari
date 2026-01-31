@@ -1,5 +1,8 @@
 <template>
-  <div class="sankey-tree-view">
+  <div
+    ref="containerRef"
+    class="sankey-tree-view"
+  >
     <svg
       :width="svgWidth"
       :height="svgHeight"
@@ -103,6 +106,7 @@
             class="target-label"
           >
             {{ truncate(target.name, 16) }}
+            <tspan class="target-hp">{{ target.state.playerHealth }}/{{ target.state.opponentHealth }}</tspan>
           </text>
           <text
             :x="targetBoxX + targetBoxWidth + 10"
@@ -157,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
 
@@ -187,6 +191,8 @@ interface TargetNodeData {
     y: number;
     height: number;
     totalProb: number;
+    state: { playerHealth: number;
+        opponentHealth: number };
 }
 
 const props = defineProps<{
@@ -200,9 +206,26 @@ defineEmits<{
 }>();
 
 const hoveredFlow = ref<number | null>(null);
+const containerRef = ref<HTMLElement | null>(null);
+const containerWidth = ref(900);
+
+// Watch container size
+let resizeObserver: ResizeObserver | null = null;
+onMounted(() => {
+    if (containerRef.value) {
+        containerWidth.value = containerRef.value.clientWidth;
+        resizeObserver = new ResizeObserver((entries) => {
+            containerWidth.value = entries[0].contentRect.width;
+        });
+        resizeObserver.observe(containerRef.value);
+    }
+});
+onUnmounted(() => {
+    resizeObserver?.disconnect();
+});
 
 // Layout constants
-const svgWidth = 900;
+const svgWidth = computed(() => Math.max(800, containerWidth.value));
 const topPadding = 70;
 const playerBoxX = 30;
 const playerBoxWidth = 100;
@@ -471,7 +494,11 @@ const calculatedData = computed(() => {
             color: getTargetColor(data.node),
             y: targetY,
             height,
-            totalProb: data.totalProb
+            totalProb: data.totalProb,
+            state: {
+                playerHealth: data.node.state.playerHealth,
+                opponentHealth: data.node.state.opponentHealth
+            }
         });
 
         targetY += height + targetGap;
@@ -601,8 +628,8 @@ const tooltipData = computed(() => {
     if (x < 10) {
         x = 10;
     }
-    if (x + width > svgWidth - 10) {
-        x = svgWidth - width - 10;
+    if (x + width > svgWidth.value - 10) {
+        x = svgWidth.value - width - 10;
     }
     if (y < 10) {
         y = flow.midY + 10;
@@ -658,6 +685,7 @@ function formatProb(prob: number): string {
 <style scoped>
 .sankey-tree-view {
     display: flex;
+    width: 100%;
     overflow: auto;
     padding: 10px;
 }
@@ -715,6 +743,12 @@ function formatProb(prob: number): string {
     font-size: 12px;
     font-weight: 500;
     fill: var(--text-primary);
+}
+
+.target-hp {
+    font-family: var(--font-family-mono);
+    font-size: 10px;
+    fill: var(--text-secondary);
 }
 
 .target-prob {

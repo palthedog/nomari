@@ -243,8 +243,7 @@ onMounted(() => {
 .right-panel {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     padding: 20px;
     overflow: auto;
 }
