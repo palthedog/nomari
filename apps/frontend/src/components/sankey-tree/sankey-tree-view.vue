@@ -93,8 +93,11 @@
           :y2="conn.y2"
           :stroke="conn.color"
           :stroke-width="conn.strokeWidth"
-          stroke-opacity="0.5"
+          :stroke-opacity="hoveredChainConnection === connIdx ? 0.85 : 0.5"
           stroke-linecap="butt"
+          class="chain-connection"
+          @mouseenter="hoveredChainConnection = connIdx"
+          @mouseleave="hoveredChainConnection = null"
         />
       </g>
 
@@ -225,6 +228,33 @@
           HP {{ formatHealth(chainNodeTooltipData.playerHealth) }} / {{ formatHealth(chainNodeTooltipData.opponentHealth) }}
         </text>
       </g>
+
+      <!-- Tooltip for hovered chain connection -->
+      <g
+        v-if="hoveredChainConnection !== null && chainConnectionTooltipData"
+        class="tooltip"
+      >
+        <rect
+          :x="chainConnectionTooltipData.x"
+          :y="chainConnectionTooltipData.y"
+          :width="chainConnectionTooltipData.width"
+          :height="chainConnectionTooltipData.height"
+          fill="rgba(30, 26, 20, 0.95)"
+          stroke="var(--gold-primary)"
+          stroke-width="1"
+          rx="4"
+        />
+        <text
+          ref="chainConnectionTooltipTextRef"
+          :x="chainConnectionTooltipData.x + 8"
+          :y="chainConnectionTooltipData.y + 18"
+          class="tooltip-action"
+          @vue:mounted="updateChainConnectionTooltipWidth"
+          @vue:updated="updateChainConnectionTooltipWidth"
+        >
+          {{ chainConnectionTooltipData.label }}
+        </text>
+      </g>
     </svg>
   </div>
 </template>
@@ -251,6 +281,7 @@ interface ChainConnection {
     y2: number;
     strokeWidth: number;
     color: string;
+    label: string; // Combo route name or action pair
 }
 
 interface FlowData {
@@ -296,6 +327,7 @@ defineEmits<{
 
 const hoveredFlow = ref<number | null>(null);
 const hoveredChainNode = ref<string | null>(null);
+const hoveredChainConnection = ref<number | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const containerWidth = ref(900);
 
@@ -897,15 +929,39 @@ const calculatedData = computed(() => {
                         ? nodeX + chainNodeSize + chainGap  // Next chain node
                         : dynamicTargetBoxX;  // Final target
 
+                    // Build label for tooltip
+                    const nextNodeId = chain.chainNodes[i + 1].nodeId;
+                    const transition = chainNode.node.transitions.find(tr => tr.nextNodeId === nextNodeId);
+                    let label = '';
+                    if (transition) {
+                        if (isComboStarter(chainNode.node)) {
+                            // Combo node: show combo route name
+                            const playerAction = chainNode.node.playerActions?.actions.find(
+                                a => a.actionId === transition.playerActionId
+                            );
+                            label = playerAction?.name ?? '';
+                        } else {
+                            // Situation node: show action pair
+                            const playerAction = chainNode.node.playerActions?.actions.find(
+                                a => a.actionId === transition.playerActionId
+                            );
+                            const opponentAction = chainNode.node.opponentActions?.actions.find(
+                                a => a.actionId === transition.opponentActionId
+                            );
+                            label = `${playerAction?.name ?? ''} / ${opponentAction?.name ?? ''}`;
+                        }
+                    }
+
                     chainConnectionsData.push({
                         fromId: chainNode.nodeId,
-                        toId: chain.chainNodes[i + 1].nodeId,
+                        toId: nextNodeId,
                         x1: nodeX + chainNodeSize,
                         y1: flowCenterY,
                         x2: nextX,
                         y2: flowCenterY,
                         strokeWidth: targetFlowHeight,
-                        color
+                        color,
+                        label
                     });
                 }
             }
@@ -1008,6 +1064,50 @@ const chainNodeTooltipData = computed(() => {
     };
 });
 
+const chainConnectionTooltipTextRef = ref<SVGTextElement | null>(null);
+const chainConnectionTooltipWidth = ref(100);
+
+const chainConnectionTooltipData = computed(() => {
+    if (hoveredChainConnection.value === null) {
+        return null;
+    }
+
+    const conn = chainConnections.value[hoveredChainConnection.value];
+    if (!conn || !conn.label) {
+        return null;
+    }
+
+    const width = chainConnectionTooltipWidth.value;
+    const height = 28;
+    let x = (conn.x1 + conn.x2) / 2 - width / 2;
+    let y = conn.y1 - conn.strokeWidth / 2 - height - 8;
+
+    // Keep tooltip in bounds
+    if (x < 10) {
+        x = 10;
+    }
+    if (x + width > svgWidth.value - 10) {
+        x = svgWidth.value - width - 10;
+    }
+    if (y < 10) {
+        y = conn.y1 + conn.strokeWidth / 2 + 8;
+    }
+
+    return {
+        x,
+        y,
+        width,
+        height,
+        label: conn.label
+    };
+});
+
+function updateChainConnectionTooltipWidth() {
+    if (chainConnectionTooltipTextRef.value) {
+        chainConnectionTooltipWidth.value = chainConnectionTooltipTextRef.value.getComputedTextLength() + 16;
+    }
+}
+
 function generateSankeyPath(
     x1: number,
     y1Start: number,
@@ -1087,8 +1187,9 @@ function formatProb(prob: number): string {
     transition: opacity 0.15s ease;
 }
 
-.chain-connections line {
-    pointer-events: none;
+.chain-connection {
+    cursor: pointer;
+    transition: stroke-opacity 0.15s ease;
 }
 
 .chain-rect {
