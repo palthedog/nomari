@@ -30,6 +30,6 @@ Nomariは以下のような質問に答えるのに役立ちます：
 ![](documents/ja/images/example_4hp_gto.png)
 
 ## デモ
-https://palthedog.github.io/nomari/#/example/marisa/
+https://palthedog.github.io/nomari/#/example/marisa/strategy
 
 [使い方](documents/ja)
