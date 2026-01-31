@@ -43,6 +43,7 @@
           :selected-node="selectedNode"
           :game-tree="gameTree!"
           :strategy="strategy"
+          :all-strategies="strategies"
           @select-node="selectNode"
         />
         <div

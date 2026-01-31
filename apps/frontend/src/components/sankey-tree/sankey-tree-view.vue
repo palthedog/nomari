@@ -82,6 +82,44 @@
         </g>
       </g>
 
+      <!-- Chain connections (lines between chain nodes) -->
+      <g class="chain-connections">
+        <line
+          v-for="(conn, connIdx) in chainConnections"
+          :key="`conn-${connIdx}`"
+          :x1="conn.x1"
+          :y1="conn.y1"
+          :x2="conn.x2"
+          :y2="conn.y2"
+          :stroke="conn.color"
+          :stroke-width="conn.strokeWidth"
+          stroke-opacity="0.5"
+          stroke-linecap="round"
+        />
+      </g>
+
+      <!-- Chain nodes (small rectangles for intermediate nodes) -->
+      <g class="chain-nodes">
+        <g
+          v-for="(chainNode, cnIdx) in chainNodes"
+          :key="`chain-${cnIdx}`"
+          class="chain-node"
+          @click="$emit('select-node', chainNode.nodeId)"
+          @mouseenter="hoveredChainNode = chainNode.nodeId"
+          @mouseleave="hoveredChainNode = null"
+        >
+          <rect
+            :x="chainNode.x"
+            :y="chainNode.y"
+            :width="chainNodeSize"
+            :height="chainNode.height"
+            :fill="getTargetColor(chainNode.node)"
+            rx="3"
+            class="chain-rect"
+          />
+        </g>
+      </g>
+
       <!-- Target nodes -->
       <g class="target-nodes">
         <g
@@ -156,6 +194,37 @@
           {{ formatProb(tooltipData.probability) }}
         </text>
       </g>
+
+      <!-- Tooltip for hovered chain node -->
+      <g
+        v-if="hoveredChainNode !== null && chainNodeTooltipData"
+        class="tooltip"
+      >
+        <rect
+          :x="chainNodeTooltipData.x"
+          :y="chainNodeTooltipData.y"
+          :width="chainNodeTooltipData.width"
+          :height="chainNodeTooltipData.height"
+          fill="rgba(30, 26, 20, 0.95)"
+          stroke="var(--gold-primary)"
+          stroke-width="1"
+          rx="4"
+        />
+        <text
+          :x="chainNodeTooltipData.x + 8"
+          :y="chainNodeTooltipData.y + 18"
+          class="tooltip-action"
+        >
+          {{ chainNodeTooltipData.name }}
+        </text>
+        <text
+          :x="chainNodeTooltipData.x + 8"
+          :y="chainNodeTooltipData.y + 36"
+          class="tooltip-target"
+        >
+          HP {{ formatHealth(chainNodeTooltipData.playerHealth) }} / {{ formatHealth(chainNodeTooltipData.opponentHealth) }}
+        </text>
+      </g>
     </svg>
   </div>
 </template>
@@ -164,6 +233,25 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import type { GameTree, Node } from '@nomari/game-tree/game-tree';
 import type { StrategyData } from '@/workers/solver-types';
+
+interface ChainNode {
+    nodeId: string;
+    node: Node;
+    x: number;
+    y: number;
+    height: number;
+}
+
+interface ChainConnection {
+    fromId: string;
+    toId: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    strokeWidth: number;
+    color: string;
+}
 
 interface FlowData {
     path: string;
@@ -199,6 +287,7 @@ const props = defineProps<{
     selectedNode: Node;
     gameTree: GameTree;
     strategy: StrategyData;
+    allStrategies: Record<string, StrategyData>;
 }>();
 
 defineEmits<{
@@ -206,6 +295,7 @@ defineEmits<{
 }>();
 
 const hoveredFlow = ref<number | null>(null);
+const hoveredChainNode = ref<string | null>(null);
 const containerRef = ref<HTMLElement | null>(null);
 const containerWidth = ref(900);
 
@@ -229,7 +319,9 @@ const svgWidth = computed(() => Math.max(800, containerWidth.value));
 const topPadding = 70;
 const playerBoxX = 30;
 const playerBoxWidth = 100;
-const targetBoxX = 700;
+const baseFlowWidth = 300;
+const chainNodeSize = 20;
+const chainGap = 30;
 const targetBoxWidth = 20;
 const rowGap = 15;
 
@@ -256,6 +348,67 @@ function isTerminal(node: Node): boolean {
     return node.playerReward !== undefined;
 }
 
+function getSignificantTargets(node: Node, strategy: StrategyData): Set<string> {
+    const targets = new Set<string>();
+    const playerProbMap = new Map(strategy.playerStrategy.map(s => [s.actionId, s.probability]));
+    const opponentProbMap = new Map(strategy.opponentStrategy.map(s => [s.actionId, s.probability]));
+
+    for (const t of node.transitions) {
+        const playerProb = playerProbMap.get(t.playerActionId) ?? 0;
+        const opponentProb = opponentProbMap.get(t.opponentActionId) ?? 0;
+        const combinedProb = playerProb * opponentProb;
+
+        if (combinedProb >= 0.005) {
+            targets.add(t.nextNodeId);
+        }
+    }
+
+    return targets;
+}
+
+function hasSingleDestination(node: Node, strategy: StrategyData | null): boolean {
+    if (isTerminal(node)) {
+        return false;
+    }
+
+    // Combo nodes: check if there's exactly one route with sufficient probability
+    if (isComboStarter(node)) {
+        if (!strategy) {
+            return node.transitions.length === 1;
+        }
+        const targets = getSignificantTargets(node, strategy);
+        return targets.size === 1;
+    }
+
+    // Normal situation nodes: check strategy
+    if (!strategy) {
+        return false;
+    }
+
+    const targets = getSignificantTargets(node, strategy);
+    return targets.size === 1;
+}
+
+function getSingleDestination(node: Node, strategy: StrategyData | null): string | null {
+    if (!hasSingleDestination(node, strategy)) {
+        return null;
+    }
+
+    if (strategy) {
+        const targets = getSignificantTargets(node, strategy);
+        if (targets.size === 1) {
+            return targets.values().next().value ?? null;
+        }
+    }
+
+    // Fallback for combo nodes without strategy
+    if (node.transitions.length === 1) {
+        return node.transitions[0].nextNodeId;
+    }
+
+    return null;
+}
+
 function getTargetColor(node: Node): string {
     if (isTerminal(node)) {
         if (node.state.playerHealth <= 0) {
@@ -269,21 +422,51 @@ function getTargetColor(node: Node): string {
     return '#4A6FA5'; // Situation node
 }
 
-function resolveTargetNode(nodeId: string): {
-    nodeId: string;
-    node: Node
-} {
-    let currentNodeId = nodeId;
-    let currentNode = props.gameTree.nodes[nodeId];
+interface NodeChain {
+    chainNodes: Array<{
+        nodeId: string;
+        node: Node
+    }>;
+    finalNodeId: string;
+    finalNode: Node;
+}
 
-    while (currentNode && isComboStarter(currentNode) && currentNode.transitions.length > 0) {
-        currentNodeId = currentNode.transitions[0].nextNodeId;
+function buildNodeChain(startNodeId: string): NodeChain {
+    const chainNodes: Array<{
+        nodeId: string;
+        node: Node
+    }> = [];
+    let currentNodeId = startNodeId;
+    let currentNode = props.gameTree.nodes[startNodeId];
+
+    while (currentNode) {
+        const strategy = props.allStrategies[currentNodeId] ?? null;
+
+        chainNodes.push({
+            nodeId: currentNodeId,
+            node: currentNode
+        });
+
+        // Stop if terminal or has multiple destinations
+        if (isTerminal(currentNode) || !hasSingleDestination(currentNode, strategy)) {
+            break;
+        }
+
+        // Move to next node
+        const nextNodeId = getSingleDestination(currentNode, strategy);
+        if (!nextNodeId) {
+            break;
+        }
+
+        currentNodeId = nextNodeId;
         currentNode = props.gameTree.nodes[currentNodeId];
     }
 
+    const lastNode = chainNodes[chainNodes.length - 1];
     return {
-        nodeId: currentNodeId,
-        node: currentNode
+        chainNodes,
+        finalNodeId: lastNode.nodeId,
+        finalNode: lastNode.node
     };
 }
 
@@ -321,6 +504,7 @@ const calculatedData = computed(() => {
         opponentActionId: number;
         opponentActionName: string;
         combinedProb: number;
+        chain: NodeChain;
         targetNodeId: string;
         targetNode: Node;
     }
@@ -338,7 +522,7 @@ const calculatedData = computed(() => {
             continue;
         }
 
-        const { nodeId: targetNodeId, node: targetNode } = resolveTargetNode(t.nextNodeId);
+        const chain = buildNodeChain(t.nextNodeId);
 
         rawTransitions.push({
             playerActionId: t.playerActionId,
@@ -347,8 +531,9 @@ const calculatedData = computed(() => {
             opponentActionId: t.opponentActionId,
             opponentActionName: opponentAction?.name ?? `Action ${t.opponentActionId}`,
             combinedProb,
-            targetNodeId,
-            targetNode
+            chain,
+            targetNodeId: chain.finalNodeId,
+            targetNode: chain.finalNode
         });
     }
 
@@ -382,11 +567,12 @@ const calculatedData = computed(() => {
         opponentColorMap.set(id, opponentActionColors[idx % opponentActionColors.length]);
     });
 
-    // Collect target totals
+    // Collect target totals (including flow count for height calculation)
     const targetTotals = new Map<string, {
         node: Node;
         totalProb: number;
-        playerActions: Set<number>
+        playerActions: Set<number>;
+        flowCount: number
     }>();
 
     for (const t of rawTransitions) {
@@ -394,11 +580,13 @@ const calculatedData = computed(() => {
         if (existing) {
             existing.totalProb += t.combinedProb;
             existing.playerActions.add(t.playerActionId);
+            existing.flowCount += 1;
         } else {
             targetTotals.set(t.targetNodeId, {
                 node: t.targetNode,
                 totalProb: t.combinedProb,
-                playerActions: new Set([t.playerActionId])
+                playerActions: new Set([t.playerActionId]),
+                flowCount: 1
             });
         }
     }
@@ -457,6 +645,18 @@ const calculatedData = computed(() => {
     // Calculate total for scaling
     const totalProb = Array.from(targetTotals.values()).reduce((sum, d) => sum + d.totalProb, 0);
 
+    // Calculate max chain length (excluding first node which connects to flow, and last which is target)
+    // Chain intermediate nodes: nodes between the first transition target and the final target
+    const maxIntermediateChainLength = rawTransitions.reduce((max, t) => {
+        const intermediateCount = t.chain.chainNodes.length - 1; // Exclude final node
+        return Math.max(max, intermediateCount);
+    }, 0);
+
+    // Calculate dynamic targetBoxX based on chain length
+    const flowEndX = playerBoxX + playerBoxWidth + baseFlowWidth;
+    const chainAreaWidth = maxIntermediateChainLength * (chainNodeSize + chainGap);
+    const dynamicTargetBoxX = flowEndX + chainAreaWidth;
+
     // Layout player rows - height strictly proportional to probability
     const rows: PlayerRow[] = [];
     let currentY = topPadding;
@@ -508,8 +708,11 @@ const calculatedData = computed(() => {
     const targets: TargetNodeData[] = [];
     const targetPositions = new Map<string, { y: number;
         height: number;
-        currentY: number }>();
+        currentY: number;
+        flowCount: number }>();
     let targetY = topPadding;
+    const targetTopPad = 2;
+    const targetFlowGap = 1;
 
     // Calculate minimum target height based on text height (2 lines of text need ~28px)
     const minTargetHeight = 28;
@@ -523,7 +726,8 @@ const calculatedData = computed(() => {
         targetPositions.set(targetId, {
             y: targetY,
             height,
-            currentY: targetY
+            currentY: targetY + targetTopPad,
+            flowCount: data.flowCount
         });
 
         targets.push({
@@ -564,6 +768,17 @@ const calculatedData = computed(() => {
         transitionsByPlayer.get(t.playerActionId)!.push(t);
     }
 
+    // Track chain node bounds (minY, maxY) for each chain node key
+    const chainNodeBounds = new Map<string, {
+        nodeId: string;
+        node: Node;
+        x: number;
+        minY: number;
+        maxY: number;
+        chainIndex: number
+    }>();
+    const chainConnectionsData: ChainConnection[] = [];
+
     // Create flows with positions calculated to fit within boxes
     for (const playerId of sortedPlayerIds) {
         const playerTransitions = transitionsByPlayer.get(playerId) ?? [];
@@ -600,23 +815,34 @@ const calculatedData = computed(() => {
 
             // Flow dimensions - proportional to probability but constrained to box
             const flowHeight = Math.max(minFlowHeight, t.combinedProb * scaleFactor);
-            const targetFlowHeight = Math.max(4, (t.combinedProb / targetData.totalProb) * (targetPos.height - 4));
+
+            // Calculate available height for flows in target box
+            // Account for: top padding, bottom padding, and gaps between flows
+            const targetAvailableHeight = targetPos.height - targetTopPad * 2 -
+                Math.max(0, targetPos.flowCount - 1) * targetFlowGap;
+            const targetFlowHeight = Math.max(4, (t.combinedProb / targetData.totalProb) * targetAvailableHeight);
 
             // Source position
             const sourceY1 = currentFlowY;
             const sourceY2 = currentFlowY + flowHeight;
             currentFlowY = sourceY2 + flowGap;
 
-            // Target position
-            const targetY1 = targetPos.currentY + 2;
+            // Target position (currentY already includes top padding from initialization)
+            const targetY1 = targetPos.currentY;
             const targetY2 = targetY1 + targetFlowHeight;
-            targetPos.currentY = targetY2 + 1;
+            targetPos.currentY = targetY2 + targetFlowGap;
+
+            // Determine flow end position based on chain
+            const hasIntermediateNodes = t.chain.chainNodes.length > 1;
+            const flowDestX = hasIntermediateNodes
+                ? (playerBoxX + playerBoxWidth + baseFlowWidth) // Connect to first chain node
+                : dynamicTargetBoxX; // Connect directly to target
 
             const path = generateSankeyPath(
                 playerBoxX + playerBoxWidth,
                 sourceY1,
                 sourceY2,
-                targetBoxX,
+                flowDestX,
                 targetY1,
                 targetY2
             );
@@ -629,16 +855,76 @@ const calculatedData = computed(() => {
                 opponentActionName: t.opponentActionName,
                 targetName: t.targetNode.name ?? t.targetNodeId,
                 probability: t.combinedProb,
-                midX: (playerBoxX + playerBoxWidth + targetBoxX) / 2,
+                midX: (playerBoxX + playerBoxWidth + dynamicTargetBoxX) / 2,
                 midY: (sourceY1 + sourceY2 + targetY1 + targetY2) / 4
             });
+
+            // Track chain node bounds and create connections
+            if (hasIntermediateNodes) {
+                const chain = t.chain;
+                const color = opponentColorMap.get(t.opponentActionId) ?? '#888888';
+
+                // Process intermediate nodes (all except the last one which is the target)
+                for (let i = 0; i < chain.chainNodes.length - 1; i++) {
+                    const chainNode = chain.chainNodes[i];
+                    const nodeKey = `${chainNode.nodeId}-${t.targetNodeId}`;
+
+                    // Calculate x position for this chain node
+                    const nodeX = playerBoxX + playerBoxWidth + baseFlowWidth + i * (chainNodeSize + chainGap);
+
+                    // Update chain node bounds (track min/max Y of all flows through this node)
+                    const existing = chainNodeBounds.get(nodeKey);
+                    if (existing) {
+                        existing.minY = Math.min(existing.minY, targetY1);
+                        existing.maxY = Math.max(existing.maxY, targetY2);
+                    } else {
+                        chainNodeBounds.set(nodeKey, {
+                            nodeId: chainNode.nodeId,
+                            node: chainNode.node,
+                            x: nodeX,
+                            minY: targetY1,
+                            maxY: targetY2,
+                            chainIndex: i
+                        });
+                    }
+
+                    // Create connection at the flow's Y position
+                    const flowCenterY = targetY1 + targetFlowHeight / 2;
+                    const nextX = (i < chain.chainNodes.length - 2)
+                        ? nodeX + chainNodeSize + chainGap  // Next chain node
+                        : dynamicTargetBoxX;  // Final target
+
+                    chainConnectionsData.push({
+                        fromId: chainNode.nodeId,
+                        toId: chain.chainNodes[i + 1].nodeId,
+                        x1: nodeX + chainNodeSize,
+                        y1: flowCenterY,
+                        x2: nextX,
+                        y2: flowCenterY,
+                        strokeWidth: targetFlowHeight,
+                        color
+                    });
+                }
+            }
         }
     }
+
+    // Create chain nodes with proper heights based on accumulated bounds
+    const chainNodesData: ChainNode[] = Array.from(chainNodeBounds.values()).map(bounds => ({
+        nodeId: bounds.nodeId,
+        node: bounds.node,
+        x: bounds.x,
+        y: bounds.minY,
+        height: bounds.maxY - bounds.minY
+    }));
 
     return {
         rows,
         targets,
         flows,
+        chainNodes: chainNodesData,
+        chainConnections: chainConnectionsData,
+        targetBoxX: dynamicTargetBoxX,
         totalHeight: Math.max(currentY, targetY) + 30
     };
 });
@@ -646,6 +932,9 @@ const calculatedData = computed(() => {
 const playerRows = computed(() => calculatedData.value.rows);
 const targetNodes = computed(() => calculatedData.value.targets);
 const allFlows = computed(() => calculatedData.value.flows);
+const chainNodes = computed(() => calculatedData.value.chainNodes);
+const chainConnections = computed(() => calculatedData.value.chainConnections);
+const targetBoxX = computed(() => calculatedData.value.targetBoxX);
 const svgHeight = computed(() => calculatedData.value.totalHeight);
 
 const tooltipData = computed(() => {
@@ -682,6 +971,37 @@ const tooltipData = computed(() => {
         opponentAction: flow.opponentActionName,
         targetName: flow.targetName,
         probability: flow.probability
+    };
+});
+
+const chainNodeTooltipData = computed(() => {
+    if (hoveredChainNode.value === null) {
+        return null;
+    }
+
+    const chainNode = chainNodes.value.find(n => n.nodeId === hoveredChainNode.value);
+    if (!chainNode) {
+        return null;
+    }
+
+    const width = 180;
+    const height = 48;
+    let x = chainNode.x + chainNodeSize + 10;
+    const y = chainNode.y - 10;
+
+    // Keep tooltip in bounds
+    if (x + width > svgWidth.value - 10) {
+        x = chainNode.x - width - 10;
+    }
+
+    return {
+        x,
+        y,
+        width,
+        height,
+        name: chainNode.node.name ?? chainNode.nodeId,
+        playerHealth: chainNode.node.state.playerHealth,
+        opponentHealth: chainNode.node.state.opponentHealth
     };
 });
 
@@ -762,6 +1082,22 @@ function formatProb(prob: number): string {
 .flow-path {
     cursor: pointer;
     transition: opacity 0.15s ease;
+}
+
+.chain-connections line {
+    pointer-events: none;
+}
+
+.chain-rect {
+    cursor: pointer;
+    stroke: rgba(255, 255, 255, 0.3);
+    stroke-width: 1;
+    transition: stroke 0.15s ease;
+}
+
+.chain-node:hover .chain-rect {
+    stroke: var(--gold-primary);
+    stroke-width: 2;
 }
 
 .target-box {
