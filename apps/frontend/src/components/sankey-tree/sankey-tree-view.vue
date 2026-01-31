@@ -352,7 +352,7 @@ const calculatedData = computed(() => {
         });
     }
 
-    // Get unique player actions (sorted by probability)
+    // Get unique player actions (keep scenario definition order)
     const playerActionMap = new Map<number, { name: string;
         prob: number }>();
     for (const t of rawTransitions) {
@@ -363,9 +363,10 @@ const calculatedData = computed(() => {
             });
         }
     }
-    const sortedPlayerIds = Array.from(playerActionMap.entries())
-        .sort((a, b) => b[1].prob - a[1].prob)
-        .map(([id]) => id);
+    // Use original definition order from playerActions
+    const sortedPlayerIds = playerActions
+        .map(a => a.actionId)
+        .filter(id => playerActionMap.has(id));
 
     // Build opponent action color map (sorted by probability for consistent coloring)
     const opponentActionProbs = new Map<number, number>();
