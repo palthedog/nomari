@@ -1372,12 +1372,14 @@ function formatProb(prob: number): string {
     font-size: 12px;
     font-weight: 600;
     fill: white;
+    pointer-events: none;
 }
 
 .player-prob {
     font-family: var(--font-family-mono);
     font-size: 14px;
     fill: rgba(255, 255, 255, 0.9);
+    pointer-events: none;
 }
 
 .flow-path {
