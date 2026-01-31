@@ -741,38 +741,107 @@ function sortTargetIds(targetTotals: Map<string, TargetTotalData>): string[] {
         .map(([id]) => id);
 }
 
-// Layout player rows - height strictly proportional to probability
+// Group transitions by player action ID
+function groupTransitionsByPlayer(rawTransitions: RawTransition[]): Map<number, RawTransition[]> {
+    const result = new Map<number, RawTransition[]>();
+    for (const t of rawTransitions) {
+        if (!result.has(t.playerActionId)) {
+            result.set(t.playerActionId, []);
+        }
+        result.get(t.playerActionId)!.push(t);
+    }
+    return result;
+}
+
+// Group transitions by target node ID
+function groupTransitionsByTarget(rawTransitions: RawTransition[]): Map<string, RawTransition[]> {
+    const result = new Map<string, RawTransition[]>();
+    for (const t of rawTransitions) {
+        if (!result.has(t.targetNodeId)) {
+            result.set(t.targetNodeId, []);
+        }
+        result.get(t.targetNodeId)!.push(t);
+    }
+    return result;
+}
+
+// Calculate global pixels-per-probability ratio
+// Ensures the smallest flow naturally meets minFlowHeight
+function calculatePixelsPerProb(
+    rawTransitions: RawTransition[],
+    numPlayerActions: number,
+    minFlowHeight: number = 5
+): number {
+    if (rawTransitions.length === 0) {
+        return 1;
+    }
+
+    // Find the minimum probability
+    const minCombinedProb = Math.min(...rawTransitions.map(t => t.combinedProb));
+
+    // Calculate pixels-per-prob so smallest flow meets minFlowHeight
+    const requiredPixelsPerProb = minFlowHeight / minCombinedProb;
+
+    // Also calculate based on base height
+    const totalCombinedProb = rawTransitions.reduce((sum, t) => sum + t.combinedProb, 0);
+    const baseHeight = Math.max(250, numPlayerActions * 80);
+    const basePixelsPerProb = baseHeight / totalCombinedProb;
+
+    // Use the larger value to satisfy both constraints
+    return Math.max(basePixelsPerProb, requiredPixelsPerProb);
+}
+
+// Create a unique key for a transition
+function getTransitionKey(t: RawTransition): string {
+    return `${t.playerActionId}-${t.opponentActionId}-${t.targetNodeId}`;
+}
+
+// Calculate flow widths for all transitions
+// No Math.max needed since pixelsPerProb ensures minimum height
+function calculateFlowWidths(
+    rawTransitions: RawTransition[],
+    pixelsPerProb: number
+): Map<string, number> {
+    const flowWidths = new Map<string, number>();
+    for (const t of rawTransitions) {
+        const key = getTransitionKey(t);
+        const width = t.combinedProb * pixelsPerProb;
+        flowWidths.set(key, width);
+    }
+    return flowWidths;
+}
+
+// Layout player rows - height based on sum of outgoing flow widths
 function layoutPlayerRows(
     sortedPlayerIds: number[],
     playerActionMap: Map<number, { name: string;
-        prob: number }>
+        prob: number }>,
+    transitionsByPlayer: Map<number, RawTransition[]>,
+    flowWidths: Map<string, number>
 ): { rows: PlayerRow[];
     playerRowPositions: Map<number, PlayerRowPosition>;
     currentY: number } {
     const rows: PlayerRow[] = [];
     let currentY = topPadding;
-
     const playerRowPositions = new Map<number, PlayerRowPosition>();
-    const minBoxHeight = 35;
-    // Calculate total available height for player boxes (based on number of actions)
-    const totalPlayerHeight = Math.max(250, sortedPlayerIds.length * 80);
-    const totalPlayerGaps = (sortedPlayerIds.length - 1) * rowGap;
-    const availablePlayerHeight = totalPlayerHeight - totalPlayerGaps;
-    // Get total player probability for scaling
-    const totalPlayerProb = sortedPlayerIds.reduce(
-        (sum, id) => sum + (playerActionMap.get(id)?.prob ?? 0), 0
-    );
+    const boxPadding = 2;
+    const flowGap = 1;
 
     for (const playerId of sortedPlayerIds) {
         const data = playerActionMap.get(playerId)!;
-        // Height strictly proportional to probability
-        const probHeight = (data.prob / totalPlayerProb) * availablePlayerHeight;
-        const rowHeight = Math.max(minBoxHeight, probHeight);
+        const playerTransitions = transitionsByPlayer.get(playerId) ?? [];
+
+        // Calculate box height from sum of outgoing flow widths
+        const totalFlowWidth = playerTransitions.reduce((sum, t) => {
+            return sum + flowWidths.get(getTransitionKey(t))!;
+        }, 0);
+        const gaps = Math.max(0, playerTransitions.length - 1) * flowGap;
+        const rowHeight = totalFlowWidth + gaps + boxPadding * 2;
 
         playerRowPositions.set(playerId, {
             y: currentY,
             height: rowHeight,
-            currentY: currentY + 8
+            currentY: currentY + boxPadding
         });
 
         rows.push({
@@ -788,16 +857,16 @@ function layoutPlayerRows(
     return {
         rows,
         playerRowPositions,
-        currentY 
+        currentY
     };
 }
 
-// Layout targets - height strictly proportional to probability
+// Layout targets - height based on sum of incoming flow widths
 function layoutTargetNodes(
     sortedTargetIds: string[],
     targetTotals: Map<string, TargetTotalData>,
-    totalProb: number,
-    playerTotalHeight: number
+    transitionsByTarget: Map<string, RawTransition[]>,
+    flowWidths: Map<string, number>
 ): { targets: TargetNodeData[];
     targetPositions: Map<string, TargetPosition>;
     targetY: number } {
@@ -806,16 +875,18 @@ function layoutTargetNodes(
     let targetY = topPadding;
     const targetGap = 8;
     const targetTopPad = 2;
-    const totalTargetGaps = Math.max(0, sortedTargetIds.length - 1) * targetGap;
-    const availableTargetHeight = playerTotalHeight - totalTargetGaps;
-    // Calculate minimum target height based on text height (2 lines of text need ~28px)
-    const minTargetHeight = 28;
+    const targetFlowGap = 1;
 
     for (const targetId of sortedTargetIds) {
         const data = targetTotals.get(targetId)!;
-        // Height strictly proportional to probability
-        const probHeight = (data.totalProb / totalProb) * availableTargetHeight;
-        const height = Math.max(minTargetHeight, probHeight);
+        const targetTransitions = transitionsByTarget.get(targetId) ?? [];
+
+        // Calculate box height from sum of incoming flow widths
+        const totalFlowWidth = targetTransitions.reduce((sum, t) => {
+            return sum + flowWidths.get(getTransitionKey(t))!;
+        }, 0);
+        const gaps = Math.max(0, targetTransitions.length - 1) * targetFlowGap;
+        const height = totalFlowWidth + gaps + targetTopPad * 2;
 
         targetPositions.set(targetId, {
             y: targetY,
@@ -843,101 +914,59 @@ function layoutTargetNodes(
     return {
         targets,
         targetPositions,
-        targetY 
+        targetY
     };
 }
 
-// Create flows with positions calculated to fit within boxes
+// Create flows with positions using pre-calculated flow widths
 function generateFlowsAndChains(
     sortedPlayerIds: number[],
-    rawTransitions: RawTransition[],
+    transitionsByPlayer: Map<number, RawTransition[]>,
     playerRowPositions: Map<number, PlayerRowPosition>,
     targetPositions: Map<string, TargetPosition>,
-    targetTotals: Map<string, TargetTotalData>,
     opponentColorMap: Map<number, string>,
-    dynamicTargetBoxX: number
+    dynamicTargetBoxX: number,
+    flowWidths: Map<string, number>
 ): { flows: FlowData[];
     chainNodes: ChainNode[];
     chainConnections: ChainConnection[] } {
     const flows: FlowData[] = [];
-    // Track chain node bounds (minY, maxY) for each chain node key
     const chainNodeBounds = new Map<string, ChainNodeBounds>();
     const chainConnectionsData: ChainConnection[] = [];
 
-    // Sort transitions for consistent ordering
-    const sortedTransitions = [...rawTransitions].sort((a, b) => {
-        const playerIdxA = sortedPlayerIds.indexOf(a.playerActionId);
-        const playerIdxB = sortedPlayerIds.indexOf(b.playerActionId);
-        if (playerIdxA !== playerIdxB) {
-            return playerIdxA - playerIdxB;
-        }
-        return b.combinedProb - a.combinedProb;
-    });
-
-    // Group transitions by player action for proper positioning
-    const transitionsByPlayer = new Map<number, RawTransition[]>();
-    for (const t of sortedTransitions) {
-        if (!transitionsByPlayer.has(t.playerActionId)) {
-            transitionsByPlayer.set(t.playerActionId, []);
-        }
-        transitionsByPlayer.get(t.playerActionId)!.push(t);
-    }
-
-    const targetTopPad = 2;
+    const flowGap = 1;
     const targetFlowGap = 1;
 
     for (const playerId of sortedPlayerIds) {
         const playerTransitions = transitionsByPlayer.get(playerId) ?? [];
         const playerPos = playerRowPositions.get(playerId)!;
 
-        // Calculate flow heights proportional to each player's box
-        const boxPadding = 2;
-        const usableHeight = playerPos.height - boxPadding * 2;
-        const flowGap = 1;
-        // Calculate total probability for this player's transitions (for proportional sizing)
-        const playerTotalProb = playerTransitions.reduce((sum, t) => sum + t.combinedProb, 0);
-        // Calculate needed height with minimum flow sizes
-        const minFlowHeight = 5;
-        const totalMinHeight = playerTransitions.length * minFlowHeight +
-            Math.max(0, playerTransitions.length - 1) * flowGap;
-        // Scale flows to fit within the box
-        const scaleFactor = usableHeight > totalMinHeight
-            ? (usableHeight - (playerTransitions.length - 1) * flowGap) / playerTotalProb
-            : minFlowHeight / (playerTotalProb / playerTransitions.length);
-
-        let currentFlowY = playerPos.y + boxPadding;
+        let currentFlowY = playerPos.currentY;
 
         for (const t of playerTransitions) {
             const targetPos = targetPositions.get(t.targetNodeId);
-            const targetData = targetTotals.get(t.targetNodeId);
-            // Skip if target position not found
-            if (!targetPos || !targetData) {
+            if (!targetPos) {
                 continue;
             }
 
-            // Flow dimensions - proportional to probability but constrained to box
-            const flowHeight = Math.max(minFlowHeight, t.combinedProb * scaleFactor);
-            // Calculate available height for flows in target box
-            // Account for: top padding, bottom padding, and gaps between flows
-            const targetAvailableHeight = targetPos.height - targetTopPad * 2 -
-                Math.max(0, targetPos.flowCount - 1) * targetFlowGap;
-            const targetFlowHeight = Math.max(4, (t.combinedProb / targetData.totalProb) * targetAvailableHeight);
+            // Use pre-calculated flow width (same at source and target)
+            const flowHeight = flowWidths.get(getTransitionKey(t))!;
 
             // Source position
             const sourceY1 = currentFlowY;
             const sourceY2 = currentFlowY + flowHeight;
             currentFlowY = sourceY2 + flowGap;
 
-            // Target position (currentY already includes top padding from initialization)
+            // Target position (same width as source)
             const targetY1 = targetPos.currentY;
-            const targetY2 = targetY1 + targetFlowHeight;
+            const targetY2 = targetY1 + flowHeight;
             targetPos.currentY = targetY2 + targetFlowGap;
 
             // Determine flow end position based on chain
             const hasIntermediateNodes = t.chain.chainNodes.length > 1;
             const flowDestX = hasIntermediateNodes
-                ? (playerBoxX + playerBoxWidth + baseFlowWidth) // Connect to first chain node
-                : dynamicTargetBoxX; // Connect directly to target
+                ? (playerBoxX + playerBoxWidth + baseFlowWidth)
+                : dynamicTargetBoxX;
 
             const path = generateSankeyPath(
                 playerBoxX + playerBoxWidth,
@@ -967,7 +996,7 @@ function generateFlowsAndChains(
                     t,
                     targetY1,
                     targetY2,
-                    targetFlowHeight,
+                    flowHeight,
                     opponentColorMap,
                     dynamicTargetBoxX,
                     chainNodeBounds,
@@ -977,7 +1006,6 @@ function generateFlowsAndChains(
         }
     }
 
-    // Create chain nodes with proper heights based on accumulated bounds
     const chainNodesData: ChainNode[] = Array.from(chainNodeBounds.values()).map(bounds => ({
         nodeId: bounds.nodeId,
         node: bounds.node,
@@ -1061,37 +1089,54 @@ const calculatedData = computed(() => {
     const targetTotals = collectTargetTotals(rawTransitions);
     const sortedTargetIds = sortTargetIds(targetTotals);
 
-    // Calculate total for scaling
-    const totalProb = Array.from(targetTotals.values()).reduce(
-        (sum, d) => sum + d.totalProb, 0
-    );
-    // Calculate max chain length (excluding first node which connects to flow, and last which is target)
-    // Chain intermediate nodes: nodes between the first transition target and the final target
+    // Calculate global pixels-per-probability ratio and flow widths
+    const pixelsPerProb = calculatePixelsPerProb(rawTransitions, sortedPlayerIds.length);
+    const flowWidths = calculateFlowWidths(rawTransitions, pixelsPerProb);
+
+    // Group transitions for layout
+    const transitionsByPlayer = groupTransitionsByPlayer(rawTransitions);
+    const transitionsByTarget = groupTransitionsByTarget(rawTransitions);
+
+    // Sort transitions within each player group for consistent ordering
+    for (const [playerId, transitions] of transitionsByPlayer) {
+        transitions.sort((a, b) => b.combinedProb - a.combinedProb);
+        transitionsByPlayer.set(playerId, transitions);
+    }
+
+    // Calculate max chain length for dynamic target position
     const maxIntermediateChainLength = rawTransitions.reduce((max, t) => {
-        const intermediateCount = t.chain.chainNodes.length - 1; // Exclude final node
+        const intermediateCount = t.chain.chainNodes.length - 1;
         return Math.max(max, intermediateCount);
     }, 0);
-    // Calculate dynamic targetBoxX based on chain length
     const flowEndX = playerBoxX + playerBoxWidth + baseFlowWidth;
     const chainAreaWidth = maxIntermediateChainLength * (chainNodeSize + chainGap);
     const dynamicTargetBoxX = flowEndX + chainAreaWidth;
 
-    const { rows, playerRowPositions, currentY } = layoutPlayerRows(sortedPlayerIds, playerActionMap);
-    const playerTotalHeight = currentY - topPadding;
+    // Layout player rows using flow widths
+    const { rows, playerRowPositions, currentY } = layoutPlayerRows(
+        sortedPlayerIds,
+        playerActionMap,
+        transitionsByPlayer,
+        flowWidths
+    );
+
+    // Layout target nodes using flow widths
     const { targets, targetPositions, targetY } = layoutTargetNodes(
         sortedTargetIds,
         targetTotals,
-        totalProb,
-        playerTotalHeight
+        transitionsByTarget,
+        flowWidths
     );
+
+    // Generate flows using pre-calculated widths
     const { flows, chainNodes: chainNodesData, chainConnections: chainConnectionsData } = generateFlowsAndChains(
         sortedPlayerIds,
-        rawTransitions,
+        transitionsByPlayer,
         playerRowPositions,
         targetPositions,
-        targetTotals,
         opponentColorMap,
-        dynamicTargetBoxX
+        dynamicTargetBoxX,
+        flowWidths
     );
 
     return {
