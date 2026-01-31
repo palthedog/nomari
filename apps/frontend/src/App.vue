@@ -1,5 +1,11 @@
 <template>
-  <div class="app">
+  <!-- Demo pages use router-view -->
+  <router-view v-if="isDemoRoute" />
+
+  <div
+    v-else
+    class="app"
+  >
     <!-- Decorative background texture -->
     <div class="app-texture" />
 
@@ -176,6 +182,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import type { Node } from '@nomari/game-tree/game-tree';
 import { exportAsProto, importScenario } from '@/utils/export';
 import { calculateExpectedValues, type ExpectedValuesMap } from '@/utils/expected-value-calculator';
@@ -190,6 +197,10 @@ import { useNotificationStore } from './stores/notification-store';
 import GameTreePanel from '@/components/game-tree/game-tree-panel.vue';
 import { useUrlSync } from '@/composables/use-url-sync';
 import log from 'loglevel';
+
+// Route detection for demo pages
+const route = useRoute();
+const isDemoRoute = computed(() => route.path.startsWith('/demo/'));
 
 // Mobile detection
 const MOBILE_BREAKPOINT = 768;
