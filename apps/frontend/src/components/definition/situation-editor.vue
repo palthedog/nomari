@@ -30,90 +30,44 @@
     <!-- プレイヤー選択肢 -->
     <div class="section player-section">
       <h4>プレイヤー選択肢</h4>
-      <div
-        v-for="(action, index) in model.playerActions?.actions || []"
-        :key="index"
-        class="form-row"
-      >
-        <input
-          v-model="action.actionId"
-          type="hidden"
-        >
-        <v-text-field
-          v-model="action.name"
-          class="form-name"
-          placeholder="行動"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <v-text-field
-          v-model="action.description"
-          class="form-description"
-          placeholder="説明"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <CircleDeleteButton
-          title="行動を削除"
-          @click="removePlayerAction(index)"
-        />
-      </div>
-      <button
-        type="button"
-        class="add-action-btn add-player-action"
-        @click="addPlayerAction"
-      >
-        + 追加
-      </button>
+      <v-select
+        v-model="model.playerActionIds"
+        :items="playerActionItems"
+        item-title="title"
+        item-value="value"
+        multiple
+        chips
+        closable-chips
+        density="compact"
+        variant="outlined"
+        hide-details
+        placeholder="アクションを選択"
+        @update:model-value="updateTransitions"
+      />
     </div>
 
     <!-- 相手選択肢 -->
     <div class="section opponent-section">
       <h4>相手選択肢</h4>
-      <div
-        v-for="(action, index) in model.opponentActions?.actions || []"
-        :key="index"
-        class="form-row"
-      >
-        <input
-          v-model="action.actionId"
-          type="hidden"
-        >
-        <v-text-field
-          v-model="action.name"
-          class="form-name"
-          placeholder="行動"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <v-text-field
-          v-model="action.description"
-          class="form-description"
-          placeholder="説明"
-          density="compact"
-          variant="outlined"
-          hide-details
-        />
-        <CircleDeleteButton
-          title="行動を削除"
-          @click="removeOpponentAction(index)"
-        />
-      </div>
-      <button
-        type="button"
-        class="add-action-btn add-opponent-action"
-        @click="addOpponentAction"
-      >
-        + 追加
-      </button>
+      <v-select
+        v-model="model.opponentActionIds"
+        :items="opponentActionItems"
+        item-title="title"
+        item-value="value"
+        multiple
+        chips
+        closable-chips
+        density="compact"
+        variant="outlined"
+        hide-details
+        placeholder="アクションを選択"
+        @update:model-value="updateTransitions"
+      />
     </div>
 
     <!-- 遷移テーブル -->
     <div
-      v-if="(model.playerActions?.actions?.length || 0) > 0 && (model.opponentActions?.actions?.length || 0) > 0"
+      v-if="selectedPlayerActions.length > 0 && selectedOpponentActions.length > 0"
       class="section"
     >
       <h4>遷移テーブル</h4>
@@ -130,7 +84,7 @@
                 </div>
               </th>
               <th
-                v-for="oppAction in model.opponentActions?.actions || []"
+                v-for="oppAction in selectedOpponentActions"
                 :key="oppAction.actionId"
                 class="opponent-header"
               >
@@ -140,14 +94,14 @@
           </thead>
           <tbody>
             <tr
-              v-for="playerAction in model.playerActions?.actions || []"
+              v-for="playerAction in selectedPlayerActions"
               :key="playerAction.actionId"
             >
               <th class="player-header">
                 {{ playerAction.name || '?' }}
               </th>
               <td
-                v-for="oppAction in model.opponentActions?.actions || []"
+                v-for="oppAction in selectedOpponentActions"
                 :key="oppAction.actionId"
                 class="transition-cell"
               >
@@ -162,28 +116,6 @@
                   class="transition-select"
                   @update:model-value="(value: number) => updateNextSituationId(playerAction.actionId, oppAction.actionId, value)"
                 />
-                <div class="damage-inputs">
-                  <div class="damage-field damage-deal">
-                    <span class="damage-label">与</span>
-                    <input
-                      type="number"
-                      class="damage-input"
-                      :value="getOpponentDamage(playerAction.actionId, oppAction.actionId) || ''"
-                      step="100"
-                      @input="setOpponentDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-                    >
-                  </div>
-                  <div class="damage-field damage-receive">
-                    <span class="damage-label">被</span>
-                    <input
-                      type="number"
-                      class="damage-input"
-                      :value="getPlayerDamage(playerAction.actionId, oppAction.actionId) || ''"
-                      step="100"
-                      @input="setPlayerDamage(playerAction.actionId, oppAction.actionId, parseFloat(($event.target as HTMLInputElement).value) || 0)"
-                    >
-                  </div>
-                </div>
               </td>
             </tr>
           </tbody>
@@ -199,10 +131,8 @@ import type {
     Situation,
     Transition,
     TerminalSituation,
+    Action,
 } from '@nomari/ts-proto';
-import { ResourceType } from '@nomari/ts-proto';
-import { generateId } from '@/utils/scenario-utils';
-import CircleDeleteButton from '@/components/common/circle-delete-button.vue';
 
 const model = defineModel<Situation>({
     required: true
@@ -211,8 +141,37 @@ const model = defineModel<Situation>({
 const props = defineProps<{
     availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
+    playerActions: Action[];
+    opponentActions: Action[];
 }>();
 
+// Action items for selection
+const playerActionItems = computed(() =>
+    props.playerActions.map(a => ({
+        title: a.name || `Action ${a.actionId}`,
+        value: a.actionId,
+    }))
+);
+
+const opponentActionItems = computed(() =>
+    props.opponentActions.map(a => ({
+        title: a.name || `Action ${a.actionId}`,
+        value: a.actionId,
+    }))
+);
+
+// Get selected actions by ID
+const selectedPlayerActions = computed(() =>
+    (model.value.playerActionIds || [])
+        .map(id => props.playerActions.find(a => a.actionId === id))
+        .filter((a): a is Action => a !== undefined)
+);
+
+const selectedOpponentActions = computed(() =>
+    (model.value.opponentActionIds || [])
+        .map(id => props.opponentActions.find(a => a.actionId === id))
+        .filter((a): a is Action => a !== undefined)
+);
 
 type SelectItem = { title: string;
     value: number } | { type: 'subheader';
@@ -240,7 +199,7 @@ const nextSituationItems = computed(() => {
     if (regularSituations.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── 状況 ──' 
+            title: '── 状況 ──'
         });
         items.push(...regularSituations.map((s) => ({
             title: s.name || '(名前なし)',
@@ -251,7 +210,7 @@ const nextSituationItems = computed(() => {
     if (playerCombos.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── プレイヤーコンボ ──' 
+            title: '── プレイヤーコンボ ──'
         });
         items.push(...playerCombos.map((s) => ({
             title: s.name?.replace('[コンボ] ', '') || '(名前なし)',
@@ -262,7 +221,7 @@ const nextSituationItems = computed(() => {
     if (opponentCombos.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── 相手コンボ ──' 
+            title: '── 相手コンボ ──'
         });
         items.push(...opponentCombos.map((s) => ({
             title: s.name?.replace('[相手コンボ] ', '') || '(名前なし)',
@@ -284,79 +243,24 @@ const nextSituationItems = computed(() => {
     return items;
 });
 
-function addPlayerAction() {
-    if (!model.value.playerActions) {
-        return;
-    }
-    model.value.playerActions.actions.push({
-        actionId: generateId(),
-        name: '',
-        description: '',
-    });
-    updateTransitions();
-}
-
-function removePlayerAction(index: number) {
-    if (!model.value.playerActions) {
-        return;
-    }
-    const actionId = model.value.playerActions.actions[index].actionId;
-    model.value.playerActions.actions.splice(index, 1);
-    // Remove transitions for this action
-    model.value.transitions = model.value.transitions.filter(
-        (t) => t.playerActionId !== actionId
-    );
-    updateTransitions();
-}
-
-function addOpponentAction() {
-    if (!model.value.opponentActions) {
-        return;
-    }
-    model.value.opponentActions.actions.push({
-        actionId: generateId(),
-        name: '',
-        description: '',
-    });
-    updateTransitions();
-}
-
-function removeOpponentAction(index: number) {
-    if (!model.value.opponentActions) {
-        return;
-    }
-    const actionId = model.value.opponentActions.actions[index].actionId;
-    model.value.opponentActions.actions.splice(index, 1);
-    // Remove transitions for this action
-    model.value.transitions = model.value.transitions.filter(
-        (t) => t.opponentActionId !== actionId
-    );
-    updateTransitions();
-}
-
 function updateTransitions() {
-    if (!model.value.playerActions || !model.value.opponentActions) {
-        return;
-    }
     const existingTransitions = new Map<string, Transition>();
     model.value.transitions.forEach((t) => {
         existingTransitions.set(`${t.playerActionId}-${t.opponentActionId}`, t);
     });
 
     const newTransitions: Transition[] = [];
-    for (const playerAction of model.value.playerActions.actions) {
-        for (const oppAction of model.value.opponentActions.actions) {
-            const key = `${playerAction.actionId}-${oppAction.actionId}`;
+    for (const playerActionId of model.value.playerActionIds || []) {
+        for (const oppActionId of model.value.opponentActionIds || []) {
+            const key = `${playerActionId}-${oppActionId}`;
             const existing = existingTransitions.get(key);
             if (existing) {
                 newTransitions.push(existing);
             } else {
                 newTransitions.push({
-                    playerActionId: playerAction.actionId,
-                    opponentActionId: oppAction.actionId,
+                    playerActionId: playerActionId,
+                    opponentActionId: oppActionId,
                     nextSituationId: 0,
-                    resourceConsumptions: [],
-                    resourceRequirements: [],
                 });
             }
         }
@@ -383,71 +287,6 @@ function updateNextSituationId(
         transition.nextSituationId = nextSituationId;
     }
 }
-
-function getOpponentDamage(playerActionId: number, opponentActionId: number): number {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (!transition?.resourceConsumptions) {
-        return 0;
-    }
-    const consumption = transition.resourceConsumptions.find(
-        (c) => c.resourceType === ResourceType.OPPONENT_HEALTH
-    );
-    return consumption?.value || 0;
-}
-
-function setOpponentDamage(playerActionId: number, opponentActionId: number, value: number) {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (!transition) {
-        return;
-    }
-    if (!transition.resourceConsumptions) {
-        transition.resourceConsumptions = [];
-    }
-    const existing = transition.resourceConsumptions.find(
-        (c) => c.resourceType === ResourceType.OPPONENT_HEALTH
-    );
-    if (existing) {
-        existing.value = value;
-    } else if (value !== 0) {
-        transition.resourceConsumptions.push({
-            resourceType: ResourceType.OPPONENT_HEALTH,
-            value: value,
-        });
-    }
-}
-
-function getPlayerDamage(playerActionId: number, opponentActionId: number): number {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (!transition?.resourceConsumptions) {
-        return 0;
-    }
-    const consumption = transition.resourceConsumptions.find(
-        (c) => c.resourceType === ResourceType.PLAYER_HEALTH
-    );
-    return consumption?.value || 0;
-}
-
-function setPlayerDamage(playerActionId: number, opponentActionId: number, value: number) {
-    const transition = getTransition(playerActionId, opponentActionId);
-    if (!transition) {
-        return;
-    }
-    if (!transition.resourceConsumptions) {
-        transition.resourceConsumptions = [];
-    }
-    const existing = transition.resourceConsumptions.find(
-        (c) => c.resourceType === ResourceType.PLAYER_HEALTH
-    );
-    if (existing) {
-        existing.value = value;
-    } else if (value !== 0) {
-        transition.resourceConsumptions.push({
-            resourceType: ResourceType.PLAYER_HEALTH,
-            value: value,
-        });
-    }
-}
-
 </script>
 
 <style scoped>
@@ -465,42 +304,6 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
 .section h4 {
   margin-top: 0;
   margin-bottom: 15px;
-}
-
-.add-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border: 1px solid;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-player-action {
-  border-color: var(--player-border);
-  color: var(--player-color-dark);
-  background-color: var(--player-bg);
-}
-
-.add-player-action:hover {
-  background-color: var(--player-color);
-  border-color: var(--player-color);
-  color: white;
-}
-
-.add-opponent-action {
-  border-color: var(--opponent-border);
-  color: var(--opponent-color-dark);
-  background-color: var(--opponent-bg);
-}
-
-.add-opponent-action:hover {
-  background-color: var(--opponent-color);
-  border-color: var(--opponent-color);
-  color: white;
 }
 
 .player-section {
@@ -613,48 +416,6 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
   min-height: 28px;
 }
 
-.transition-matrix .damage-inputs {
-  display: flex;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.transition-matrix .damage-field {
-  display: flex;
-  align-items: center;
-}
-
-.transition-matrix .damage-label {
-  font-size: 10px;
-  font-weight: bold;
-  min-width: 12px;
-}
-
-.transition-matrix .damage-deal .damage-label {
-  color: var(--player-color-dark);
-}
-
-.transition-matrix .damage-receive .damage-label {
-  color: var(--opponent-color-dark);
-}
-
-.transition-matrix .damage-input {
-  width: 60px;
-  padding: 2px 3px;
-  border: 1px solid var(--border-input);
-  border-radius: 3px;
-  font-size: 11px;
-  text-align: right;
-}
-
-.transition-matrix .damage-deal .damage-input {
-  border-color: var(--player-border);
-}
-
-.transition-matrix .damage-receive .damage-input {
-  border-color: var(--opponent-border);
-}
-
 .form-group {
   margin-bottom: 15px;
 }
@@ -679,36 +440,6 @@ function setPlayerDamage(playerActionId: number, opponentActionId: number, value
   border-radius: 4px;
 }
 
-.form-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-  align-items: center;
-}
-
-.form-row input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid var(--border-input);
-  border-radius: 4px;
-}
-
-.form-row .form-name {
-  flex: 1;
-}
-
-.form-row .form-description {
-  flex: 3;
-}
-
-.form-row .v-text-field {
-  flex: 1;
-}
-
-.form-row .v-text-field.form-description {
-  flex: 3;
-}
-
 button {
   padding: 8px 15px;
   background-color: var(--color-primary);
@@ -721,122 +452,5 @@ button {
 
 button:hover {
   opacity: 0.8;
-}
-
-.player-actions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 15px;
-}
-
-.player-action-section {
-  border: 1px solid var(--border-primary);
-  border-radius: 4px;
-  padding: 15px;
-  background-color: var(--bg-secondary);
-}
-
-.player-action-header {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid var(--border-primary);
-  font-size: 16px;
-}
-
-.opponent-actions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-left: 20px;
-}
-
-.opponent-action-item {
-  border: 1px solid var(--border-secondary);
-  border-radius: 4px;
-  padding: 12px;
-  background-color: var(--bg-primary);
-}
-
-.opponent-action-label {
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: var(--text-primary);
-  font-size: 14px;
-}
-
-.transition-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.next-situation-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.next-situation-row label {
-  white-space: nowrap;
-  margin: 0;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.transition-inputs select {
-  flex: 1;
-  padding: 6px;
-  border: 1px solid var(--border-input);
-  border-radius: 4px;
-}
-
-.resource-consumptions {
-  padding: 10px;
-  background-color: var(--bg-tertiary);
-  border-radius: 4px;
-}
-
-.resource-consumptions label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  font-size: 12px;
-}
-
-.consumption-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-.consumption-row select,
-.consumption-row input {
-  flex: 1;
-  padding: 6px;
-  border: 1px solid var(--border-input);
-  border-radius: 4px;
-}
-
-.consumption-row button {
-  padding: 6px 12px;
-  background-color: var(--color-error);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  margin-top: 0;
-}
-
-.consumption-row button:hover {
-  opacity: 0.8;
-}
-
-.resource-consumptions>button {
-  margin-top: 0;
-  font-size: 12px;
-  padding: 6px 12px;
 }
 </style>

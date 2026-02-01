@@ -2,8 +2,11 @@ import type {
     Scenario,
     Situation,
     TerminalSituation,
+    Action,
+    Character,
 } from '@nomari/ts-proto';
 import {
+    ActionType,
     CornerState,
     ResourceType,
 } from '@nomari/ts-proto';
@@ -13,12 +16,8 @@ function createInitialSituation(): Situation {
     return {
         situationId: generateId(),
         name: "開始状況",
-        playerActions: {
-            actions: [],
-        },
-        opponentActions: {
-            actions: [],
-        },
+        playerActionIds: [],
+        opponentActionIds: [],
         transitions: [],
     };
 }
@@ -29,6 +28,33 @@ function createInitialTerminalSituation(): TerminalSituation {
         name: "起き攻め状況終わり",
         description: "キャラクター同士の距離が離れて起き攻めが続かない",
         cornerState: CornerState.NONE,
+    };
+}
+
+/**
+ * Create a default action
+ */
+function createAction(
+    id: number,
+    name: string,
+    actionType: ActionType = ActionType.NORMAL
+): Action {
+    return {
+        actionId: id,
+        name,
+        description: '',
+        actionType,
+    };
+}
+
+/**
+ * Create an empty Character
+ */
+function createEmptyCharacter(name: string): Character {
+    return {
+        name,
+        actions: [],
+        comboStarters: [],
     };
 }
 
@@ -79,260 +105,145 @@ export function createEmptyScenario(): Scenario {
                 damageRace: {},
             },
         },
-        playerComboStarters: [],
-        opponentComboStarters: [],
+        player: createEmptyCharacter('プレイヤー'),
+        opponent: createEmptyCharacter('相手'),
     };
 }
 
 /**
- * Create a Judo Scenario
+ * Create a Judo Scenario with new Character-based structure
  */
 export function createJudoScenario(): Scenario {
+    // Action IDs
+    const strikeActionId = generateId();
+    const throwActionId = generateId();
+    const shimmyActionId = generateId();
+    const delayGrapActionId = generateId();
+    const guardActionId = generateId();
+    const invincibleActionId = generateId();
+    const jumpActionId = generateId();
+    const strikeHitActionId = generateId();
+    const receiveActionId = generateId();
+    const panicanHitActionId = generateId();
+    const panicanReceiveActionId = generateId();
+
+    // Situation IDs
+    const mainSituationId = generateId();
+    const strikeHitSituationId = generateId();
+    const panicanHitSituationId = generateId();
+    const evenTerminalId = generateId();
+    const escapeTerminalId = generateId();
+
     return {
-        gameId: 11,
+        gameId: generateId(),
         name: "画面端柔道",
         description: "",
-        rootSituationId: 1,
+        rootSituationId: mainSituationId,
         situations: [
             {
-                situationId: 1,
+                situationId: mainSituationId,
                 name: "画面端 有利",
-                playerActions: {
-                    actions: [
-                        // All actions must specify the required fields: actionId, name, and description
-                        {
-                            actionId: 4,
-                            name: "打撃重ね",
-                            description: "" 
-                        },
-                        {
-                            actionId: 5,
-                            name: "投げ",
-                            description: "" 
-                        },
-                        {
-                            actionId: 6,
-                            name: "シミー",
-                            description: "" 
-                        }
-                    ]
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: 7,
-                            name: "遅らせグラップ",
-                            description: "遅らせ投げ抜け" 
-                        },
-                        {
-                            actionId: 8,
-                            name: "ガード",
-                            description: "" 
-                        },
-                        {
-                            actionId: 9,
-                            name: "無敵暴れ",
-                            description: "" 
-                        },
-                        {
-                            actionId: 10,
-                            name: "前ジャンプ",
-                            description: "" 
-                        }
-                    ]
-                },
+                playerActionIds: [strikeActionId, throwActionId, shimmyActionId],
+                opponentActionIds: [delayGrapActionId, guardActionId, invincibleActionId, jumpActionId],
                 transitions: [
-                    // All transitions must specify resourceConsumptions even if it's empty
                     {
-                        playerActionId: 4,
-                        opponentActionId: 7,
-                        nextSituationId: 2,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        playerActionId: strikeActionId,
+                        opponentActionId: delayGrapActionId,
+                        nextSituationId: evenTerminalId 
                     },
                     {
-                        playerActionId: 4,
-                        opponentActionId: 8,
-                        nextSituationId: 2,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        playerActionId: strikeActionId,
+                        opponentActionId: guardActionId,
+                        nextSituationId: evenTerminalId 
                     },
                     {
-                        playerActionId: 4,
-                        opponentActionId: 9,
-                        nextSituationId: 2,
-                        resourceConsumptions: [
-                            {
-                                resourceType: 1,
-                                value: 1600 
-                            }
-                        ],
-                        resourceRequirements: []
+                        playerActionId: strikeActionId,
+                        opponentActionId: invincibleActionId,
+                        nextSituationId: evenTerminalId 
                     },
                     {
-                        playerActionId: 4,
-                        opponentActionId: 10,
-                        nextSituationId: 12,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
-                    },
-
-                    {
-                        playerActionId: 5,
-                        opponentActionId: 7,
-                        nextSituationId: 2,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        playerActionId: strikeActionId,
+                        opponentActionId: jumpActionId,
+                        nextSituationId: strikeHitSituationId 
                     },
                     {
-                        playerActionId: 5,
-                        opponentActionId: 8,
-                        nextSituationId: 1,
-                        resourceConsumptions: [
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 1200 
-                            }
-                        ],
-                        resourceRequirements: []
+                        playerActionId: throwActionId,
+                        opponentActionId: delayGrapActionId,
+                        nextSituationId: evenTerminalId 
                     },
                     {
-                        playerActionId: 5,
-                        opponentActionId: 9,
-                        nextSituationId: 2,
-                        resourceConsumptions: [
-                            {
-                                resourceType: 1,
-                                value: 1600 
-                            }
-                        ],
-                        resourceRequirements: []
+                        playerActionId: throwActionId,
+                        opponentActionId: guardActionId,
+                        nextSituationId: mainSituationId 
                     },
                     {
-                        playerActionId: 5,
-                        opponentActionId: 10,
-                        nextSituationId: 3,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
-                    },
-
-                    {
-                        playerActionId: 6,
-                        opponentActionId: 7,
-                        nextSituationId: 13,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        playerActionId: throwActionId,
+                        opponentActionId: invincibleActionId,
+                        nextSituationId: evenTerminalId 
                     },
                     {
-                        playerActionId: 6,
-                        opponentActionId: 8,
-                        nextSituationId: 2,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        playerActionId: throwActionId,
+                        opponentActionId: jumpActionId,
+                        nextSituationId: escapeTerminalId 
                     },
                     {
-                        playerActionId: 6,
-                        opponentActionId: 9,
-                        nextSituationId: 13,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        playerActionId: shimmyActionId,
+                        opponentActionId: delayGrapActionId,
+                        nextSituationId: panicanHitSituationId 
                     },
                     {
-                        playerActionId: 6,
-                        opponentActionId: 10,
-                        nextSituationId: 3,
-                        resourceConsumptions: [
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 1600 
-                            }
-                        ],
-                        resourceRequirements: []
-                    }
+                        playerActionId: shimmyActionId,
+                        opponentActionId: guardActionId,
+                        nextSituationId: evenTerminalId 
+                    },
+                    {
+                        playerActionId: shimmyActionId,
+                        opponentActionId: invincibleActionId,
+                        nextSituationId: panicanHitSituationId 
+                    },
+                    {
+                        playerActionId: shimmyActionId,
+                        opponentActionId: jumpActionId,
+                        nextSituationId: escapeTerminalId 
+                    },
                 ]
             },
             {
-                situationId: 12,
+                situationId: strikeHitSituationId,
                 name: "打撃ヒット",
-                playerActions: {
-                    actions: [
-                        {
-                            actionId: 14,
-                            name: "打撃ヒット",
-                            description: "" 
-                        }
-                    ]
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: 15,
-                            name: "受け",
-                            description: "" 
-                        }
-                    ]
-                },
+                playerActionIds: [strikeHitActionId],
+                opponentActionIds: [receiveActionId],
                 transitions: [
                     {
-                        playerActionId: 14,
-                        opponentActionId: 15,
-                        nextSituationId: 1,
-                        resourceConsumptions: [
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 2000 
-                            }
-                        ],
-                        resourceRequirements: []
+                        playerActionId: strikeHitActionId,
+                        opponentActionId: receiveActionId,
+                        nextSituationId: mainSituationId 
                     }
                 ]
             },
             {
-                situationId: 13,
+                situationId: panicanHitSituationId,
                 name: "打撃パニカンヒット",
-                playerActions: {
-                    actions: [
-                        {
-                            actionId: 16,
-                            name: "パニカンヒット",
-                            description: "" 
-                        }
-                    ]
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: 17,
-                            name: "受け",
-                            description: "" 
-                        }
-                    ]
-                },
+                playerActionIds: [panicanHitActionId],
+                opponentActionIds: [panicanReceiveActionId],
                 transitions: [
                     {
-                        playerActionId: 16,
-                        opponentActionId: 17,
-                        nextSituationId: 1,
-                        resourceConsumptions: [
-                            {
-                                resourceType: ResourceType.OPPONENT_HEALTH,
-                                value: 3000 
-                            }
-                        ],
-                        resourceRequirements: []
+                        playerActionId: panicanHitActionId,
+                        opponentActionId: panicanReceiveActionId,
+                        nextSituationId: mainSituationId 
                     }
                 ]
             }
         ],
         terminalSituations: [
             {
-                situationId: 2,
+                situationId: evenTerminalId,
                 name: "画面端 五分",
                 description: "画面端にいるけど、距離がいったん離れた",
                 cornerState: CornerState.OPPONENT_IN_CORNER
             },
             {
-                situationId: 3,
+                situationId: escapeTerminalId,
                 name: "脱出 五分",
                 description: "画面端脱出",
                 cornerState: CornerState.PLAYER_IN_CORNER
@@ -352,13 +263,34 @@ export function createJudoScenario(): Scenario {
         },
         rewardComputationMethod: {
             method: {
-                "oneofKind": 'damageRace',
-                "damageRace": {}
+                oneofKind: 'damageRace',
+                damageRace: {}
             }
         },
-        playerComboStarters: [],
-        opponentComboStarters: []
-    }
+        player: {
+            name: 'プレイヤー',
+            actions: [
+                createAction(strikeActionId, "打撃重ね"),
+                createAction(throwActionId, "投げ"),
+                createAction(shimmyActionId, "シミー"),
+                createAction(strikeHitActionId, "打撃ヒット"),
+                createAction(panicanHitActionId, "パニカンヒット"),
+            ],
+            comboStarters: [],
+        },
+        opponent: {
+            name: '相手',
+            actions: [
+                createAction(delayGrapActionId, "遅らせグラップ"),
+                createAction(guardActionId, "ガード"),
+                createAction(invincibleActionId, "無敵暴れ"),
+                createAction(jumpActionId, "前ジャンプ"),
+                createAction(receiveActionId, "受け"),
+                createAction(panicanReceiveActionId, "受け"),
+            ],
+            comboStarters: [],
+        },
+    };
 }
 
 /**
@@ -366,7 +298,7 @@ export function createJudoScenario(): Scenario {
  * Uses numeric IDs for all situation and action references
  */
 export function createHeavyDimachaerusComboScenario(): Scenario {
-    // Situation IDs (using generateId for consistency)
+    // Situation IDs
     const gameId = generateId();
     const rootSituationId = generateId();
     const closeRangeSituationId = generateId();
@@ -374,39 +306,29 @@ export function createHeavyDimachaerusComboScenario(): Scenario {
     const afterDashSituationId = generateId();
     const neutralTerminalId = generateId();
 
-    // Action IDs for root situation
+    // Player Action IDs
     const rootJumpActionId = generateId();
     const rootDashActionId = generateId();
-    const rootWaitActionId = generateId();
-
-    // Action IDs for close range situation (player)
     const closeTcActionId = generateId();
     const closeThrowActionId = generateId();
     const closeCommandThrowActionId = generateId();
     const closeGuardActionId = generateId();
-
-    // Action IDs for close range situation (opponent)
-    const closeDelayGrapActionId = generateId();
-    const closeGuardOppActionId = generateId();
-    const closeJumpOppActionId = generateId();
-    const closeInvincibleActionId = generateId();
-
-    // Action IDs for throw range situation (player)
     const throwThrowActionId = generateId();
     const throwCommandThrowActionId = generateId();
     const throwShimmyActionId = generateId();
-
-    // Action IDs for throw range situation (opponent)
-    const throwDelayGrapActionId = generateId();
-    const throwInvincibleActionId = generateId();
-    const throwJumpActionId = generateId();
-
-    // Action IDs for after dash situation (player)
     const dashWalkThrowActionId = generateId();
     const dashKneeActionId = generateId();
     const dashShimmyActionId = generateId();
 
-    // Action IDs for after dash situation (opponent)
+    // Opponent Action IDs
+    const rootWaitActionId = generateId();
+    const closeDelayGrapActionId = generateId();
+    const closeGuardOppActionId = generateId();
+    const closeJumpOppActionId = generateId();
+    const closeInvincibleActionId = generateId();
+    const throwDelayGrapActionId = generateId();
+    const throwInvincibleActionId = generateId();
+    const throwJumpActionId = generateId();
     const dashGuardActionId = generateId();
     const dashJumpActionId = generateId();
     const dashInvincibleActionId = generateId();
@@ -421,536 +343,227 @@ export function createHeavyDimachaerusComboScenario(): Scenario {
             {
                 situationId: rootSituationId,
                 name: '強ディマ > 溜強P +47F',
-                playerActions: {
-                    actions: [
-                        {
-                            actionId: rootJumpActionId,
-                            name: '前ジャンプ',
-                            description: '' 
-                        },
-                        {
-                            actionId: rootDashActionId,
-                            name: '前ステップ',
-                            description: '' 
-                        },
-                    ],
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: rootWaitActionId,
-                            name: '待機',
-                            description: '' 
-                        },
-                    ],
-                },
+                playerActionIds: [rootJumpActionId, rootDashActionId],
+                opponentActionIds: [rootWaitActionId],
                 transitions: [
                     {
                         playerActionId: rootJumpActionId,
                         opponentActionId: rootWaitActionId,
-                        nextSituationId: closeRangeSituationId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: closeRangeSituationId 
                     },
                     {
                         playerActionId: rootDashActionId,
                         opponentActionId: rootWaitActionId,
-                        nextSituationId: afterDashSituationId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: afterDashSituationId 
                     },
                 ],
             },
             {
                 situationId: closeRangeSituationId,
                 name: '密着 +4F',
-                playerActions: {
-                    actions: [
-                        {
-                            actionId: closeTcActionId,
-                            name: '中PTC > 中ディマ',
-                            description: '' 
-                        },
-                        {
-                            actionId: closeThrowActionId,
-                            name: '投げ',
-                            description: '' 
-                        },
-                        {
-                            actionId: closeCommandThrowActionId,
-                            name: 'コマ投げ',
-                            description: '' 
-                        },
-                        {
-                            actionId: closeGuardActionId,
-                            name: 'ガード',
-                            description: '様子見' 
-                        },
-                    ],
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: closeDelayGrapActionId,
-                            name: '遅らせグラップ',
-                            description: '' 
-                        },
-                        {
-                            actionId: closeGuardOppActionId,
-                            name: 'ガード',
-                            description: '' 
-                        },
-                        {
-                            actionId: closeJumpOppActionId,
-                            name: '垂直ジャンプ',
-                            description: '' 
-                        },
-                        {
-                            actionId: closeInvincibleActionId,
-                            name: '無敵暴れ',
-                            description: '' 
-                        },
-                    ],
-                },
+                playerActionIds: [closeTcActionId, closeThrowActionId, closeCommandThrowActionId, closeGuardActionId],
+                opponentActionIds: [closeDelayGrapActionId, closeGuardOppActionId, closeJumpOppActionId, closeInvincibleActionId],
                 transitions: [
                     {
                         playerActionId: closeTcActionId,
                         opponentActionId: closeDelayGrapActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeTcActionId,
                         opponentActionId: closeGuardOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeTcActionId,
                         opponentActionId: closeJumpOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 2160 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeTcActionId,
                         opponentActionId: closeInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeThrowActionId,
                         opponentActionId: closeDelayGrapActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeThrowActionId,
                         opponentActionId: closeGuardOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 1200 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeThrowActionId,
                         opponentActionId: closeJumpOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1500 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeThrowActionId,
                         opponentActionId: closeInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeCommandThrowActionId,
                         opponentActionId: closeDelayGrapActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 2000 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeCommandThrowActionId,
                         opponentActionId: closeGuardOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 2000 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeCommandThrowActionId,
                         opponentActionId: closeJumpOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1500 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeCommandThrowActionId,
                         opponentActionId: closeInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeGuardActionId,
                         opponentActionId: closeDelayGrapActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeGuardActionId,
                         opponentActionId: closeGuardOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeGuardActionId,
                         opponentActionId: closeJumpOppActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 1000 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: closeGuardActionId,
                         opponentActionId: closeInvincibleActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3910 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                 ],
             },
             {
                 situationId: throwRangeSituationId,
                 name: '投げ間合い +3F',
-                playerActions: {
-                    actions: [
-                        {
-                            actionId: throwThrowActionId,
-                            name: '投げ',
-                            description: '' 
-                        },
-                        {
-                            actionId: throwCommandThrowActionId,
-                            name: 'コマ投げ',
-                            description: '' 
-                        },
-                        {
-                            actionId: throwShimmyActionId,
-                            name: 'シミー',
-                            description: '' 
-                        },
-                    ],
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: throwDelayGrapActionId,
-                            name: '遅らせグラップ',
-                            description: '' 
-                        },
-                        {
-                            actionId: throwInvincibleActionId,
-                            name: '無敵暴れ',
-                            description: '' 
-                        },
-                        {
-                            actionId: throwJumpActionId,
-                            name: '垂直ジャンプ',
-                            description: '' 
-                        },
-                    ],
-                },
+                playerActionIds: [throwThrowActionId, throwCommandThrowActionId, throwShimmyActionId],
+                opponentActionIds: [throwDelayGrapActionId, throwInvincibleActionId, throwJumpActionId],
                 transitions: [
                     {
                         playerActionId: throwThrowActionId,
                         opponentActionId: throwDelayGrapActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: throwThrowActionId,
                         opponentActionId: throwInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: throwThrowActionId,
                         opponentActionId: throwJumpActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1500 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: throwCommandThrowActionId,
                         opponentActionId: throwDelayGrapActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 2000 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: throwCommandThrowActionId,
                         opponentActionId: throwInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: throwCommandThrowActionId,
                         opponentActionId: throwJumpActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1500 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: throwShimmyActionId,
                         opponentActionId: throwDelayGrapActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3760 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                     {
                         playerActionId: throwShimmyActionId,
                         opponentActionId: throwInvincibleActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3910 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                     {
                         playerActionId: throwShimmyActionId,
                         opponentActionId: throwJumpActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 1000 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                 ],
             },
             {
                 situationId: afterDashSituationId,
                 name: '前ステ後 +25F',
-                playerActions: {
-                    actions: [
-                        {
-                            actionId: dashWalkThrowActionId,
-                            name: '歩き投げ',
-                            description: '' 
-                        },
-                        {
-                            actionId: dashKneeActionId,
-                            name: 'タメ膝',
-                            description: 'ガード時 +3F, ヒット時コンボ' 
-                        },
-                        {
-                            actionId: dashShimmyActionId,
-                            name: 'シミー',
-                            description: '' 
-                        },
-                    ],
-                },
-                opponentActions: {
-                    actions: [
-                        {
-                            actionId: dashGuardActionId,
-                            name: 'ガード',
-                            description: '' 
-                        },
-                        {
-                            actionId: dashJumpActionId,
-                            name: '垂直ジャンプ',
-                            description: '' 
-                        },
-                        {
-                            actionId: dashInvincibleActionId,
-                            name: '無敵暴れ',
-                            description: '' 
-                        },
-                        {
-                            actionId: dashThrowEscapeActionId,
-                            name: '投げ抜け',
-                            description: '' 
-                        },
-                    ],
-                },
+                playerActionIds: [dashWalkThrowActionId, dashKneeActionId, dashShimmyActionId],
+                opponentActionIds: [dashGuardActionId, dashJumpActionId, dashInvincibleActionId, dashThrowEscapeActionId],
                 transitions: [
                     {
                         playerActionId: dashWalkThrowActionId,
                         opponentActionId: dashGuardActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 1200 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashWalkThrowActionId,
                         opponentActionId: dashJumpActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 2500 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashWalkThrowActionId,
                         opponentActionId: dashInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashWalkThrowActionId,
                         opponentActionId: dashThrowEscapeActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashKneeActionId,
                         opponentActionId: dashGuardActionId,
-                        nextSituationId: throwRangeSituationId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: throwRangeSituationId 
                     },
                     {
                         playerActionId: dashKneeActionId,
                         opponentActionId: dashJumpActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3560 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                     {
                         playerActionId: dashKneeActionId,
                         opponentActionId: dashInvincibleActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.PLAYER_HEALTH,
-                            value: 1600 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashKneeActionId,
                         opponentActionId: dashThrowEscapeActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3560 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                     {
                         playerActionId: dashShimmyActionId,
                         opponentActionId: dashGuardActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashShimmyActionId,
                         opponentActionId: dashJumpActionId,
-                        nextSituationId: neutralTerminalId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 1000 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: neutralTerminalId 
                     },
                     {
                         playerActionId: dashShimmyActionId,
                         opponentActionId: dashInvincibleActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3910 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                     {
                         playerActionId: dashShimmyActionId,
                         opponentActionId: dashThrowEscapeActionId,
-                        nextSituationId: rootSituationId,
-                        resourceConsumptions: [{
-                            resourceType: ResourceType.OPPONENT_HEALTH,
-                            value: 3910 
-                        }],
-                        resourceRequirements: [] 
+                        nextSituationId: rootSituationId 
                     },
                 ],
             },
@@ -981,7 +594,41 @@ export function createHeavyDimachaerusComboScenario(): Scenario {
                 damageRace: {},
             },
         },
-        playerComboStarters: [],
-        opponentComboStarters: [],
+        player: {
+            name: 'プレイヤー',
+            actions: [
+                createAction(rootJumpActionId, '前ジャンプ'),
+                createAction(rootDashActionId, '前ステップ'),
+                createAction(closeTcActionId, '中PTC > 中ディマ'),
+                createAction(closeThrowActionId, '投げ'),
+                createAction(closeCommandThrowActionId, 'コマ投げ'),
+                createAction(closeGuardActionId, 'ガード'),
+                createAction(throwThrowActionId, '投げ'),
+                createAction(throwCommandThrowActionId, 'コマ投げ'),
+                createAction(throwShimmyActionId, 'シミー'),
+                createAction(dashWalkThrowActionId, '歩き投げ'),
+                createAction(dashKneeActionId, 'タメ膝'),
+                createAction(dashShimmyActionId, 'シミー'),
+            ],
+            comboStarters: [],
+        },
+        opponent: {
+            name: '相手',
+            actions: [
+                createAction(rootWaitActionId, '待機'),
+                createAction(closeDelayGrapActionId, '遅らせグラップ'),
+                createAction(closeGuardOppActionId, 'ガード'),
+                createAction(closeJumpOppActionId, '垂直ジャンプ'),
+                createAction(closeInvincibleActionId, '無敵暴れ'),
+                createAction(throwDelayGrapActionId, '遅らせグラップ'),
+                createAction(throwInvincibleActionId, '無敵暴れ'),
+                createAction(throwJumpActionId, '垂直ジャンプ'),
+                createAction(dashGuardActionId, 'ガード'),
+                createAction(dashJumpActionId, '垂直ジャンプ'),
+                createAction(dashInvincibleActionId, '無敵暴れ'),
+                createAction(dashThrowEscapeActionId, '投げ抜け'),
+            ],
+            comboStarters: [],
+        },
     };
 }

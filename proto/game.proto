@@ -25,11 +25,19 @@ message Scenario {
   // Reward computation method for terminal nodes
   RewardComputationMethod reward_computation_method = 8;
 
-  // Player's combo library (combos when player hits opponent)
-  repeated ComboStarter player_combo_starters = 9;
+  Character player = 13;
+  Character opponent = 14;
+}
 
-  // Opponent's combo library (combos when opponent hits player)
-  repeated ComboStarter opponent_combo_starters = 10;
+// Character definition containing actions and combo starters
+message Character {
+  string name = 1;
+
+  // Available actions for this character
+  repeated Action actions = 2;
+
+  // Combo starters for this character
+  repeated ComboStarter combo_starters = 3;
 }
 
 message Situation {
@@ -38,11 +46,11 @@ message Situation {
   // Human readable description of the situation
   string name = 2;
 
-  // Possible actions for the player
-  PlayerActions player_actions = 4;
+  // Action IDs available for the player (references Scenario.player.actions)
+  repeated uint32 player_action_ids = 4;
 
-  // Possible actions for the opponent
-  PlayerActions opponent_actions = 5;
+  // Action IDs available for the opponent (references Scenario.opponent.actions)
+  repeated uint32 opponent_action_ids = 5;
 
   // Transitions to the next nodes based on the player and opponent actions
   repeated Transition transitions = 6;
@@ -128,6 +136,18 @@ message PlayerActions {
   repeated Action actions = 1;
 }
 
+// Resource type used by an action
+enum ActionType {
+  ACTION_TYPE_UNKNOWN = 0; // Unknown (for compatibility)
+  ACTION_TYPE_NORMAL = 1; // Normal action (no resource consumption)
+  ACTION_TYPE_OD = 2; // OD technique (2 OD gauge)
+  ACTION_TYPE_SA1 = 3; // SA Level 1 (1 SA gauge)
+  ACTION_TYPE_SA2 = 4; // SA Level 2 (2 SA gauge)
+  ACTION_TYPE_SA3 = 5; // SA Level 3 (3 SA gauge)
+  ACTION_TYPE_DRIVE_RUSH = 6; // Drive Rush (1 OD gauge)
+  ACTION_TYPE_PARRY = 7; // Parry (0.5 OD gauge)
+}
+
 message Action {
   uint32 action_id = 1;
 
@@ -137,9 +157,8 @@ message Action {
   // Description of the action (e.g. "attack", "guard")
   string description = 3;
 
-  // TODO: Add resource usage of the action
-  // E.g. 'OD attack" would consumes drive.
-  // repeated ResourceConsumption resource_consumptions = 4;
+  // Action type (determines gauge consumption)
+  ActionType action_type = 4;
 }
 
 // Transition to the next node based on the player and opponent actions
@@ -149,16 +168,7 @@ message Transition {
 
   // Situation would be reached after the action is taken.
   // Can reference Situation, TerminalSituation, or ComboStarter.
-  // In case player/opponent's health becomes 0, the next situation would be overwritten to a terminal situation.
   uint32 next_situation_id = 3;
-
-  // Resource consumptions that occur during this transition (e.g., damage dealt)
-  repeated ResourceConsumption resource_consumptions = 4;
-
-  // Resource requirements for this transition.
-  // The transition is only available if the current state meets all requirements.
-  // Example: SA attack requires SA >= 3 to be available.
-  repeated ResourceRequirement resource_requirements = 5;
 }
 
 // A branch route within a combo starter.

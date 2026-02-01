@@ -44,24 +44,30 @@ export function findMaxIdInScenario(scenario: Scenario): number {
 
     for (const situation of scenario.situations) {
         maxId = Math.max(maxId, situation.situationId);
-        for (const action of situation.playerActions?.actions ?? []) {
-            maxId = Math.max(maxId, action.actionId);
-        }
-        for (const action of situation.opponentActions?.actions ?? []) {
-            maxId = Math.max(maxId, action.actionId);
-        }
     }
 
     for (const terminal of scenario.terminalSituations) {
         maxId = Math.max(maxId, terminal.situationId);
     }
 
-    for (const comboStarter of scenario.playerComboStarters) {
-        maxId = Math.max(maxId, comboStarter.situationId);
+    // Scan player character actions and combo starters
+    if (scenario.player) {
+        for (const action of scenario.player.actions) {
+            maxId = Math.max(maxId, action.actionId);
+        }
+        for (const comboStarter of scenario.player.comboStarters) {
+            maxId = Math.max(maxId, comboStarter.situationId);
+        }
     }
 
-    for (const comboStarter of scenario.opponentComboStarters) {
-        maxId = Math.max(maxId, comboStarter.situationId);
+    // Scan opponent character actions and combo starters
+    if (scenario.opponent) {
+        for (const action of scenario.opponent.actions) {
+            maxId = Math.max(maxId, action.actionId);
+        }
+        for (const comboStarter of scenario.opponent.comboStarters) {
+            maxId = Math.max(maxId, comboStarter.situationId);
+        }
     }
 
     return maxId;
@@ -90,12 +96,8 @@ export function createEmptySituation(): Situation {
     return {
         situationId: generateId(),
         name: '',
-        playerActions: {
-            actions: [],
-        },
-        opponentActions: {
-            actions: [],
-        },
+        playerActionIds: [],
+        opponentActionIds: [],
         transitions: [],
     };
 }
@@ -125,7 +127,7 @@ export function createEmptyComboStarter(): ComboStarter {
 
 /**
  * Find situation name by situation ID.
- * Searches situations, terminalSituations, playerComboStarters, opponentComboStarters.
+ * Searches situations, terminalSituations, player comboStarters, opponent comboStarters.
  */
 export function getSituationName(scenario: Scenario, situationId: number): string | null {
     const situation = scenario.situations.find(s => s.situationId === situationId);
@@ -138,12 +140,12 @@ export function getSituationName(scenario: Scenario, situationId: number): strin
         return terminal.name;
     }
 
-    const playerCombo = scenario.playerComboStarters.find(c => c.situationId === situationId);
+    const playerCombo = scenario.player?.comboStarters.find(c => c.situationId === situationId);
     if (playerCombo) {
         return playerCombo.name;
     }
 
-    const opponentCombo = scenario.opponentComboStarters.find(c => c.situationId === situationId);
+    const opponentCombo = scenario.opponent?.comboStarters.find(c => c.situationId === situationId);
     if (opponentCombo) {
         return opponentCombo.name;
     }
@@ -164,10 +166,10 @@ export function getSituationType(scenario: Scenario, situationId: number): Situa
     if (scenario.terminalSituations.find(t => t.situationId === situationId)) {
         return 'terminal';
     }
-    if (scenario.playerComboStarters.find(c => c.situationId === situationId)) {
+    if (scenario.player?.comboStarters.find(c => c.situationId === situationId)) {
         return 'playerCombo';
     }
-    if (scenario.opponentComboStarters.find(c => c.situationId === situationId)) {
+    if (scenario.opponent?.comboStarters.find(c => c.situationId === situationId)) {
         return 'opponentCombo';
     }
     return null;

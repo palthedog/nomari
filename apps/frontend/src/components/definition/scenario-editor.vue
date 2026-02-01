@@ -92,7 +92,7 @@
             </div>
             <ul class="section-list">
               <li
-                v-for="combo in scenario.playerComboStarters"
+                v-for="combo in scenario.player?.comboStarters || []"
                 :key="combo.situationId"
                 class="section-item player-combo-item"
                 :class="{ active: selectedPlayerComboId === combo.situationId }"
@@ -121,7 +121,7 @@
             </div>
             <ul class="section-list">
               <li
-                v-for="combo in scenario.opponentComboStarters"
+                v-for="combo in scenario.opponent?.comboStarters || []"
                 :key="combo.situationId"
                 class="section-item opponent-combo-item"
                 :class="{ active: selectedOpponentComboId === combo.situationId }"
@@ -160,6 +160,8 @@
             :model-value="selectedSituation"
             :available-situations="availableSituationsForTransition"
             :available-terminal-situations="scenario.terminalSituations"
+            :player-actions="scenario.player?.actions || []"
+            :opponent-actions="scenario.opponent?.actions || []"
             @update:model-value="updateSituation"
           />
           <TerminalSituationEditor
@@ -347,6 +349,9 @@ const selectedOpponentComboId = computed(() => {
     return type === 'opponentCombo' ? id : null;
 });
 
+const playerComboStarters = computed(() => scenario.value.player?.comboStarters || []);
+const opponentComboStarters = computed(() => scenario.value.opponent?.comboStarters || []);
+
 // Delete confirmation dialog state
 const showDeleteDialog = ref(false);
 const deleteTarget = ref<{
@@ -381,7 +386,7 @@ const selectedPlayerCombo = computed(() => {
         return null;
     }
     return (
-        scenario.value.playerComboStarters.find(
+        playerComboStarters.value.find(
             (c) => c.situationId === selectedPlayerComboId.value
         ) || null
     );
@@ -392,7 +397,7 @@ const selectedOpponentCombo = computed(() => {
         return null;
     }
     return (
-        scenario.value.opponentComboStarters.find(
+        opponentComboStarters.value.find(
             (c) => c.situationId === selectedOpponentComboId.value
         ) || null
     );
@@ -402,29 +407,21 @@ const selectedOpponentCombo = computed(() => {
 const availableSituationsForTransition = computed(() => {
     const situations = [...scenario.value.situations];
     // Add combo starters as virtual situations (they share the same ID space)
-    for (const combo of scenario.value.playerComboStarters) {
+    for (const combo of playerComboStarters.value) {
         situations.push({
             situationId: combo.situationId,
             name: `[コンボ] ${combo.name || '(名前なし)'}`,
-            playerActions: {
-                actions: [] 
-            },
-            opponentActions: {
-                actions: [] 
-            },
+            playerActionIds: [],
+            opponentActionIds: [],
             transitions: [],
         });
     }
-    for (const combo of scenario.value.opponentComboStarters) {
+    for (const combo of opponentComboStarters.value) {
         situations.push({
             situationId: combo.situationId,
             name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
-            playerActions: {
-                actions: [] 
-            },
-            opponentActions: {
-                actions: [] 
-            },
+            playerActionIds: [],
+            opponentActionIds: [],
             transitions: [],
         });
     }
@@ -576,31 +573,37 @@ function deleteTerminalSituation() {
 
 // Player Combo functions
 function addPlayerCombo() {
+    if (!scenario.value.player) {
+        return;
+    }
     const newCombo = createEmptyComboStarter();
-    scenario.value.playerComboStarters.push(newCombo);
+    scenario.value.player.comboStarters.push(newCombo);
     selectPlayerCombo(newCombo.situationId);
 }
 
 function updatePlayerCombo(updatedCombo: ComboStarter) {
-    const index = scenario.value.playerComboStarters.findIndex(
+    if (!scenario.value.player) {
+        return;
+    }
+    const index = scenario.value.player.comboStarters.findIndex(
         (c) => c.situationId === updatedCombo.situationId
     );
     if (index !== -1) {
-        scenario.value.playerComboStarters.splice(index, 1, updatedCombo);
+        scenario.value.player.comboStarters.splice(index, 1, updatedCombo);
     }
 }
 
 function deletePlayerCombo() {
-    if (!selectedPlayerComboId.value) {
+    if (!selectedPlayerComboId.value || !scenario.value.player) {
         return;
     }
 
     const comboId = selectedPlayerComboId.value;
-    const index = scenario.value.playerComboStarters.findIndex(
+    const index = scenario.value.player.comboStarters.findIndex(
         (c) => c.situationId === comboId
     );
     if (index !== -1) {
-        scenario.value.playerComboStarters.splice(index, 1);
+        scenario.value.player.comboStarters.splice(index, 1);
 
         // Remove references from transitions
         for (const situation of scenario.value.situations) {
@@ -610,8 +613,8 @@ function deletePlayerCombo() {
         }
 
         // Select next item
-        if (scenario.value.playerComboStarters.length > 0) {
-            selectPlayerCombo(scenario.value.playerComboStarters[0].situationId);
+        if (playerComboStarters.value.length > 0) {
+            selectPlayerCombo(playerComboStarters.value[0].situationId);
         } else if (scenario.value.situations.length > 0) {
             selectSituation(scenario.value.situations[0].situationId);
         } else {
@@ -622,31 +625,37 @@ function deletePlayerCombo() {
 
 // Opponent Combo functions
 function addOpponentCombo() {
+    if (!scenario.value.opponent) {
+        return;
+    }
     const newCombo = createEmptyComboStarter();
-    scenario.value.opponentComboStarters.push(newCombo);
+    scenario.value.opponent.comboStarters.push(newCombo);
     selectOpponentCombo(newCombo.situationId);
 }
 
 function updateOpponentCombo(updatedCombo: ComboStarter) {
-    const index = scenario.value.opponentComboStarters.findIndex(
+    if (!scenario.value.opponent) {
+        return;
+    }
+    const index = scenario.value.opponent.comboStarters.findIndex(
         (c) => c.situationId === updatedCombo.situationId
     );
     if (index !== -1) {
-        scenario.value.opponentComboStarters.splice(index, 1, updatedCombo);
+        scenario.value.opponent.comboStarters.splice(index, 1, updatedCombo);
     }
 }
 
 function deleteOpponentCombo() {
-    if (!selectedOpponentComboId.value) {
+    if (!selectedOpponentComboId.value || !scenario.value.opponent) {
         return;
     }
 
     const comboId = selectedOpponentComboId.value;
-    const index = scenario.value.opponentComboStarters.findIndex(
+    const index = scenario.value.opponent.comboStarters.findIndex(
         (c) => c.situationId === comboId
     );
     if (index !== -1) {
-        scenario.value.opponentComboStarters.splice(index, 1);
+        scenario.value.opponent.comboStarters.splice(index, 1);
 
         // Remove references from transitions
         for (const situation of scenario.value.situations) {
@@ -656,8 +665,8 @@ function deleteOpponentCombo() {
         }
 
         // Select next item
-        if (scenario.value.opponentComboStarters.length > 0) {
-            selectOpponentCombo(scenario.value.opponentComboStarters[0].situationId);
+        if (opponentComboStarters.value.length > 0) {
+            selectOpponentCombo(opponentComboStarters.value[0].situationId);
         } else if (scenario.value.situations.length > 0) {
             selectSituation(scenario.value.situations[0].situationId);
         } else {

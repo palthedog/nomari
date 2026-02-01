@@ -4,6 +4,7 @@ import {
     ResourceConsumption,
     ResourceRequirement,
     ResourceType,
+    ActionType,
     Situation,
     TerminalSituation,
     Action,
@@ -67,6 +68,8 @@ interface BuildContext {
     terminalSituationMap: Map<number, TerminalSituation>;
     playerComboStarterMap: Map<number, ComboStarter>;
     opponentComboStarterMap: Map<number, ComboStarter>;
+    playerActionMap: Map<number, Action>;
+    opponentActionMap: Map<number, Action>;
     rewardComputationMethod: RewardComputationMethod | undefined;
     initialPlayerHealth: number;
     initialOpponentHealth: number;
@@ -89,6 +92,73 @@ function isGaugeResource(resourceType: ResourceType): boolean {
         resourceType === ResourceType.PLAYER_SA_GAUGE ||
         resourceType === ResourceType.OPPONENT_OD_GAUGE ||
         resourceType === ResourceType.OPPONENT_SA_GAUGE;
+}
+
+/**
+ * Calculate resource consumptions from action flags
+ * @param action The action to calculate consumptions for
+ * @param isPlayer Whether this is a player action (true) or opponent action (false)
+ */
+function getActionConsumptions(action: Action, isPlayer: boolean): ResourceConsumption[] {
+    const consumptions: ResourceConsumption[] = [];
+    const odType = isPlayer ? ResourceType.PLAYER_OD_GAUGE : ResourceType.OPPONENT_OD_GAUGE;
+    const saType = isPlayer ? ResourceType.PLAYER_SA_GAUGE : ResourceType.OPPONENT_SA_GAUGE;
+
+    switch (action.actionType) {
+        case ActionType.OD:
+            consumptions.push({
+                resourceType: odType,
+                value: 2,
+            });
+            break;
+        case ActionType.DRIVE_RUSH:
+            consumptions.push({
+                resourceType: odType,
+                value: 1,
+            });
+            break;
+        case ActionType.PARRY:
+            consumptions.push({
+                resourceType: odType,
+                value: 0.5,
+            });
+            break;
+        case ActionType.SA1:
+            consumptions.push({
+                resourceType: saType,
+                value: 1,
+            });
+            break;
+        case ActionType.SA2:
+            consumptions.push({
+                resourceType: saType,
+                value: 2,
+            });
+            break;
+        case ActionType.SA3:
+            consumptions.push({
+                resourceType: saType,
+                value: 3,
+            });
+            break;
+        case ActionType.NORMAL:
+        default:
+            // No resource consumption
+            break;
+    }
+
+    return consumptions;
+}
+
+/**
+ * Calculate resource requirements from action flags
+ * Requirements are the same as consumptions (must have enough to use the action)
+ */
+function getActionRequirements(action: Action, isPlayer: boolean): ResourceRequirement[] {
+    return getActionConsumptions(action, isPlayer).map(c => ({
+        resourceType: c.resourceType,
+        value: c.value,
+    }));
 }
 
 /**
@@ -398,7 +468,7 @@ function getOrCreateTerminalNode(
  */
 function initializeBuildContext(scenario: Scenario): BuildContext {
     const initialDynamicState = scenario.initialDynamicState || {
-        resources: [] 
+        resources: [],
     };
 
     const situationMap = new Map<number, Situation>();
@@ -412,13 +482,23 @@ function initializeBuildContext(scenario: Scenario): BuildContext {
     }
 
     const playerComboStarterMap = new Map<number, ComboStarter>();
-    for (const comboStarter of scenario.playerComboStarters) {
+    for (const comboStarter of scenario.player?.comboStarters || []) {
         playerComboStarterMap.set(comboStarter.situationId, comboStarter);
     }
 
     const opponentComboStarterMap = new Map<number, ComboStarter>();
-    for (const comboStarter of scenario.opponentComboStarters) {
+    for (const comboStarter of scenario.opponent?.comboStarters || []) {
         opponentComboStarterMap.set(comboStarter.situationId, comboStarter);
+    }
+
+    const playerActionMap = new Map<number, Action>();
+    for (const action of scenario.player?.actions || []) {
+        playerActionMap.set(action.actionId, action);
+    }
+
+    const opponentActionMap = new Map<number, Action>();
+    for (const action of scenario.opponent?.actions || []) {
+        opponentActionMap.set(action.actionId, action);
     }
 
     return {
@@ -429,6 +509,8 @@ function initializeBuildContext(scenario: Scenario): BuildContext {
         terminalSituationMap,
         playerComboStarterMap,
         opponentComboStarterMap,
+        playerActionMap,
+        opponentActionMap,
         rewardComputationMethod: scenario.rewardComputationMethod,
         initialPlayerHealth: getResourceValue(initialDynamicState, ResourceType.PLAYER_HEALTH),
         initialOpponentHealth: getResourceValue(initialDynamicState, ResourceType.OPPONENT_HEALTH),
@@ -564,12 +646,25 @@ function processTransition(
     ctx: BuildContext,
     getOrCreateNodeFn: (situationId: number, state: DynamicState) => Node | GameTreeBuildError
 ): GameTreeBuildError | null {
-    const requirements = protoTransition.resourceRequirements || [];
-    if (!canApplyTransition(state, requirements)) {
+    // Get actions from context maps
+    const playerAction = ctx.playerActionMap.get(protoTransition.playerActionId);
+    const opponentAction = ctx.opponentActionMap.get(protoTransition.opponentActionId);
+
+    // Calculate requirements from action flags
+    const playerReqs = playerAction ? getActionRequirements(playerAction, true) : [];
+    const opponentReqs = opponentAction ? getActionRequirements(opponentAction, false) : [];
+    const allRequirements = [...playerReqs, ...opponentReqs];
+
+    if (!canApplyTransition(state, allRequirements)) {
         return null;
     }
 
-    const newState = applyResourceConsumptions(state, protoTransition.resourceConsumptions);
+    // Calculate consumptions from action flags
+    const playerCons = playerAction ? getActionConsumptions(playerAction, true) : [];
+    const opponentCons = opponentAction ? getActionConsumptions(opponentAction, false) : [];
+    const allConsumptions = [...playerCons, ...opponentCons];
+
+    const newState = applyResourceConsumptions(state, allConsumptions);
     const terminalCheck = isTerminalState(newState);
 
     if (terminalCheck.isTerminal) {
@@ -615,24 +710,35 @@ function buildSituationNode(
 ): Node | GameTreeBuildError {
     log.debug('Building situation node:', nodeKey, 'name:', situation.name);
 
+    // Get actions from context maps using action IDs
+    const playerActions = situation.playerActionIds
+        .map(id => ctx.playerActionMap.get(id))
+        .filter((a): a is Action => a !== undefined)
+        .map(a => ({
+            actionId: a.actionId,
+            name: a.name,
+            description: a.description,
+        }));
+
+    const opponentActions = situation.opponentActionIds
+        .map(id => ctx.opponentActionMap.get(id))
+        .filter((a): a is Action => a !== undefined)
+        .map(a => ({
+            actionId: a.actionId,
+            name: a.name,
+            description: a.description,
+        }));
+
     const node: Node = {
         nodeId: nodeKey,
         name: situation.name,
         description: '',
         state: createNodeState(situation.situationId, state),
         playerActions: {
-            actions: situation.playerActions!.actions.map((a: Action) => ({
-                actionId: a.actionId,
-                name: a.name,
-                description: a.description,
-            })),
+            actions: playerActions 
         },
         opponentActions: {
-            actions: situation.opponentActions!.actions.map((a: Action) => ({
-                actionId: a.actionId,
-                name: a.name,
-                description: a.description,
-            })),
+            actions: opponentActions 
         },
         transitions: [],
     };
