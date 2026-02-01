@@ -134,6 +134,7 @@
               :selected-node="selectedNode"
               :strategy-data="selectedNodeStrategy"
               :expected-values="expectedValues"
+              @open-sensitivity-analysis="openSensitivityAnalysis"
             />
           </section>
         </template>
@@ -159,6 +160,7 @@
               :selected-node="selectedNode"
               :strategy-data="selectedNodeStrategy"
               :expected-values="expectedValues"
+              @open-sensitivity-analysis="openSensitivityAnalysis"
             />
           </section>
         </template>
@@ -190,6 +192,9 @@
       @navigate="handleMobileNavigation"
     />
 
+    <!-- Sensitivity Analysis Panel -->
+    <SensitivityAnalysisPanel />
+
     <v-snackbar
       v-model="notificationStore.show"
       :color="notificationStore.type"
@@ -215,8 +220,10 @@ import NodeStrategyPanel from '@/components/game-tree/node-strategy-panel.vue';
 import MobileSubNav from '@/components/common/mobile-sub-nav.vue';
 import { useScenarioStore } from './stores/scenario-store';
 import { useNotificationStore } from './stores/notification-store';
+import { useSensitivityStore } from './stores/sensitivity-store';
 import SituationListPanel from '@/components/sankey-tree/situation-list-panel.vue';
 import SankeyTreeView from '@/components/sankey-tree/sankey-tree-view.vue';
+import SensitivityAnalysisPanel from '@/components/sensitivity-analysis/sensitivity-analysis-panel.vue';
 import { getSituationName } from '@/utils/scenario-utils';
 import type { ViewMode } from '@/stores/view-store';
 import log from 'loglevel';
@@ -288,6 +295,9 @@ const scenario = computed(() => scenarioStore.scenario);
 // Notification store
 const notificationStore = useNotificationStore();
 
+// Sensitivity store
+const sensitivityStore = useSensitivityStore();
+
 const gameTree = computed(() => gameTreeStore.gameTree);
 
 // Game tree store
@@ -349,6 +359,13 @@ async function importFile() {
         log.error('Failed to import file:', error);
         notificationStore.showError(`ファイルのインポートに失敗しました: ${message}`);
     }
+}
+
+function openSensitivityAnalysis() {
+    if (!selectedNode.value) {
+        return;
+    }
+    sensitivityStore.openAnalysis(selectedNode.value, scenarioStore.scenario);
 }
 
 onMounted(() => {

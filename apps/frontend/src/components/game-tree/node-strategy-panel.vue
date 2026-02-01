@@ -101,6 +101,14 @@
           </div>
         </div>
 
+        <!-- Sensitivity analysis button -->
+        <button
+          class="sensitivity-btn"
+          @click="emit('open-sensitivity-analysis')"
+        >
+          感度分析
+        </button>
+
         <!-- Player strategy -->
         <StrategyActionList
           v-if="playerStrategy.length > 0"
@@ -147,6 +155,10 @@ const props = defineProps<{
     selectedNode: Node | null;
     strategyData: StrategyData | null;
     expectedValues: ExpectedValuesMap | null;
+}>();
+
+const emit = defineEmits<{
+    (e: 'open-sensitivity-analysis'): void;
 }>();
 
 // Computed properties
@@ -375,6 +387,25 @@ function formatDamage(value: number): string {
 .damage-received {
     color: var(--opponent-combo);
     font-family: var(--font-family-mono);
+}
+
+.sensitivity-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px 16px;
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sensitivity-btn:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--border-primary);
+    color: var(--text-primary);
 }
 
 .no-strategy {

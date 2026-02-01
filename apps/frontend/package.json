@@ -18,9 +18,11 @@
         "@nomari/game-tree-builder": "*",
         "@nomari/solver": "*",
         "@nomari/ts-proto": "*",
+        "chart.js": "^4.5.1",
         "loglevel": "^1.9.2",
         "pinia": "^3.0.4",
         "vue": "^3.5.26",
+        "vue-chartjs": "^5.3.3",
         "vue-router": "^4.6.4",
         "vuetify": "^3.11.6"
     },
