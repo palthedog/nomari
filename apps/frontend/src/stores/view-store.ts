@@ -20,10 +20,18 @@ export const VIEW_MODES: ViewModeConfig[] = [
     },
 ];
 
+export type ActionLibraryTarget = 'player' | 'opponent';
+
 export type EditSelection =
     | { type: 'scenario' }
-    | { type: 'situation';
-        situationId: number };
+    | {
+        type: 'situation';
+        situationId: number;
+    }
+    | {
+        type: 'actions';
+        target: ActionLibraryTarget;
+    };
 
 // Helper to get source type from route
 function getSourceType(): 'local' | 'example' {
@@ -60,6 +68,15 @@ export const useViewStore = defineStore('view', () => {
                         situationId: id
                     };
                 }
+            }
+        }
+        if (name.endsWith('-edit-actions')) {
+            const target = router.currentRoute.value.params.target;
+            if (target === 'player' || target === 'opponent') {
+                return {
+                    type: 'actions',
+                    target
+                };
             }
         }
         return {
@@ -111,6 +128,14 @@ export const useViewStore = defineStore('view', () => {
         });
     }
 
+    // Navigation: Select action library in edit mode
+    function selectActionLibrary(target: ActionLibraryTarget) {
+        navigateToEdit({
+            type: 'actions',
+            target
+        });
+    }
+
     // Navigation helper: Navigate to edit route
     function navigateToEdit(selection: EditSelection) {
         const source = getSourceType();
@@ -126,6 +151,13 @@ export const useViewStore = defineStore('view', () => {
         if (selection.type === 'situation') {
             params.situationId = selection.situationId.toString();
             const routeName = source === 'example' ? 'example-edit-situation' : 'local-edit-situation';
+            router.push({
+                name: routeName,
+                params
+            });
+        } else if (selection.type === 'actions') {
+            params.target = selection.target;
+            const routeName = source === 'example' ? 'example-edit-actions' : 'local-edit-actions';
             router.push({
                 name: routeName,
                 params
@@ -197,6 +229,7 @@ export const useViewStore = defineStore('view', () => {
         setSelectedSituationId,
         selectScenarioSettings,
         selectEditSituation,
+        selectActionLibrary,
         setEditSelection,
     };
 });

@@ -386,8 +386,10 @@ const selectedOpponentComboId = computed(() => {
 const playerComboStarters = computed(() => scenario.value.player?.comboStarters || []);
 const opponentComboStarters = computed(() => scenario.value.opponent?.comboStarters || []);
 
-// Action library selection state
-const selectedActionLibraryTarget = ref<'player' | 'opponent' | null>(null);
+// Action library selection derived from route
+const selectedActionLibraryTarget = computed(() =>
+    editSelection.value.type === 'actions' ? editSelection.value.target : null
+);
 
 // Delete confirmation dialog state
 const showDeleteDialog = ref(false);
@@ -472,36 +474,31 @@ function switchToDetailIfMobile() {
 }
 
 function selectScenarioSettings() {
-    selectedActionLibraryTarget.value = null;
     viewStore.selectScenarioSettings();
     switchToDetailIfMobile();
 }
 
 function selectActionLibrary(target: 'player' | 'opponent') {
-    selectedActionLibraryTarget.value = target;
+    viewStore.selectActionLibrary(target);
     switchToDetailIfMobile();
 }
 
 function selectSituation(situationId: number) {
-    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(situationId);
     switchToDetailIfMobile();
 }
 
 function selectTerminalSituation(terminalSituationId: number) {
-    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(terminalSituationId);
     switchToDetailIfMobile();
 }
 
 function selectPlayerCombo(comboId: number) {
-    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(comboId);
     switchToDetailIfMobile();
 }
 
 function selectOpponentCombo(comboId: number) {
-    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(comboId);
     switchToDetailIfMobile();
 }

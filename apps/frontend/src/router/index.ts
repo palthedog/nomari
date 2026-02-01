@@ -29,6 +29,11 @@ const routes: RouteRecordRaw[] = [
         component: EmptyComponent,
     },
     {
+        path: '/edit/actions/:target',
+        name: 'local-edit-actions',
+        component: EmptyComponent,
+    },
+    {
         path: '/strategy',
         name: 'local-strategy',
         component: EmptyComponent,
@@ -56,6 +61,11 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/example/:exampleName/edit/situation/:situationId',
         name: 'example-edit-situation',
+        component: EmptyComponent,
+    },
+    {
+        path: '/example/:exampleName/edit/actions/:target',
+        name: 'example-edit-actions',
         component: EmptyComponent,
     },
     {

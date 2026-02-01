@@ -1,6 +1,6 @@
 <template>
   <div class="situation-editor">
-    <!-- 基本情報 -->
+    <!-- Basic Info -->
     <div class="section">
       <div
         class="form-group"
@@ -27,45 +27,27 @@
       </div>
     </div>
 
-    <!-- プレイヤー選択肢 -->
-    <div class="section player-section">
-      <h4>プレイヤー選択肢</h4>
-      <v-select
-        v-model="model.playerActionIds"
-        :items="playerActionItems"
-        item-title="title"
-        item-value="value"
-        multiple
-        chips
-        closable-chips
-        density="compact"
-        variant="outlined"
-        hide-details
-        placeholder="アクションを選択"
-        @update:model-value="updateTransitions"
-      />
-    </div>
+    <!-- Player Actions -->
+    <ActionSelector
+      v-model="model.playerActionIds"
+      :actions="props.playerActions"
+      title="プレイヤー選択肢"
+      variant="player"
+      @edit="viewStore.selectActionLibrary('player')"
+      @update:model-value="updateTransitions"
+    />
 
-    <!-- 相手選択肢 -->
-    <div class="section opponent-section">
-      <h4>相手選択肢</h4>
-      <v-select
-        v-model="model.opponentActionIds"
-        :items="opponentActionItems"
-        item-title="title"
-        item-value="value"
-        multiple
-        chips
-        closable-chips
-        density="compact"
-        variant="outlined"
-        hide-details
-        placeholder="アクションを選択"
-        @update:model-value="updateTransitions"
-      />
-    </div>
+    <!-- Opponent Actions -->
+    <ActionSelector
+      v-model="model.opponentActionIds"
+      :actions="props.opponentActions"
+      title="相手選択肢"
+      variant="opponent"
+      @edit="viewStore.selectActionLibrary('opponent')"
+      @update:model-value="updateTransitions"
+    />
 
-    <!-- 遷移テーブル -->
+    <!-- Transition Table -->
     <div
       v-if="selectedPlayerActions.length > 0 && selectedOpponentActions.length > 0"
       class="section"
@@ -133,10 +115,14 @@ import type {
     TerminalSituation,
     Action,
 } from '@nomari/ts-proto';
+import ActionSelector from './action-selector.vue';
+import { useViewStore } from '@/stores/view-store';
 
 const model = defineModel<Situation>({
     required: true
 });
+
+const viewStore = useViewStore();
 
 const props = defineProps<{
     availableSituations: Situation[];
@@ -144,21 +130,6 @@ const props = defineProps<{
     playerActions: Action[];
     opponentActions: Action[];
 }>();
-
-// Action items for selection
-const playerActionItems = computed(() =>
-    props.playerActions.map(a => ({
-        title: a.name || `Action ${a.actionId}`,
-        value: a.actionId,
-    }))
-);
-
-const opponentActionItems = computed(() =>
-    props.opponentActions.map(a => ({
-        title: a.name || `Action ${a.actionId}`,
-        value: a.actionId,
-    }))
-);
 
 // Get selected actions by ID
 const selectedPlayerActions = computed(() =>
@@ -306,22 +277,6 @@ function updateNextSituationId(
   margin-bottom: 15px;
 }
 
-.player-section {
-  border-left: 4px solid var(--player-color);
-}
-
-.player-section h4 {
-  color: var(--player-color-dark);
-}
-
-.opponent-section {
-  border-left: 4px solid var(--opponent-color);
-}
-
-.opponent-section h4 {
-  color: var(--opponent-color-dark);
-}
-
 .transition-matrix {
   overflow-x: auto;
   margin-top: 15px;
@@ -440,17 +395,4 @@ function updateNextSituationId(
   border-radius: 4px;
 }
 
-button {
-  padding: 8px 15px;
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-button:hover {
-  opacity: 0.8;
-}
 </style>
