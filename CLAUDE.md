@@ -67,8 +67,6 @@ npm run lint
 - **Comments**: All source code comments must be in English
 - **File naming**: Use kebab-case (e.g., `game-tree-builder.ts`, not `gameTreeBuilder.ts`)
 - **Error handling**:
-  - Never throw exceptions; return `bool` or `null` to indicate errors
-  - Callers must check return values and propagate errors up the call chain
   - Never use global/class-level error flags (e.g., `buildError`) to track state
   - Log errors with `log.error()` or `log.warn()` before returning
   - For user input errors, use notification-store to display messages
@@ -81,13 +79,16 @@ npm run lint
 **Every commit must pass these checks. Run them BEFORE `git commit`, not after.**
 
 ```bash
-npm run test && npm run lint
+npm run test
+npm run lint
 ```
 
 If lint fails, fix with:
 ```bash
 npm run lint:fix
 ```
+
+If you made non minor changes on the frontend, you must test the functionality with `playwright`.
 
 Do NOT create separate "fix lint" commits. If you forgot to run lint before committing, amend the commit or squash.
 
