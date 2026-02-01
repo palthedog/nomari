@@ -85,6 +85,29 @@
             </ul>
           </div>
 
+          <!-- Action Library (Combo Starters) -->
+          <div class="section-group">
+            <div class="section-header">
+              <h4>始動技</h4>
+            </div>
+            <div class="action-library-tabs">
+              <button
+                class="action-library-tab player-tab"
+                :class="{ active: selectedActionLibraryTarget === 'player' }"
+                @click="selectActionLibrary('player')"
+              >
+                プレイヤー
+              </button>
+              <button
+                class="action-library-tab opponent-tab"
+                :class="{ active: selectedActionLibraryTarget === 'opponent' }"
+                @click="selectActionLibrary('opponent')"
+              >
+                相手
+              </button>
+            </div>
+          </div>
+
           <!-- Player Combos -->
           <div class="section-group">
             <div class="section-header player-combo-header">
@@ -151,8 +174,18 @@
         :class="{ 'mobile-full-height': isMobile }"
       >
         <div class="panel-content">
+          <SingleActionLibraryEditor
+            v-if="selectedActionLibraryTarget === 'player' && scenario.player"
+            v-model="scenario.player"
+            target="player"
+          />
+          <SingleActionLibraryEditor
+            v-else-if="selectedActionLibraryTarget === 'opponent' && scenario.opponent"
+            v-model="scenario.opponent"
+            target="opponent"
+          />
           <ScenarioSettingsEditor
-            v-if="isScenarioSettingsSelected"
+            v-else-if="isScenarioSettingsSelected"
             v-model="scenario"
           />
           <SituationEditor
@@ -290,6 +323,7 @@ import SituationEditor from './situation-editor.vue';
 import TerminalSituationEditor from './terminal-situation-editor.vue';
 import ComboStarterEditor from './combo-starter-editor.vue';
 import ScenarioSettingsEditor from './scenario-settings-editor.vue';
+import SingleActionLibraryEditor from './single-action-library-editor.vue';
 import CircleDeleteButton from '@/components/common/circle-delete-button.vue';
 import { useScenarioStore } from '@/stores/scenario-store';
 
@@ -351,6 +385,9 @@ const selectedOpponentComboId = computed(() => {
 
 const playerComboStarters = computed(() => scenario.value.player?.comboStarters || []);
 const opponentComboStarters = computed(() => scenario.value.opponent?.comboStarters || []);
+
+// Action library selection state
+const selectedActionLibraryTarget = ref<'player' | 'opponent' | null>(null);
 
 // Delete confirmation dialog state
 const showDeleteDialog = ref(false);
@@ -435,26 +472,36 @@ function switchToDetailIfMobile() {
 }
 
 function selectScenarioSettings() {
+    selectedActionLibraryTarget.value = null;
     viewStore.selectScenarioSettings();
     switchToDetailIfMobile();
 }
 
+function selectActionLibrary(target: 'player' | 'opponent') {
+    selectedActionLibraryTarget.value = target;
+    switchToDetailIfMobile();
+}
+
 function selectSituation(situationId: number) {
+    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(situationId);
     switchToDetailIfMobile();
 }
 
 function selectTerminalSituation(terminalSituationId: number) {
+    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(terminalSituationId);
     switchToDetailIfMobile();
 }
 
 function selectPlayerCombo(comboId: number) {
+    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(comboId);
     switchToDetailIfMobile();
 }
 
 function selectOpponentCombo(comboId: number) {
+    selectedActionLibraryTarget.value = null;
     viewStore.selectEditSituation(comboId);
     switchToDetailIfMobile();
 }
@@ -884,6 +931,44 @@ function executeDelete() {
 
 .opponent-combo-header h4 {
   color: var(--opponent-color);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   ACTION LIBRARY TABS
+   ─────────────────────────────────────────────────────────────────── */
+
+.action-library-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.action-library-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.action-library-tab:hover {
+  background-color: var(--bg-hover);
+}
+
+.action-library-tab.player-tab.active {
+  background-color: var(--player-color);
+  border-color: var(--player-color);
+  color: white;
+}
+
+.action-library-tab.opponent-tab.active {
+  background-color: var(--opponent-color);
+  border-color: var(--opponent-color);
+  color: white;
 }
 
 /* ───────────────────────────────────────────────────────────────────

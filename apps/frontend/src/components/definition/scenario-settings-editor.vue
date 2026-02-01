@@ -51,15 +51,6 @@
 
         <RewardComputationMethodEditor v-model="scenario.rewardComputationMethod" />
       </div>
-
-      <div class="settings-section">
-        <h4>アクションライブラリ</h4>
-        <ActionLibraryEditor
-          v-if="scenario.player && scenario.opponent"
-          v-model:player="scenario.player"
-          v-model:opponent="scenario.opponent"
-        />
-      </div>
     </div>
   </div>
 </template>
@@ -69,7 +60,6 @@ import { computed } from 'vue';
 import type { Scenario } from '@nomari/ts-proto';
 import InitialDynamicStateEditor from './initial-dynamic-state-editor.vue';
 import RewardComputationMethodEditor from './reward-computation-method-editor.vue';
-import ActionLibraryEditor from './action-library-editor.vue';
 
 const scenario = defineModel<Scenario>({
     required: true
