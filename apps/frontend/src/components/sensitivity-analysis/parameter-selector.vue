@@ -23,30 +23,35 @@
       <div class="form-row">
         <label class="form-label">最小値</label>
         <input
-          v-model.number="config.minValue"
+          v-model.number="displayMinValue"
           type="number"
           class="form-input"
-          :step="config.stepSize"
+          :min="inputRange.min"
+          :max="inputRange.max"
+          :step="displayStepSize"
         >
       </div>
 
       <div class="form-row">
         <label class="form-label">最大値</label>
         <input
-          v-model.number="config.maxValue"
+          v-model.number="displayMaxValue"
           type="number"
           class="form-input"
-          :step="config.stepSize"
+          :min="inputRange.min"
+          :max="inputRange.max"
+          :step="displayStepSize"
         >
       </div>
 
       <div class="form-row">
         <label class="form-label">ステップ</label>
         <input
-          v-model.number="config.stepSize"
+          v-model.number="displayStepSize"
           type="number"
           class="form-input"
-          min="1"
+          :min="scaleFactor === 1000 ? 0.1 : 1"
+          :step="scaleFactor === 1000 ? 0.1 : 1"
         >
       </div>
 
@@ -76,32 +81,88 @@ const emit = defineEmits<{
 const resourceTypeOptions = [
     {
         value: ResourceType.PLAYER_HEALTH,
-        label: getResourceTypeLabel(ResourceType.PLAYER_HEALTH) 
+        label: getResourceTypeLabel(ResourceType.PLAYER_HEALTH)
     },
     {
         value: ResourceType.OPPONENT_HEALTH,
-        label: getResourceTypeLabel(ResourceType.OPPONENT_HEALTH) 
+        label: getResourceTypeLabel(ResourceType.OPPONENT_HEALTH)
     },
     {
         value: ResourceType.PLAYER_OD_GAUGE,
-        label: getResourceTypeLabel(ResourceType.PLAYER_OD_GAUGE) 
+        label: getResourceTypeLabel(ResourceType.PLAYER_OD_GAUGE)
     },
     {
         value: ResourceType.OPPONENT_OD_GAUGE,
-        label: getResourceTypeLabel(ResourceType.OPPONENT_OD_GAUGE) 
+        label: getResourceTypeLabel(ResourceType.OPPONENT_OD_GAUGE)
     },
     {
         value: ResourceType.PLAYER_SA_GAUGE,
-        label: getResourceTypeLabel(ResourceType.PLAYER_SA_GAUGE) 
+        label: getResourceTypeLabel(ResourceType.PLAYER_SA_GAUGE)
     },
     {
         value: ResourceType.OPPONENT_SA_GAUGE,
-        label: getResourceTypeLabel(ResourceType.OPPONENT_SA_GAUGE) 
+        label: getResourceTypeLabel(ResourceType.OPPONENT_SA_GAUGE)
     },
 ];
 
 const config = ref<ParameterConfig>({
     ...props.modelValue
+});
+
+function isGaugeType(resourceType: ResourceType): boolean {
+    return resourceType === ResourceType.PLAYER_OD_GAUGE
+        || resourceType === ResourceType.OPPONENT_OD_GAUGE
+        || resourceType === ResourceType.PLAYER_SA_GAUGE
+        || resourceType === ResourceType.OPPONENT_SA_GAUGE;
+}
+
+const scaleFactor = computed(() => isGaugeType(config.value.resourceType) ? 1000 : 1);
+
+const inputRange = computed(() => {
+    const rt = config.value.resourceType;
+    if (rt === ResourceType.PLAYER_HEALTH || rt === ResourceType.OPPONENT_HEALTH) {
+        return {
+            min: 1,
+            max: 10000
+        };
+    }
+    if (rt === ResourceType.PLAYER_OD_GAUGE || rt === ResourceType.OPPONENT_OD_GAUGE) {
+        return {
+            min: 0,
+            max: 6
+        };
+    }
+    if (rt === ResourceType.PLAYER_SA_GAUGE || rt === ResourceType.OPPONENT_SA_GAUGE) {
+        return {
+            min: 0,
+            max: 3
+        };
+    }
+    return {
+        min: 0,
+        max: 10000
+    };
+});
+
+const displayMinValue = computed({
+    get: () => config.value.minValue / scaleFactor.value,
+    set: (v: number) => {
+        config.value.minValue = v * scaleFactor.value;
+    }
+});
+
+const displayMaxValue = computed({
+    get: () => config.value.maxValue / scaleFactor.value,
+    set: (v: number) => {
+        config.value.maxValue = v * scaleFactor.value;
+    }
+});
+
+const displayStepSize = computed({
+    get: () => config.value.stepSize / scaleFactor.value,
+    set: (v: number) => {
+        config.value.stepSize = v * scaleFactor.value;
+    }
 });
 
 const computationCount = computed(() => {
