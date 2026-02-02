@@ -90,12 +90,20 @@
         </div>
       </div>
     </div>
+
+    <RewardSimulationPanel
+      :corner-bonus="cornerBonus"
+      :od-gauge-bonus="odGaugeBonus"
+      :sa-gauge-bonus="saGaugeBonus"
+      :method="selectedMethod"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import type { RewardComputationMethod } from '@nomari/ts-proto';
+import RewardSimulationPanel from './reward-visualization/reward-simulation-panel.vue';
 
 const model = defineModel<RewardComputationMethod | undefined>({
     required: false 

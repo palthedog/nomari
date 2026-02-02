@@ -161,7 +161,7 @@ describe('calculateRewardForWinProbabilityWithCorner', () => {
             p.odBonus,
             p.saBonus,
             p.baseComboDamage
-        );
+        ).reward;
     };
 
     describe('equal HP (symmetric scenarios)', () => {

@@ -16,6 +16,15 @@ import {
     calculateRewardForWinProbabilityWithCorner,
     calculateRewardForDamageRace,
 } from './reward';
+import type { WinProbabilityResult } from './reward';
+
+// Re-export reward calculation functions for use by other packages
+export {
+    calculateRewardForWinProbability,
+    calculateRewardForWinProbabilityWithCorner,
+    calculateRewardForDamageRace,
+};
+export type { WinProbabilityResult };
 import {
     GameTree,
     Node,
@@ -382,7 +391,7 @@ function createTerminalSituationNode(
             opponentSa,
             odBonus,
             saBonus
-        );
+        ).reward;
     } else {
         // Unknown reward computation method - fallback to damage race
         log.warn('Unknown reward computation method:', rewardComputationMethod.method.oneofKind, '- using damageRace');

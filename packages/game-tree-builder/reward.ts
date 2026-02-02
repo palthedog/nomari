@@ -12,6 +12,16 @@ if (process.env.NODE_ENV === 'development') {
 const DEFAULT_BASE_COMBO_DAMAGE = 2000;
 
 /**
+ * Result of win probability calculation including intermediate values.
+ */
+export interface WinProbabilityResult {
+    reward: number;
+    winProbability: number;
+    playerTurnsToKill: number;
+    opponentTurnsToKill: number;
+}
+
+/**
  * Calculates rewards for the player based on win probability.
  * Rewards are scaled so that winProbability=1 yields +10000,
  * winProbability=0 yields -10000, and 0.5 yields 0 for the player.
@@ -78,7 +88,7 @@ export function calculateRewardForWinProbabilityWithCorner(
     odBonus: number = 0,
     saBonus: number = 0,
     baseComboDamage: number = DEFAULT_BASE_COMBO_DAMAGE
-): number {
+): WinProbabilityResult {
     // Calculate base combo damage with corner bonus for each player
     const playerBaseComboDamage = calculatePlayerBaseComboDamage(
         baseComboDamage,
@@ -125,7 +135,12 @@ export function calculateRewardForWinProbabilityWithCorner(
         reward,
     });
 
-    return reward;
+    return {
+        reward,
+        winProbability,
+        playerTurnsToKill,
+        opponentTurnsToKill,
+    };
 }
 
 /**
