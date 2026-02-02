@@ -196,7 +196,10 @@ function getNextSituationItemsForCell(
 
     // Priority 1: Player combos matching current player action
     if (playerCombosMatching.length > 0) {
-        items.push(divider);
+        items.push({
+            // Make sure that we copy the divider object to make the item keys unique
+            ...divider
+        });
         items.push({
             type: 'subheader',
             title: 'プレイヤー始動技一致',
@@ -209,7 +212,9 @@ function getNextSituationItemsForCell(
 
     // Priority 2: Opponent combos matching current opponent action
     if (opponentCombosMatching.length > 0) {
-        items.push(divider);
+        items.push({
+            ...divider
+        });
         items.push({
             type: 'subheader',
             title: '相手始動技一致'
@@ -222,7 +227,9 @@ function getNextSituationItemsForCell(
 
     // Priority 3: Terminal situations
     if (props.availableTerminalSituations.length > 0) {
-        items.push(divider);
+        items.push({
+            ...divider
+        });
         items.push({
             type: 'subheader',
             title: '終点状況'
@@ -235,7 +242,9 @@ function getNextSituationItemsForCell(
 
     // Priority 4: Regular situations
     if (props.availableSituations.length > 0) {
-        items.push(divider);
+        items.push({
+            ...divider
+        });
         items.push({
             type: 'subheader',
             title: '状況'
@@ -248,7 +257,9 @@ function getNextSituationItemsForCell(
 
     // Priority 5: Other player combos (without matching starter_action_id)
     if (otherPlayerCombos.length > 0) {
-        items.push(divider);
+        items.push({
+            ...divider
+        });
         items.push({
             type: 'subheader',
             title: 'その他プレイヤーコンボ'
@@ -261,7 +272,9 @@ function getNextSituationItemsForCell(
 
     // Priority 6: Other opponent combos (without matching starter_action_id)
     if (otherOpponentCombos.length > 0) {
-        items.push(divider);
+        items.push({
+            ...divider
+        });
         items.push({
             type: 'subheader',
             title: 'その他相手コンボ'
