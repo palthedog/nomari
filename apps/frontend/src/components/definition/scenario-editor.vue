@@ -59,7 +59,7 @@
           <!-- Terminal Situations -->
           <div class="section-group">
             <div class="section-header">
-              <h4>最終状況</h4>
+              <h4>終点状況</h4>
             </div>
             <ul class="section-list">
               <li
@@ -191,8 +191,10 @@
           <SituationEditor
             v-else-if="selectedSituation"
             :model-value="selectedSituation"
-            :available-situations="availableSituationsForTransition"
+            :available-situations="scenario.situations"
             :available-terminal-situations="scenario.terminalSituations"
+            :player-combo-starters="scenario.player?.comboStarters || []"
+            :opponent-combo-starters="scenario.opponent?.comboStarters || []"
             :player-actions="scenario.player?.actions || []"
             :opponent-actions="scenario.opponent?.actions || []"
             @update:model-value="updateSituation"
@@ -207,6 +209,7 @@
             :model-value="selectedPlayerCombo"
             :available-situations="scenario.situations"
             :available-terminal-situations="scenario.terminalSituations"
+            :available-actions="scenario.player?.actions || []"
             :is-player-combo="true"
             @update:model-value="updatePlayerCombo"
           />
@@ -215,6 +218,7 @@
             :model-value="selectedOpponentCombo"
             :available-situations="scenario.situations"
             :available-terminal-situations="scenario.terminalSituations"
+            :available-actions="scenario.opponent?.actions || []"
             :is-player-combo="false"
             @update:model-value="updateOpponentCombo"
           />
@@ -440,31 +444,6 @@ const selectedOpponentCombo = computed(() => {
             (c) => c.situationId === selectedOpponentComboId.value
         ) || null
     );
-});
-
-// Available situations for transition includes situations and combo starters
-const availableSituationsForTransition = computed(() => {
-    const situations = [...scenario.value.situations];
-    // Add combo starters as virtual situations (they share the same ID space)
-    for (const combo of playerComboStarters.value) {
-        situations.push({
-            situationId: combo.situationId,
-            name: `[コンボ] ${combo.name || '(名前なし)'}`,
-            playerActionIds: [],
-            opponentActionIds: [],
-            transitions: [],
-        });
-    }
-    for (const combo of opponentComboStarters.value) {
-        situations.push({
-            situationId: combo.situationId,
-            name: `[相手コンボ] ${combo.name || '(名前なし)'}`,
-            playerActionIds: [],
-            opponentActionIds: [],
-            transitions: [],
-        });
-    }
-    return situations;
 });
 
 function switchToDetailIfMobile() {

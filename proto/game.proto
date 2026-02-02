@@ -174,7 +174,8 @@ message Transition {
 // A branch route within a combo starter.
 // Each route has different requirements and effects based on gauge state.
 message ComboRoute {
-  string name = 1; // e.g., "No gauge", "OD confirm", "SA finisher"
+  // e.g., "No gauge", "OD confirm", "SA finisher"
+  string name = 1;
 
   // Requirements to use this route (must have >= these values)
   repeated ResourceRequirement requirements = 2;
@@ -195,8 +196,14 @@ message ComboStarter {
   // Unique ID shared with Situation and TerminalSituation
   uint32 situation_id = 1;
 
-  string name = 2; // e.g., "Medium punch starter", "Heavy punch starter"
+  // e.g., "Medium punch starter", "Heavy punch starter"
+  string name = 2; 
   string description = 3;
+
+  // The action which can start this combo.
+  // If not specified, any action can start the combo.
+  // It will be used by the sceneario editor to filter valid combo starters for an action.
+  optional string starter_action_id = 5;
 
   // Multiple routes that branch from this starter based on gauge requirements
   repeated ComboRoute routes = 4;

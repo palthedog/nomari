@@ -121,6 +121,7 @@ export function createEmptyComboStarter(): ComboStarter {
         situationId: generateId(),
         name: '',
         description: '',
+        starterActionId: undefined,
         routes: [],
     };
 }

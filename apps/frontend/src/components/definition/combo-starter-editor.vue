@@ -38,6 +38,19 @@
           hide-details
         />
       </div>
+      <div class="form-group">
+        <v-select
+          v-model="model.starterActionId"
+          :items="starterActionItems"
+          item-title="title"
+          item-value="value"
+          label="始動技"
+          density="compact"
+          variant="outlined"
+          hide-details
+          placeholder="遷移テーブルで優先表示"
+        />
+      </div>
     </div>
 
     <!-- Combo Routes -->
@@ -193,6 +206,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue';
 import type {
+    Action,
     ComboStarter,
     Situation,
     TerminalSituation,
@@ -207,8 +221,27 @@ const model = defineModel<ComboStarter>({
 const props = defineProps<{
     availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
+    availableActions: Action[];
     isPlayerCombo: boolean;
 }>();
+
+// Starter action dropdown items
+const starterActionItems = computed(() => {
+    const items: Array<{
+        title: string;
+        value: string;
+    }> = [
+        {
+            title: '(指定なし)',
+            value: ''
+        },
+    ];
+    items.push(...props.availableActions.map(a => ({
+        title: a.name || `Action ${a.actionId}`,
+        value: String(a.actionId),
+    })));
+    return items;
+});
 
 // Override flags for requirements (routeIndex -> { od: boolean, sa: boolean })
 const requirementOverrides = ref<Map<number, {

@@ -89,7 +89,7 @@
               >
                 <v-select
                   :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
-                  :items="nextSituationItems"
+                  :items="getNextSituationItemsForCell(playerAction.actionId, oppAction.actionId)"
                   item-title="title"
                   item-value="value"
                   density="compact"
@@ -114,6 +114,7 @@ import type {
     Transition,
     TerminalSituation,
     Action,
+    ComboStarter,
 } from '@nomari/ts-proto';
 import ActionSelector from './action-selector.vue';
 import { useViewStore } from '@/stores/view-store';
@@ -127,6 +128,8 @@ const viewStore = useViewStore();
 const props = defineProps<{
     availableSituations: Situation[];
     availableTerminalSituations: TerminalSituation[];
+    playerComboStarters: ComboStarter[];
+    opponentComboStarters: ComboStarter[];
     playerActions: Action[];
     opponentActions: Action[];
 }>();
@@ -148,7 +151,10 @@ type SelectItem = { title: string;
     value: number } | { type: 'subheader';
         title: string };
 
-const nextSituationItems = computed(() => {
+function getNextSituationItemsForCell(
+    playerActionId: number,
+    opponentActionId: number
+): SelectItem[] {
     const items: SelectItem[] = [
         {
             title: '次の状況を選択してください',
@@ -156,54 +162,52 @@ const nextSituationItems = computed(() => {
         },
     ];
 
-    // Filter and categorize available situations
-    const regularSituations = props.availableSituations.filter(
-        (s) => !s.name?.startsWith('[コンボ]') && !s.name?.startsWith('[相手コンボ]')
+    const playerActionIdStr = String(playerActionId);
+    const opponentActionIdStr = String(opponentActionId);
+
+    // Split combos by starter_action_id match
+    const playerCombosMatching = props.playerComboStarters.filter(
+        (c) => c.starterActionId === playerActionIdStr
     );
-    const playerCombos = props.availableSituations.filter(
-        (s) => s.name?.startsWith('[コンボ]')
+    const opponentCombosMatching = props.opponentComboStarters.filter(
+        (c) => c.starterActionId === opponentActionIdStr
     );
-    const opponentCombos = props.availableSituations.filter(
-        (s) => s.name?.startsWith('[相手コンボ]')
+    const otherPlayerCombos = props.playerComboStarters.filter(
+        (c) => !c.starterActionId || c.starterActionId !== playerActionIdStr
+    );
+    const otherOpponentCombos = props.opponentComboStarters.filter(
+        (c) => !c.starterActionId || c.starterActionId !== opponentActionIdStr
     );
 
-    if (regularSituations.length > 0) {
+    // Priority 1: Player combos matching current player action
+    if (playerCombosMatching.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── 状況 ──'
+            title: '── プレイヤー始動技一致 ──'
         });
-        items.push(...regularSituations.map((s) => ({
-            title: s.name || '(名前なし)',
-            value: s.situationId,
+        items.push(...playerCombosMatching.map((c) => ({
+            title: c.name || '(名前なし)',
+            value: c.situationId,
         })));
     }
 
-    if (playerCombos.length > 0) {
+    // Priority 2: Opponent combos matching current opponent action
+    if (opponentCombosMatching.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── プレイヤーコンボ ──'
+            title: '── 相手始動技一致 ──'
         });
-        items.push(...playerCombos.map((s) => ({
-            title: s.name?.replace('[コンボ] ', '') || '(名前なし)',
-            value: s.situationId,
+        items.push(...opponentCombosMatching.map((c) => ({
+            title: c.name || '(名前なし)',
+            value: c.situationId,
         })));
     }
 
-    if (opponentCombos.length > 0) {
-        items.push({
-            type: 'subheader',
-            title: '── 相手コンボ ──'
-        });
-        items.push(...opponentCombos.map((s) => ({
-            title: s.name?.replace('[相手コンボ] ', '') || '(名前なし)',
-            value: s.situationId,
-        })));
-    }
-
+    // Priority 3: Terminal situations
     if (props.availableTerminalSituations.length > 0) {
         items.push({
             type: 'subheader',
-            title: '── 最終状況 ──'
+            title: '── 終点状況 ──'
         });
         items.push(...props.availableTerminalSituations.map((t) => ({
             title: t.name || '(名前なし)',
@@ -211,8 +215,44 @@ const nextSituationItems = computed(() => {
         })));
     }
 
+    // Priority 4: Regular situations
+    if (props.availableSituations.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── 状況 ──'
+        });
+        items.push(...props.availableSituations.map((s) => ({
+            title: s.name || '(名前なし)',
+            value: s.situationId,
+        })));
+    }
+
+    // Priority 5: Other player combos (without matching starter_action_id)
+    if (otherPlayerCombos.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── その他プレイヤーコンボ ──'
+        });
+        items.push(...otherPlayerCombos.map((c) => ({
+            title: c.name || '(名前なし)',
+            value: c.situationId,
+        })));
+    }
+
+    // Priority 6: Other opponent combos (without matching starter_action_id)
+    if (otherOpponentCombos.length > 0) {
+        items.push({
+            type: 'subheader',
+            title: '── その他相手コンボ ──'
+        });
+        items.push(...otherOpponentCombos.map((c) => ({
+            title: c.name || '(名前なし)',
+            value: c.situationId,
+        })));
+    }
+
     return items;
-});
+}
 
 function updateTransitions() {
     const existingTransitions = new Map<string, Transition>();
