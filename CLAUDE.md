@@ -62,6 +62,14 @@ npm run lint
 - **DynamicState**: Tracks resources (health, OD gauge, SA gauge)
 - **RewardComputationMethod**: Either DamageRace or WinProbability calculation
 
+## Code Quality Rules
+- **No duplicate logic**: Never copy-paste code to create variants. If you need a different return type, modify the original function or use composition.
+
+### Keep everything as small as possible
+- **Block size**: Keep blocks under ~50 lines; extract meaningful functions even if used only once
+- **Nesting**: Keep nesting shallow (max 4 levels); use early return pattern
+- **Inner functions**: Avoid unless necessary
+
 ## Code Style
 
 - **Comments**: All source code comments must be in English
@@ -70,9 +78,6 @@ npm run lint
   - Never use global/class-level error flags (e.g., `buildError`) to track state
   - Log errors with `log.error()` or `log.warn()` before returning
   - For user input errors, use notification-store to display messages
-- **Block size**: Keep blocks under ~50 lines; extract meaningful functions even if used only once
-- **Nesting**: Keep nesting shallow (max 4 levels); use early return pattern
-- **Inner functions**: Avoid unless necessary
 
 ## Pre-commit Checklist (REQUIRED)
 
