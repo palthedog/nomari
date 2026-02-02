@@ -85,7 +85,7 @@
               <td
                 v-for="oppAction in selectedOpponentActions"
                 :key="oppAction.actionId"
-                class="transition-cell"
+                :class="getTransitionCellClass(playerAction.actionId, oppAction.actionId)"
               >
                 <v-select
                   :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
@@ -332,6 +332,33 @@ function updateNextSituationId(
         transition.nextSituationId = nextSituationId;
     }
 }
+
+type TransitionType = 'situation' | 'terminal' | 'player-combo' | 'opponent-combo' | null;
+
+function getTransitionType(nextSituationId: number): TransitionType {
+    if (nextSituationId === 0) {
+        return null;
+    }
+    if (props.availableSituations.some(s => s.situationId === nextSituationId)) {
+        return 'situation';
+    }
+    if (props.availableTerminalSituations.some(t => t.situationId === nextSituationId)) {
+        return 'terminal';
+    }
+    if (props.playerComboStarters.some(c => c.situationId === nextSituationId)) {
+        return 'player-combo';
+    }
+    if (props.opponentComboStarters.some(c => c.situationId === nextSituationId)) {
+        return 'opponent-combo';
+    }
+    return null;
+}
+
+function getTransitionCellClass(playerActionId: number, opponentActionId: number): string {
+    const transition = getTransition(playerActionId, opponentActionId);
+    const type = getTransitionType(transition?.nextSituationId || 0);
+    return type ? `transition-cell type-${type}` : 'transition-cell';
+}
 </script>
 
 <style scoped>
@@ -433,6 +460,22 @@ function updateNextSituationId(
 .transition-matrix .transition-cell {
   min-width: 120px;
   padding: 4px;
+}
+
+.transition-matrix .transition-cell.type-situation {
+  background-color: var(--situation-bg);
+}
+
+.transition-matrix .transition-cell.type-terminal {
+  background-color: var(--terminal-bg);
+}
+
+.transition-matrix .transition-cell.type-player-combo {
+  background-color: var(--player-combo-bg);
+}
+
+.transition-matrix .transition-cell.type-opponent-combo {
+  background-color: var(--opponent-combo-bg);
 }
 
 .transition-matrix .transition-select {
