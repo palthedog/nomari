@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Default base combo damage (used when not specified)
-const DEFAULT_BASE_COMBO_DAMAGE = 2000;
+const DEFAULT_BASE_COMBO_DAMAGE = 1000;
 
 /**
  * Result of win probability calculation including intermediate values.
@@ -54,7 +54,8 @@ function calculateTurnsToKill(
     }
 
     const remainingAfterLethal = targetHealth - lethalDamage;
-    const additionalTurns = Math.ceil(remainingAfterLethal / baseComboDamage);
+    //const additionalTurns = Math.ceil(remainingAfterLethal / baseComboDamage);
+    const additionalTurns = remainingAfterLethal / baseComboDamage;
     return 1 + additionalTurns;
 }
 
