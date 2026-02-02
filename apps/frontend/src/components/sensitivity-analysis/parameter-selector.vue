@@ -50,8 +50,8 @@
           v-model.number="displayStepSize"
           type="number"
           class="form-input"
-          :min="scaleFactor === 1000 ? 0.1 : 1"
-          :step="scaleFactor === 1000 ? 0.1 : 1"
+          :min="1"
+          :step="1"
         >
       </div>
 
@@ -109,14 +109,7 @@ const config = ref<ParameterConfig>({
     ...props.modelValue
 });
 
-function isGaugeType(resourceType: ResourceType): boolean {
-    return resourceType === ResourceType.PLAYER_OD_GAUGE
-        || resourceType === ResourceType.OPPONENT_OD_GAUGE
-        || resourceType === ResourceType.PLAYER_SA_GAUGE
-        || resourceType === ResourceType.OPPONENT_SA_GAUGE;
-}
-
-const scaleFactor = computed(() => isGaugeType(config.value.resourceType) ? 1000 : 1);
+const scaleFactor = computed(() => 1);
 
 const inputRange = computed(() => {
     const rt = config.value.resourceType;

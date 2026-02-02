@@ -89,6 +89,8 @@
               variant="outlined"
               hide-details
               :step="100"
+              :min="0"
+              :max="10000"
               @update:model-value="setConsumptionValue(routeIndex, damageResourceType, $event)"
             />
             <v-number-input
@@ -100,6 +102,8 @@
               variant="outlined"
               hide-details
               :step="0.1"
+              :min="0"
+              :max="6"
               @update:model-value="setConsumptionValue(routeIndex, odDamageResourceType, $event)"
             />
             <v-number-input
@@ -111,6 +115,8 @@
               variant="outlined"
               hide-details
               :step="1"
+              :min="0"
+              :max="6"
               @update:model-value="setConsumptionValue(routeIndex, odResourceType, $event)"
             />
             <v-number-input
@@ -122,6 +128,8 @@
               variant="outlined"
               hide-details
               :step="1"
+              :min="0"
+              :max="3"
               @update:model-value="setConsumptionValue(routeIndex, saResourceType, $event)"
             />
           </div>
@@ -154,6 +162,8 @@
                 variant="outlined"
                 hide-details
                 :step="0.1"
+                :min="0"
+                :max="6"
                 :disabled="!getOverrideFlag(routeIndex, odResourceType)"
                 @update:model-value="setRequirementValue(routeIndex, odResourceType, $event)"
               />
@@ -167,6 +177,8 @@
                 density="compact"
                 variant="outlined"
                 :step="1"
+                :min="0"
+                :max="3"
                 hide-details
                 :disabled="!getOverrideFlag(routeIndex, saResourceType)"
                 @update:model-value="setRequirementValue(routeIndex, saResourceType, $event)"

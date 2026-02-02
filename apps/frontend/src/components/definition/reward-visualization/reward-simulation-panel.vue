@@ -44,10 +44,10 @@
               v-model.number="playerOd"
               type="range"
               min="0"
-              max="6000"
-              step="1000"
+              max="6"
+              step="1"
             >
-            <span class="slider-value">{{ formatGauge(playerOd, 1000) }}</span>
+            <span class="slider-value">{{ playerOd }}</span>
           </div>
 
           <div class="slider-group">
@@ -56,10 +56,10 @@
               v-model.number="opponentOd"
               type="range"
               min="0"
-              max="6000"
-              step="1000"
+              max="6"
+              step="1"
             >
-            <span class="slider-value">{{ formatGauge(opponentOd, 1000) }}</span>
+            <span class="slider-value">{{ opponentOd }}</span>
           </div>
 
           <div class="slider-group">
@@ -68,10 +68,10 @@
               v-model.number="playerSa"
               type="range"
               min="0"
-              max="3000"
-              step="1000"
+              max="3"
+              step="1"
             >
-            <span class="slider-value">{{ formatGauge(playerSa, 1000) }}</span>
+            <span class="slider-value">{{ playerSa }}</span>
           </div>
 
           <div class="slider-group">
@@ -80,10 +80,10 @@
               v-model.number="opponentSa"
               type="range"
               min="0"
-              max="3000"
-              step="1000"
+              max="3"
+              step="1"
             >
-            <span class="slider-value">{{ formatGauge(opponentSa, 1000) }}</span>
+            <span class="slider-value">{{ opponentSa }}</span>
           </div>
 
           <div class="corner-state-group">
@@ -212,9 +212,6 @@ const rewardClass = computed(() => {
     return 'reward-neutral';
 });
 
-function formatGauge(value: number, divisor: number): string {
-    return String(value / divisor);
-}
 </script>
 
 <style scoped>

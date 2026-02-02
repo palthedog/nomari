@@ -25,7 +25,7 @@ export interface State {
     playerHealth: number;
     opponentHealth: number;
 
-    // OD/SA gauge values (raw values, divide by 1000 for display)
+    // OD gauge: 0-6, SA gauge: 0-3
     playerOd: number;
     opponentOd: number;
     playerSa: number;

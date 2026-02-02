@@ -137,16 +137,16 @@ export function getDefaultParameterConfig(resourceType: ResourceType): Parameter
             return {
                 resourceType,
                 minValue: 0,
-                maxValue: 6000,
-                stepSize: 1000
+                maxValue: 6,
+                stepSize: 1
             };
         case ResourceType.PLAYER_SA_GAUGE:
         case ResourceType.OPPONENT_SA_GAUGE:
             return {
                 resourceType,
                 minValue: 0,
-                maxValue: 3000,
-                stepSize: 1000
+                maxValue: 3,
+                stepSize: 1
             };
         default:
             return {
@@ -170,7 +170,7 @@ export function formatParameterValue(resourceType: ResourceType, value: number):
         case ResourceType.OPPONENT_OD_GAUGE:
         case ResourceType.PLAYER_SA_GAUGE:
         case ResourceType.OPPONENT_SA_GAUGE:
-            return (value / 1000).toFixed(1);
+            return value.toFixed(1);
         default:
             return value.toString();
     }

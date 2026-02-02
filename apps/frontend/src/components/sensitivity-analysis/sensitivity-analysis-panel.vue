@@ -142,7 +142,7 @@ const progressPercentage = computed(() => {
 });
 
 function formatGauge(value: number): string {
-    return (value / 1000).toFixed(1);
+    return value.toFixed(1);
 }
 </script>
 

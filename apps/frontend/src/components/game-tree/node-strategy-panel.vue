@@ -208,7 +208,7 @@ function formatExpectedValue(value: number | null): string {
 }
 
 function formatGauge(value: number): string {
-    return (value / 1000).toFixed(1);
+    return value.toFixed(1);
 }
 
 function formatDamage(value: number): string {
