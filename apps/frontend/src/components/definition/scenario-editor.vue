@@ -518,12 +518,8 @@ function updateSituation(updatedSituation: Situation) {
     }
 }
 
-function deleteSituation() {
-    if (!selectedSituationId.value) {
-        return;
-    }
-
-    const situationId = selectedSituationId.value;
+function deleteSituation(targetSituationId: number) {
+    const situationId = targetSituationId;
     const index = scenario.value.situations.findIndex((s) => s.situationId === situationId);
     if (index !== -1) {
         scenario.value.situations.splice(index, 1);
@@ -573,12 +569,8 @@ function updateTerminalSituation(updatedTerminalSituation: TerminalSituation) {
     }
 }
 
-function deleteTerminalSituation() {
-    if (!selectedTerminalSituationId.value) {
-        return;
-    }
-
-    const terminalSituationId = selectedTerminalSituationId.value;
+function deleteTerminalSituation(targetTerminalSituationId: number) {
+    const terminalSituationId = targetTerminalSituationId;
     const index = scenario.value.terminalSituations.findIndex(
         (t) => t.situationId === terminalSituationId
     );
@@ -637,12 +629,12 @@ function updatePlayerCombo(updatedCombo: ComboStarter) {
     }
 }
 
-function deletePlayerCombo() {
-    if (!selectedPlayerComboId.value || !scenario.value.player) {
+function deletePlayerCombo(targetComboId: number) {
+    if (!scenario.value.player) {
         return;
     }
 
-    const comboId = selectedPlayerComboId.value;
+    const comboId = targetComboId;
     const index = scenario.value.player.comboStarters.findIndex(
         (c) => c.situationId === comboId
     );
@@ -689,12 +681,12 @@ function updateOpponentCombo(updatedCombo: ComboStarter) {
     }
 }
 
-function deleteOpponentCombo() {
-    if (!selectedOpponentComboId.value || !scenario.value.opponent) {
+function deleteOpponentCombo(targetComboId: number) {
+    if (!scenario.value.opponent) {
         return;
     }
 
-    const comboId = selectedOpponentComboId.value;
+    const comboId = targetComboId;
     const index = scenario.value.opponent.comboStarters.findIndex(
         (c) => c.situationId === comboId
     );
@@ -724,8 +716,7 @@ function confirmDeleteSituation(situation: Situation) {
     deleteTarget.value = {
         name: situation.name || '(説明なし)',
         onConfirm: () => {
-            selectSituation(situation.situationId);
-            deleteSituation();
+            deleteSituation(situation.situationId);
         },
     };
     showDeleteDialog.value = true;
@@ -735,8 +726,7 @@ function confirmDeleteTerminalSituation(terminal: TerminalSituation) {
     deleteTarget.value = {
         name: terminal.name || '(名前なし)',
         onConfirm: () => {
-            selectTerminalSituation(terminal.situationId);
-            deleteTerminalSituation();
+            deleteTerminalSituation(terminal.situationId);
         },
     };
     showDeleteDialog.value = true;
@@ -746,8 +736,7 @@ function confirmDeletePlayerCombo(combo: ComboStarter) {
     deleteTarget.value = {
         name: combo.name || '(名前なし)',
         onConfirm: () => {
-            selectPlayerCombo(combo.situationId);
-            deletePlayerCombo();
+            deletePlayerCombo(combo.situationId);
         },
     };
     showDeleteDialog.value = true;
@@ -757,8 +746,7 @@ function confirmDeleteOpponentCombo(combo: ComboStarter) {
     deleteTarget.value = {
         name: combo.name || '(名前なし)',
         onConfirm: () => {
-            selectOpponentCombo(combo.situationId);
-            deleteOpponentCombo();
+            deleteOpponentCombo(combo.situationId);
         },
     };
     showDeleteDialog.value = true;
