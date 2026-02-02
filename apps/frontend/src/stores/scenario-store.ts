@@ -4,7 +4,7 @@ import {
     createEmptyComboStarter,
 } from "@/utils/scenario-utils";
 import { validateScenario, type ValidationError } from "@/utils/validation";
-import type { Scenario } from "@nomari/ts-proto";
+import type { ComboStarter, Scenario } from "@nomari/ts-proto";
 import { defineStore } from "pinia";
 
 export const useScenarioStore = defineStore('scenario', {
@@ -59,18 +59,18 @@ export const useScenarioStore = defineStore('scenario', {
          */
         addPlayerComboStarter() {
             const comboStarter = createEmptyComboStarter();
-            this.scenario.playerComboStarters.push(comboStarter);
+            this.scenario.player!.comboStarters.push(comboStarter);
             return comboStarter;
         },
         /**
          * Remove a player combo starter by situation ID
          */
         removePlayerComboStarter(situationId: number) {
-            const index = this.scenario.playerComboStarters.findIndex(
-                cs => cs.situationId === situationId
+            const index = this.scenario.player!.comboStarters.findIndex(
+                (cs: ComboStarter) => cs.situationId === situationId
             );
             if (index !== -1) {
-                this.scenario.playerComboStarters.splice(index, 1);
+                this.scenario.player!.comboStarters.splice(index, 1);
             }
         },
         /**
@@ -78,18 +78,18 @@ export const useScenarioStore = defineStore('scenario', {
          */
         addOpponentComboStarter() {
             const comboStarter = createEmptyComboStarter();
-            this.scenario.opponentComboStarters.push(comboStarter);
+            this.scenario.opponent!.comboStarters.push(comboStarter);
             return comboStarter;
         },
         /**
          * Remove an opponent combo starter by situation ID
          */
         removeOpponentComboStarter(situationId: number) {
-            const index = this.scenario.opponentComboStarters.findIndex(
-                cs => cs.situationId === situationId
+            const index = this.scenario.opponent!.comboStarters.findIndex(
+                (cs: ComboStarter) => cs.situationId === situationId
             );
             if (index !== -1) {
-                this.scenario.opponentComboStarters.splice(index, 1);
+                this.scenario.opponent!.comboStarters.splice(index, 1);
             }
         },
     },

@@ -16,10 +16,10 @@ function collectAllSituationIds(scenario: Scenario): Set<number> {
     for (const t of scenario.terminalSituations) {
         ids.add(t.situationId);
     }
-    for (const c of scenario.playerComboStarters) {
+    for (const c of scenario.player?.comboStarters ?? []) {
         ids.add(c.situationId);
     }
-    for (const c of scenario.opponentComboStarters) {
+    for (const c of scenario.opponent?.comboStarters ?? []) {
         ids.add(c.situationId);
     }
     return ids;
@@ -61,9 +61,11 @@ function buildDefinedTransitionKeys(situation: Situation): Set<string> {
 /**
  * Find missing action combinations in a situation
  */
-function findMissingTransitions(situation: Situation): ValidationError[] {
-    const playerActions = situation.playerActions?.actions ?? [];
-    const opponentActions = situation.opponentActions?.actions ?? [];
+function findMissingTransitions(situation: Situation, scenario: Scenario): ValidationError[] {
+    const allPlayerActions = scenario.player?.actions ?? [];
+    const allOpponentActions = scenario.opponent?.actions ?? [];
+    const playerActions = allPlayerActions.filter(a => situation.playerActionIds.includes(a.actionId));
+    const opponentActions = allOpponentActions.filter(a => situation.opponentActionIds.includes(a.actionId));
 
     if (playerActions.length === 0 || opponentActions.length === 0) {
         return [];
@@ -123,10 +125,11 @@ function validateTransitionDestinations(
  */
 function validateSituation(
     situation: Situation,
+    scenario: Scenario,
     allSituationIds: Set<number>
 ): ValidationError[] {
     return [
-        ...findMissingTransitions(situation),
+        ...findMissingTransitions(situation, scenario),
         ...validateTransitionDestinations(situation, allSituationIds),
     ];
 }
@@ -141,7 +144,7 @@ export function validateScenario(scenario: Scenario): ValidationError[] {
     errors.push(...validateRootSituation(scenario, allSituationIds));
 
     for (const situation of scenario.situations) {
-        errors.push(...validateSituation(situation, allSituationIds));
+        errors.push(...validateSituation(situation, scenario, allSituationIds));
     }
 
     if (!scenario.initialDynamicState?.resources?.length) {
