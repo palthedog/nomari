@@ -90,6 +90,7 @@
                 <v-select
                   :model-value="getTransition(playerAction.actionId, oppAction.actionId)?.nextSituationId || 0"
                   :items="getNextSituationItemsForCell(playerAction.actionId, oppAction.actionId)"
+                  :item-props="true"
                   item-title="title"
                   item-value="value"
                   density="compact"
@@ -147,9 +148,18 @@ const selectedOpponentActions = computed(() =>
         .filter((a): a is Action => a !== undefined)
 );
 
-type SelectItem = { title: string;
-    value: number } | { type: 'subheader';
-        title: string };
+type SelectItem = {
+    title: string;
+    value: number;
+} | {
+    type: 'subheader';
+    title: string;
+    fontSize?: string;
+} | {
+    type: 'divider',
+    thickness: number,
+    opacity: number,
+};
 
 function getNextSituationItemsForCell(
     playerActionId: number,
@@ -161,6 +171,11 @@ function getNextSituationItemsForCell(
             value: 0
         },
     ];
+    const divider: SelectItem = {
+        type: 'divider',
+        thickness: 1,
+        opacity: 0.5,
+    };
 
     const playerActionIdStr = String(playerActionId);
     const opponentActionIdStr = String(opponentActionId);
@@ -181,9 +196,10 @@ function getNextSituationItemsForCell(
 
     // Priority 1: Player combos matching current player action
     if (playerCombosMatching.length > 0) {
+        items.push(divider);
         items.push({
             type: 'subheader',
-            title: '── プレイヤー始動技一致 ──'
+            title: 'プレイヤー始動技一致',
         });
         items.push(...playerCombosMatching.map((c) => ({
             title: c.name || '(名前なし)',
@@ -193,9 +209,10 @@ function getNextSituationItemsForCell(
 
     // Priority 2: Opponent combos matching current opponent action
     if (opponentCombosMatching.length > 0) {
+        items.push(divider);
         items.push({
             type: 'subheader',
-            title: '── 相手始動技一致 ──'
+            title: '相手始動技一致'
         });
         items.push(...opponentCombosMatching.map((c) => ({
             title: c.name || '(名前なし)',
@@ -205,9 +222,10 @@ function getNextSituationItemsForCell(
 
     // Priority 3: Terminal situations
     if (props.availableTerminalSituations.length > 0) {
+        items.push(divider);
         items.push({
             type: 'subheader',
-            title: '── 終点状況 ──'
+            title: '終点状況'
         });
         items.push(...props.availableTerminalSituations.map((t) => ({
             title: t.name || '(名前なし)',
@@ -217,9 +235,10 @@ function getNextSituationItemsForCell(
 
     // Priority 4: Regular situations
     if (props.availableSituations.length > 0) {
+        items.push(divider);
         items.push({
             type: 'subheader',
-            title: '── 状況 ──'
+            title: '状況'
         });
         items.push(...props.availableSituations.map((s) => ({
             title: s.name || '(名前なし)',
@@ -229,9 +248,10 @@ function getNextSituationItemsForCell(
 
     // Priority 5: Other player combos (without matching starter_action_id)
     if (otherPlayerCombos.length > 0) {
+        items.push(divider);
         items.push({
             type: 'subheader',
-            title: '── その他プレイヤーコンボ ──'
+            title: 'その他プレイヤーコンボ'
         });
         items.push(...otherPlayerCombos.map((c) => ({
             title: c.name || '(名前なし)',
@@ -241,9 +261,10 @@ function getNextSituationItemsForCell(
 
     // Priority 6: Other opponent combos (without matching starter_action_id)
     if (otherOpponentCombos.length > 0) {
+        items.push(divider);
         items.push({
             type: 'subheader',
-            title: '── その他相手コンボ ──'
+            title: 'その他相手コンボ'
         });
         items.push(...otherOpponentCombos.map((c) => ({
             title: c.name || '(名前なし)',
